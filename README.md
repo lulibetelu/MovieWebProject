@@ -14,6 +14,7 @@ Para realizar el TP se deberá instalar el siguiente software:
 1.  **Node.js y npm (Node Package Manager):** para ejecutar la aplicación web en un servidor local.
 2.  **PostgreSQL:** para gestionar la base de datos `movies` que contiene la información de películas, actores, directores, etc.
 3.  **Un editor de código** (por ejemplo, `WebStorm`, `Visual Studio Code`, etc.) para escribir y editar código.
+4.  **MongoDB**: base de datos NoSQL.
 
 ---
 
@@ -37,6 +38,9 @@ Se proporciona código prefabricado que servirá como punto de partida para el d
 
 4.  **Búsqueda de películas por palabras clave**
     *   Incluir un buscador de palabras clave (keywords) que devuelva como resultado las películas relacionadas con la palabra de búsqueda.
+
+5.  **Registro de actividad del usuario**
+    * Registrar tres tipos de actividades del usuario usando MongoDB (ver punto 3 de las Instrucciones).
 
 ---
 
