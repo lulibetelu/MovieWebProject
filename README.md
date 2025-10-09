@@ -74,18 +74,18 @@ Se deben completar las siguientes tareas como parte de este TP:
 
 ### 3. Registro de actividad del usuario (Timeline con MongoDB)
 
-#### Descripción del escenario:
+#### Descripción:
 Crear una página de perfil de usuario donde se muestre un "timeline" o feed de su actividad reciente en el sitio. Esta actividad puede ser de 3 diferentes tipos:
 - *"calificó la película X con 4 estrellas"*
 - *"añadió la película Y a su lista de favoritos"*
 - *"escribió una reseña para la película Z"*
 
-#### ¿Por qué usar MongoDB en lugar de PostgreSQL?
-**Diversidad de estructuras de datos:** cada tipo de evento de actividad tiene datos asociados diferentes. Una calificación tiene una puntuación, una reseña tiene texto, y un "favorito" es una acción simple. En PostgreSQL, esto requeriría una tabla `activity_log` con muchas columnas que serían `NULL` para la mayoría de las filas, o crear múltiples tablas (una por cada tipo de actividad), lo cual es ineficiente de consultar.
+#### Usar MongoDB tiene algunas ventajas
+**	Diversidad de estructuras de datos: cada tipo de evento de actividad tiene datos asociados diferentes. Una calificación tiene una puntuación, una reseña tiene texto, y un "favorito" es una acción simple.
 
 **Esquema flexible:** cada evento puede ser un documento en una colección `user_activity` con una estructura que se adapte al tipo de evento. No hay columnas vacías ni `JOIN`s innecesarios.
 
-**Consultas simples para feeds:** obtener el timeline de un usuario es tan simple como hacer un `find({ userId: "..." })` en la colección y ordenarlo por fecha. Es muy rápido y escalable.
+**Consultas simples para feeds:** para obtener el timeline de un usuario basta con hacer un `find({ userId: "..." })` en la colección y ordenarlo por fecha, por ejemplo.
 
 #### Ejemplo de documentos en MongoDB (Colección: `user_activity`)
 
