@@ -5,17 +5,34 @@
 // DB_PORT=5432
 // DB_DATABASE=movies
 
-require('dotenv').config();
+require("dotenv").config();
 
-const express = require('express');
+const path = require("path");
+const express = require("express");
+const livereload = require("livereload");
+const connectLivereload = require("connect-livereload");
 
-const { Pool } = require('pg');
+const { Pool } = require("pg");
 
 const app = express();
-const port = process.env.PORT || 3500;
+const PORT = process.env.PORT || 3500;
+
+// --- 🔥 Configurar LiveReload ---
+const liveReloadServer = livereload.createServer({
+    exts: ["ejs", "css", "js"],
+    delay: 100,
+});
+liveReloadServer.watch(path.join(__dirname, "views"));
+liveReloadServer.watch(path.join(__dirname, "public"));
+
+// Middleware para inyectar el script en las páginas
+app.use(connectLivereload());
 
 // Serve static files from the "views" directory
-app.use(express.static('views'));
+app.set("views", path.join(process.cwd(), "views"));
+
+// Servir archivos estáticos (CSS, JS, imágenes, etc.)
+app.use(express.static("public"));
 
 // Crear un "pool" de conexiones a PostgreSQL usando las variables de entorno
 const db = new Pool({
@@ -28,33 +45,35 @@ const db = new Pool({
 });
 
 // Configurar el motor de plantillas EJS
-app.set('view engine', 'ejs');
+app.set("view engine", "ejs");
 
 // Ruta para la página de inicio
-app.get('/', (req, res) => {
-    res.render('index');
+app.get("/", (req, res) => {
+    res.render("index");
 });
 
 // Ruta para buscar películas en la base de datos PostgreSQL
-app.get('/buscar', async (req, res) => { // 4. Convertir a función async
+app.get("/buscar", async (req, res) => {
+    // 4. Convertir a función async
     const searchTerm = req.query.q;
 
     // Los placeholders en pg son $1, $2, etc.
-    const query = 'SELECT * FROM movie WHERE title ILIKE $1'; // ILIKE es case-insensitive en Postgres
+    const query = "SELECT * FROM movie WHERE title ILIKE $1"; // ILIKE es case-insensitive en Postgres
     const values = [`%${searchTerm}%`];
 
     try {
         // Usar db.query que devuelve una promesa y acceder a .rows
         const result = await db.query(query, values);
-        res.render('resultado', { movies: result.rows });
+        res.render("resultado", { movies: result.rows });
     } catch (err) {
         console.error(err);
-        res.status(500).send('Error en la búsqueda.');
+        res.status(500).send("Error en la búsqueda.");
     }
 });
 
 // Ruta para la página de datos de una película particular (PostgreSQL)
-app.get('/pelicula/:id', async (req, res) => { // Convertir a async
+app.get("/pelicula/:id", async (req, res) => {
+    // Convertir a async
     const movieId = req.params.id;
 
     const query = `
@@ -82,11 +101,11 @@ app.get('/pelicula/:id', async (req, res) => { // Convertir a async
         const rows = result.rows;
 
         if (rows.length === 0) {
-            return res.status(404).send('Película no encontrada.');
+            return res.status(404).send("Película no encontrada.");
         }
 
         const movieData = {
-            id: rows[0].id,
+            id: rows[0].movie_id,
             title: rows[0].title,
             release_date: rows[0].release_date,
             overview: rows[0].overview,
@@ -96,10 +115,25 @@ app.get('/pelicula/:id', async (req, res) => { // Convertir a async
             crew: [],
         };
 
+        //console.log(rows)
+        console.log(movieData);
+
         rows.forEach((row) => {
-            if (row.crew_member_id && row.crew_member_name && row.department_name && row.job) {
-                const isDuplicate = movieData.directors.some((crew_member) => crew_member.crew_member_id === row.crew_member_id);
-                if (!isDuplicate && row.department_name === 'Directing' && row.job === 'Director') {
+            if (
+                row.crew_member_id &&
+                row.crew_member_name &&
+                row.department_name &&
+                row.job
+            ) {
+                const isDuplicate = movieData.directors.some(
+                    (crew_member) =>
+                        crew_member.crew_member_id === row.crew_member_id,
+                );
+                if (
+                    !isDuplicate &&
+                    row.department_name === "Directing" &&
+                    row.job === "Director"
+                ) {
                     movieData.directors.push({
                         crew_member_id: row.crew_member_id,
                         crew_member_name: row.crew_member_name,
@@ -111,9 +145,22 @@ app.get('/pelicula/:id', async (req, res) => { // Convertir a async
         });
 
         rows.forEach((row) => {
-            if (row.crew_member_id && row.crew_member_name && row.department_name && row.job) {
-                const isDuplicate = movieData.writers.some((crew_member) => crew_member.crew_member_id === row.crew_member_id);
-                if (!isDuplicate && row.department_name === 'Writing' && (row.job === 'Writer' || row.job === 'Screenplay')) { // Ajuste para más roles de escritura
+            if (
+                row.crew_member_id &&
+                row.crew_member_name &&
+                row.department_name &&
+                row.job
+            ) {
+                const isDuplicate = movieData.writers.some(
+                    (crew_member) =>
+                        crew_member.crew_member_id === row.crew_member_id,
+                );
+                if (
+                    !isDuplicate &&
+                    row.department_name === "Writing" &&
+                    (row.job === "Writer" || row.job === "Screenplay")
+                ) {
+                    // Ajuste para más roles de escritura
                     movieData.writers.push({
                         crew_member_id: row.crew_member_id,
                         crew_member_name: row.crew_member_name,
@@ -126,7 +173,9 @@ app.get('/pelicula/:id', async (req, res) => { // Convertir a async
 
         rows.forEach((row) => {
             if (row.actor_id && row.actor_name && row.character_name) {
-                const isDuplicate = movieData.cast.some((actor) => actor.actor_id === row.actor_id);
+                const isDuplicate = movieData.cast.some(
+                    (actor) => actor.actor_id === row.actor_id,
+                );
                 if (!isDuplicate) {
                     movieData.cast.push({
                         actor_id: row.actor_id,
@@ -139,10 +188,21 @@ app.get('/pelicula/:id', async (req, res) => { // Convertir a async
         });
 
         rows.forEach((row) => {
-            if (row.crew_member_id && row.crew_member_name && row.department_name && row.job) {
-                const isDuplicate = movieData.crew.some((crew_member) => crew_member.crew_member_id === row.crew_member_id);
+            if (
+                row.crew_member_id &&
+                row.crew_member_name &&
+                row.department_name &&
+                row.job
+            ) {
+                const isDuplicate = movieData.crew.some(
+                    (crew_member) =>
+                        crew_member.crew_member_id === row.crew_member_id,
+                );
                 if (!isDuplicate) {
-                    if (row.department_name !== 'Directing' && row.department_name !== 'Writing') {
+                    if (
+                        row.department_name !== "Directing" &&
+                        row.department_name !== "Writing"
+                    ) {
                         movieData.crew.push({
                             crew_member_id: row.crew_member_id,
                             crew_member_name: row.crew_member_name,
@@ -154,16 +214,15 @@ app.get('/pelicula/:id', async (req, res) => { // Convertir a async
             }
         });
 
-        res.render('pelicula', { movie: movieData });
-
+        res.render("pelicula", { movie: movieData });
     } catch (err) {
         console.error(err);
-        res.status(500).send('Error al cargar los datos de la película.');
+        res.status(500).send("Error al cargar los datos de la película.");
     }
 });
 
 // Ruta para mostrar la página de un actor específico (PostgreSQL)
-app.get('/actor/:id', async (req, res) => {
+app.get("/actor/:id", async (req, res) => {
     const actorId = req.params.id;
 
     const query = `
@@ -179,16 +238,16 @@ app.get('/actor/:id', async (req, res) => {
     try {
         const result = await db.query(query, [actorId]);
         const movies = result.rows;
-        const actorName = movies.length > 0 ? movies[0].actorname : ''; // Ojo: postgres devuelve todo en minúsculas por defecto
-        res.render('actor', { actorName, movies });
+        const actorName = movies.length > 0 ? movies[0].actorname : ""; // Ojo: postgres devuelve todo en minúsculas por defecto
+        res.render("actor", { actorName, movies });
     } catch (err) {
         console.error(err);
-        res.status(500).send('Error al cargar las películas del actor.');
+        res.status(500).send("Error al cargar las películas del actor.");
     }
 });
 
 // Ruta para mostrar la página de un director específico (PostgreSQL)
-app.get('/director/:id', async (req, res) => {
+app.get("/director/:id", async (req, res) => {
     const directorId = req.params.id;
 
     const query = `
@@ -204,15 +263,21 @@ app.get('/director/:id', async (req, res) => {
     try {
         const result = await db.query(query, [directorId]);
         const movies = result.rows;
-        const directorName = movies.length > 0 ? movies[0].directorname : ''; // Ojo: postgres devuelve todo en minúsculas por defecto
-        res.render('director', { directorName, movies });
+        const directorName = movies.length > 0 ? movies[0].directorname : ""; // Ojo: postgres devuelve todo en minúsculas por defecto
+        res.render("director", { directorName, movies });
     } catch (err) {
         console.error(err);
-        res.status(500).send('Error al cargar las películas del director.');
+        res.status(500).send("Error al cargar las películas del director.");
     }
 });
 
+app.listen(PORT, () =>
+    console.log(`Servidor corriendo en http://localhost:${PORT}`),
+);
 
-app.listen(port, () => {
-    console.log(`Servidor en ejecución en http://localhost:${port}`);
+// Cuando el servidor de livereload detecte un cambio, recarga el navegador
+liveReloadServer.server.once("connection", () => {
+    setTimeout(() => {
+        liveReloadServer.refresh("/");
+    }, 100);
 });
