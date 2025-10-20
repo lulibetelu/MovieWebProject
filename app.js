@@ -220,29 +220,106 @@ app.get("/pelicula/:id", async (req, res) => {
         res.status(500).send("Error al cargar los datos de la película.");
     }
 });
+app.get('/persona/:id', async (req,res)=>{
+    const personID = req.params.id;
+
+    const actorQuery = `
+        SELECT p.person_id, p.person_name, m.title,m.movie_id,mc.character_name, g.gender, m.release_date
+        FROM person p
+        INNER JOIN movie_cast mc on mc.person_id = p.person_id
+        INNER JOIN movie m on m.movie_id = mc.movie_id
+        INNER JOIN gender g on mc.gender_id = g.gender_id
+        WHERE p.person_id = $1;
+    `;
+    const directorQuery = `
+        SELECT p.person_id, p.person_name, mc.movie_id, m.title, m.release_date
+        FROM person p
+        INNER JOIN movie_crew mc on p.person_id = mc.person_id
+        INNER JOIN movie m on m.movie_id = mc.movie_id
+        WHERE p.person_id = $1 and mc.job = 'Director';
+    `;
+
+
+    try{
+        const actors = (await db.query(actorQuery,[personID])).rows;
+        const directors = (await db.query(directorQuery,[personID])).rows;
+
+        if (actors.length === 0 && directors.length === 0) {
+            return res.status(404).send('Persona no encontrada.');
+        }
+
+        const personData = {
+            person_id: personID,
+            person_name: actors.length === 0? directors[0].person_name:actors[0].person_name,
+            //gender: actors[0].gender,
+            actedMovies: [],
+            directedMovies: []
+        }
+
+        actors.forEach((actor)=>{
+            personData.actedMovies.push({
+                title: actor.title,
+                movie_id: actor.movie_id,
+                character_name: actor.character_name,
+                release_date: actor.release_date
+            })
+        })
+        directors.forEach((director)=>{
+            personData.directedMovies.push({
+                title: director.title,
+                movie_id: director.movie_id,
+                release_date: director.release_date
+            })
+        })
+
+        res.render('persona', {personData})
+
+    }catch (err) {
+        console.error(err);
+        res.status(500).send('Error al cargar la informacion de la persona');
+    }
+
+})
 
 // Ruta para mostrar la página de un actor específico (PostgreSQL)
-app.get("/actor/:id", async (req, res) => {
-    const actorId = req.params.id;
+app.get('/actor/:id', async (req, res) => {
 
-    const query = `
-    SELECT DISTINCT
-      person.person_name as actorName,
-      movie.*
-    FROM movie
-    INNER JOIN movie_cast ON movie.movie_id = movie_cast.movie_id
-    INNER JOIN person ON person.person_id = movie_cast.person_id
-    WHERE movie_cast.person_id = $1;
-  `;
+
 
     try {
         const result = await db.query(query, [actorId]);
-        const movies = result.rows;
-        const actorName = movies.length > 0 ? movies[0].actorname : ""; // Ojo: postgres devuelve todo en minúsculas por defecto
-        res.render("actor", { actorName, movies });
+        const rows = result.rows;
+
+        if (rows.length === 0) {
+            return res.status(404).send('Actor no encontrado.');
+        }
+
+
+        const personData={
+            actor_id: actorId,
+            actor_name: rows[0].person_name,
+            gender: rows[0].gender,
+            movies: []
+        }
+
+
+        rows.forEach((row) => {
+            personData.movies.push({
+                title: row.title,
+                movie_id: row.movie_id,
+                character_name: row.character_name,
+                release_date: row.release_date
+            })
+        })
+
+
+
+        res.render('actor', { personData });
+//const actorName = movies.length > 0 ? movies[0].actorname : ''; // Ojo: postgres devuelve todo en minúsculas por defecto
+//res.render('actor', { actorName, movies });
     } catch (err) {
         console.error(err);
-        res.status(500).send("Error al cargar las películas del actor.");
+        res.status(500).send('Error al cargar las películas del actor.');
     }
 });
 
