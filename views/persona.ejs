@@ -2,36 +2,30 @@
 <html>
 <head>
     <title><%= personData.person_name%></title>
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <h1><%= personData.person_name%></h1>
-<h2>Información Personal</h2>
-<ul>
-    <li>Nombre: <%=personData.person_name%></li>
-</ul>
 <!-- name of each tab group should be unique -->
 <div class="tabs tabs-lift">
-    <input type="radio" name="my_tabs_3" class="tab" aria-label="Tab 1" />
+    <input type="radio" name="my_tabs_3" class="tab" aria-label="Peliculas Actuadas" <% if (personData.actedMovies.length !== 0) { %> checked <% } %> />
     <div class="tab-content bg-base-100 border-base-300 p-6">
         <% if (personData.actedMovies.length === 0) { %>
             <p>No actuo en ninguna pelicula</p>
         <% } else { %>
-            <h2>Peliculas Actuadas</h2>
             <ul>
                 <% personData.actedMovies.sort((a, b) => new Date(b.release_date) - new Date(a.release_date)).forEach((movie) => { %>
-                    <li><a href="/pelicula/<%= movie.movie_id %>"><%= movie.title %> (<%= new Date(movie.release_date).getFullYear() %>)</a> <p><%= movie.character_name%></p></li>
+                    <li><a class="link-hover" href="/pelicula/<%= movie.movie_id %>"><%= movie.title %> (<%= new Date(movie.release_date).getFullYear() %>)</a> <p><%= movie.character_name%></p></li>
                 <% }); %>
             </ul>
         <% } %>
     </div>
 
-    <input type="radio" name="my_tabs_3" class="tab" aria-label="Tab 2" checked="checked" />
+    <input type="radio" name="my_tabs_3" class="tab" aria-label="Peliculas Dirigidas" <% if (personData.actedMovies.length === 0) { %> checked <% } %>/>
     <div class="tab-content bg-base-100 border-base-300 p-6">
         <% if (personData.directedMovies.length === 0) { %>
             <p>No dirigió ninguna película</p>
         <% } else { %>
-            <h2>Peliculas Dirigidas</h2>
             <ul>
                 <% personData.directedMovies.sort((a, b) => new Date(b.release_date) - new Date(a.release_date)).forEach((movie) => { %>
                     <li><a href="/pelicula/<%= movie.movie_id %>"><%= movie.title %>(<%= new Date(movie.release_date).getFullYear() %>)</a></li>
@@ -45,7 +39,7 @@
 
 
 
-<div id="inicio"><a href="/">Inicio</a></div>
+<div id="inicio"><a class="link link-hover" href="/">Inicio</a></div>
 </body>
 </html>
 
