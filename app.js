@@ -56,15 +56,36 @@ app.get("/", (req, res) => {
 app.get("/buscar", async (req, res) => {
     // 4. Convertir a función async
     const searchTerm = req.query.q;
+    const page = req.query.page || 1;
+    const offset = (page - 1) * 20;
 
     // Los placeholders en pg son $1, $2, etc.
-    const query = "SELECT * FROM movie WHERE title ILIKE $1"; // ILIKE es case-insensitive en Postgres
-    const values = [`%${searchTerm}%`];
-
+    const query = "SELECT * FROM search_all($1, 20, $2)"; // ILIKE es case-insensitive en Postgres
+    const values = [`%${searchTerm}%`, offset];
     try {
         // Usar db.query que devuelve una promesa y acceder a .rows
         const result = await db.query(query, values);
-        res.render("resultado", { movies: result.rows });
+
+        // Filter movies
+        const filteredMovies = result.rows.filter(
+            (row) => row.type === "movie",
+        );
+
+        // Filter actors
+        const filteredActors = result.rows.filter(
+            (row) => row.type === "actor",
+        );
+
+        // Filter directors
+        const filteredDirectors = result.rows.filter(
+            (row) => row.type === "director",
+        );
+
+        res.render("resultado", {
+            movies: filteredMovies,
+            actors: filteredActors,
+            directors: filteredDirectors,
+        });
     } catch (err) {
         console.error(err);
         res.status(500).send("Error en la búsqueda.");
@@ -114,9 +135,6 @@ app.get("/pelicula/:id", async (req, res) => {
             cast: [],
             crew: [],
         };
-
-        //console.log(rows)
-        console.log(movieData);
 
         rows.forEach((row) => {
             if (

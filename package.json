@@ -5,7 +5,8 @@
     "main": "app.js",
     "scripts": {
         "dev": "nodemon app.js",
-        "build:css": "npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/style.css"
+        "css": "npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/style.css",
+        "css:watch": "npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/style.css --watch"
     },
     "keywords": [],
     "author": "",
