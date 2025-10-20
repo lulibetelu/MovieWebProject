@@ -10,26 +10,41 @@
 <ul>
     <li>Nombre: <%=personData.person_name%></li>
 </ul>
-<% if (personData.actedMovies.length === 0) { %>
-    <p></p>
-<% } else { %>
-<h2>Peliculas Actuadas</h2>
-<ul>
-    <% personData.actedMovies.sort((a, b) => new Date(b.release_date) - new Date(a.release_date)).forEach((movie) => { %>
-        <li><a href="/pelicula/<%= movie.movie_id %>"><%= movie.title %> (<%= new Date(movie.release_date).getFullYear() %>)</a> <p><%= movie.character_name%></p></li>
-    <% }); %>
-</ul>
-<% } %>
-<% if (personData.directedMovies.length === 0) { %>
-    <p></p>
-<% } else { %>
-<h2>Peliculas Dirigidas</h2>
-<ul>
-    <% personData.directedMovies.sort((a, b) => new Date(b.release_date) - new Date(a.release_date)).forEach((movie) => { %>
-        <li><a href="/pelicula/<%= movie.movie_id %>"><%= movie.title %>(<%= new Date(movie.release_date).getFullYear() %>)</a></li>
-    <% }); %>
-</ul>
-<% } %>
+<!-- name of each tab group should be unique -->
+<div class="tabs tabs-lift">
+    <input type="radio" name="my_tabs_3" class="tab" aria-label="Tab 1" />
+    <div class="tab-content bg-base-100 border-base-300 p-6">
+        <% if (personData.actedMovies.length === 0) { %>
+            <p>No actuo en ninguna pelicula</p>
+        <% } else { %>
+            <h2>Peliculas Actuadas</h2>
+            <ul>
+                <% personData.actedMovies.sort((a, b) => new Date(b.release_date) - new Date(a.release_date)).forEach((movie) => { %>
+                    <li><a href="/pelicula/<%= movie.movie_id %>"><%= movie.title %> (<%= new Date(movie.release_date).getFullYear() %>)</a> <p><%= movie.character_name%></p></li>
+                <% }); %>
+            </ul>
+        <% } %>
+    </div>
+
+    <input type="radio" name="my_tabs_3" class="tab" aria-label="Tab 2" checked="checked" />
+    <div class="tab-content bg-base-100 border-base-300 p-6">
+        <% if (personData.directedMovies.length === 0) { %>
+            <p>No dirigió ninguna película</p>
+        <% } else { %>
+            <h2>Peliculas Dirigidas</h2>
+            <ul>
+                <% personData.directedMovies.sort((a, b) => new Date(b.release_date) - new Date(a.release_date)).forEach((movie) => { %>
+                    <li><a href="/pelicula/<%= movie.movie_id %>"><%= movie.title %>(<%= new Date(movie.release_date).getFullYear() %>)</a></li>
+                <% }); %>
+            </ul>
+        <% } %>
+    </div>
+
+</div>
+
+
+
+
 <div id="inicio"><a href="/">Inicio</a></div>
 </body>
 </html>
