@@ -15,7 +15,7 @@
         <% } else { %>
             <ul>
                 <% personData.actedMovies.sort((a, b) => new Date(b.release_date) - new Date(a.release_date)).forEach((movie) => { %>
-                    <li><a class="link-hover" href="/pelicula/<%= movie.movie_id %>"><%= movie.title %> (<%= new Date(movie.release_date).getFullYear() %>)</a> <p><%= movie.character_name%></p></li>
+                    <li><a class="link-hover" href="/pelicula/<%= movie.movie_id %>"><%= movie.title %> (<%= new Date(movie.release_date).getFullYear() %>)</a> <% if (movie.character_name) { %> <span class="text-gray-500 italic"> – <%= movie.character_name %> </span><% } %></li>
                 <% }); %>
             </ul>
         <% } %>
@@ -36,7 +36,19 @@
 
 </div>
 
-
+<div class="join">
+    <% if(personData.offset === 0) {%>
+        <button class="join-item btn">«</button>
+    <%} else{%>
+        <a href= "/persona/<%=personData.person_id%>?offset=<%=personData.offset - 10 %>" class="join-item btn">«</a>
+    <%}%>
+    <button class="join-item btn">Page <%=(personData.offset/10)+1%></button>
+    <% if((personData.offset + 10) >= personData.totalActedMovies) {%>
+        <button class="join-item btn">»</button>
+    <%} else{%>
+        <a href="/persona/<%=personData.person_id%>?offset=<%=personData.offset + 10%>" class="join-item btn">»</a>
+    <%}%>
+</div>
 
 
 <div id="inicio"><a class="link link-hover" href="/">Inicio</a></div>

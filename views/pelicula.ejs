@@ -29,7 +29,7 @@ const formattedDate = `${day}-${month}-${year}`;
 <ul>
     <% movie.directors.forEach((director) => { %>
         <li>
-            <a href="/persona/<%= director.crew_member_id %>"><%= director.crew_member_name %></a>
+            <a href="/persona/<%= director.crew_member_id %>?offset=<%= 0 %>"><%= director.crew_member_name %></a>
         </li>
     <% }); %>
 </ul>

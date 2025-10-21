@@ -241,16 +241,23 @@ app.get("/pelicula/:id", async (req, res) => {
 app.get('/persona/:id', async (req,res)=>{
     const personID = req.params.id;
 
+
+
+    const offset = req.query.offset ? Math.max(parseInt(req.query.offset), 0) : 0;
+
+
+
     const actorQuery = `
-        SELECT p.person_id, p.person_name, m.title,m.movie_id,mc.character_name, g.gender, m.release_date
+        SELECT p.person_id, p.person_name, m.title,m.movie_id,mc.character_name, g.gender, m.popularity, m.release_date, COUNT(*) OVER() AS total_movies
         FROM person p
         INNER JOIN movie_cast mc on mc.person_id = p.person_id
         INNER JOIN movie m on m.movie_id = mc.movie_id
         INNER JOIN gender g on mc.gender_id = g.gender_id
-        WHERE p.person_id = $1;
+        WHERE p.person_id = $1
+        LIMIT 10 OFFSET $2;
     `;
     const directorQuery = `
-        SELECT p.person_id, p.person_name, mc.movie_id, m.title, m.release_date
+        SELECT p.person_id, p.person_name, mc.movie_id, m.title, m.release_date, COUNT(*) OVER() AS total_movies
         FROM person p
         INNER JOIN movie_crew mc on p.person_id = mc.person_id
         INNER JOIN movie m on m.movie_id = mc.movie_id
@@ -259,7 +266,7 @@ app.get('/persona/:id', async (req,res)=>{
 
 
     try{
-        const actors = (await db.query(actorQuery,[personID])).rows;
+        const actors = (await db.query(actorQuery,[personID,offset])).rows;
         const directors = (await db.query(directorQuery,[personID])).rows;
 
         if (actors.length === 0 && directors.length === 0) {
@@ -270,8 +277,11 @@ app.get('/persona/:id', async (req,res)=>{
             person_id: personID,
             person_name: actors.length === 0? directors[0].person_name:actors[0].person_name,
             //gender: actors[0].gender,
+            offset: offset,
             actedMovies: [],
-            directedMovies: []
+            directedMovies: [],
+            totalActedMovies: actors.length === 0? 0 : actors[0].total_movies,
+            totalDirectedMovies: directors.length === 0? 0: directors[0].total_movies
         }
 
         actors.forEach((actor)=>{
