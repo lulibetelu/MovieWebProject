@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<h1><%= personData.person_name%></h1>
+<h1 class="text-4xl font-bold text-blue-600"><%= personData.person_name%></h1>
 <!-- name of each tab group should be unique -->
 <div class="tabs tabs-lift">
     <input type="radio" name="my_tabs_3" class="tab" aria-label="Peliculas Actuadas" <% if (personData.actedMovies.length !== 0) { %> checked <% } %> />
@@ -48,6 +48,13 @@
     <%} else{%>
         <a href="/persona/<%=personData.person_id%>?offset=<%=personData.offset + 10%>" class="join-item btn">»</a>
     <%}%>
+</div>
+<div class="card bg-base-100 w-96 shadow-sm">
+    <figure>
+        <img
+                src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
+                alt="Shoes" />
+    </figure>
 </div>
 
 
