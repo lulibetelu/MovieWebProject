@@ -244,16 +244,21 @@ app.get('/persona/:id', async (req,res)=>{
 
 
     const offset = req.query.offset ? Math.max(parseInt(req.query.offset), 0) : 0;
-
-
+    const allowedOrders = {
+        popularity: 'm.popularity',
+        release_date: 'm.release_date',
+        title: 'm.title'
+    };
+    const order = allowedOrders[req.query.order] || 'm.popularity';
 
     const actorQuery = `
-        SELECT p.person_id, p.person_name, m.title,m.movie_id,mc.character_name, g.gender, m.popularity, m.release_date, COUNT(*) OVER() AS total_movies
+        SELECT p.person_id, p.person_name, m.title,m.movie_id,mc.character_name, g.gender, m.release_date, COUNT(*) OVER() AS total_movies
         FROM person p
         INNER JOIN movie_cast mc on mc.person_id = p.person_id
         INNER JOIN movie m on m.movie_id = mc.movie_id
         INNER JOIN gender g on mc.gender_id = g.gender_id
         WHERE p.person_id = $1
+        ORDER BY ${order} DESC
         LIMIT 10 OFFSET $2;
     `;
     const directorQuery = `
@@ -281,7 +286,8 @@ app.get('/persona/:id', async (req,res)=>{
             actedMovies: [],
             directedMovies: [],
             totalActedMovies: actors.length === 0? 0 : actors[0].total_movies,
-            totalDirectedMovies: directors.length === 0? 0: directors[0].total_movies
+            totalDirectedMovies: directors.length === 0? 0: directors[0].total_movies,
+            order: order
         }
 
         actors.forEach((actor)=>{
