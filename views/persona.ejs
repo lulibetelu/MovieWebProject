@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= personData.person_name%></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="p-6">
+<h1 class="text-4xl font-bold text-blue-600"><%= personData.person_name%></h1>
+
+<!-- Tabs actuado/ dirigido -->
+<div class="tabs tabs-lift w-full">
+    <!-- Tabs para actuadas -->
+    <input type="radio" name="my_tabs_3" class="tab" aria-label="Peliculas Actuadas" <% if (personData.actedMovies.length !== 0) { %> checked <% } %> />
+    <div class="tab-content bg-base-100 border-base-300 p-6">
+        <% if (personData.actedMovies.length === 0) { %>
+            <p>No actuó en ninguna pelicula</p>
+        <% } else { %>
+            <!-- Dropdown Order By (solo en esta pestaña) -->
+            <div class="flex justify-end mb-4">
+                <details class="dropdown">
+                    <summary class="btn btn-sm">Order By</summary>
+                    <ul class="menu dropdown-content bg-base-100 rounded-box z-10 w-52 p-2 shadow">
+                        <li><a href="?offset=<%= personData.offset %>&order=popularity">Popularity</a></li>
+                        <li><a href="?offset=<%= personData.offset %>&order=title">Alphabetical</a></li>
+                        <li><a href="?offset=<%= personData.offset %>&order=release_date">Release Date</a></li>
+                    </ul>
+                </details>
+            </div>
+
+            <!-- Contenido Peliculas actuadas -->
+            <div class="grid grid-cols-4 md:grid-cols-4 gap-6">
+            <% personData.actedMovies
+            .forEach((movie) => { %>
+                <div class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200">
+                    <figure>
+                        <img src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp" alt="Poster" />
+                    </figure>
+                    <div class="card-body p-4">
+                        <h2 class="card-title text-base">
+                            <a class="link link-hover" href="/pelicula/<%= movie.movie_id %>">
+                                <%= movie.title %> (<%= new Date(movie.release_date).getFullYear() %>)
+                            </a>
+                        </h2>
+                        <p><%=movie.character_name%></p>
+                    </div>
+                </div>
+            <% }); %>
+            </div>
+
+        <% } %>
+    </div>
+
+    <!-- Tabs para dirigidas -->
+    <input type="radio" name="my_tabs_3" class="tab" aria-label="Peliculas Dirigidas" <% if (personData.actedMovies.length === 0) { %> checked <% } %>/>
+    <div class="tab-content bg-base-100 border-base-300 p-6">
+        <% if (personData.directedMovies.length === 0) { %>
+            <p>No dirigió ninguna película</p>
+        <% } else { %>
+                <!-- Dropdown Order By (solo en esta pestaña) -->
+                <div class="flex justify-end mb-4">
+                    <details class="dropdown">
+                        <summary class="btn btn-sm">Order By</summary>
+                        <ul class="menu dropdown-content bg-base-100 rounded-box z-10 w-52 p-2 shadow">
+                            <li><a href="?offset=<%= personData.offset %>&order=popularity">Popularity</a></li>
+                            <li><a href="?offset=<%= personData.offset %>&order=title">Alphabetical</a></li>
+                            <li><a href="?offset=<%= personData.offset %>&order=release_date">Release Date</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+
+                <!-- Contenido Peliculas dirigidas -->
+                <div class="grid grid-cols-4 md:grid-cols-4 gap-6">
+                    <% personData.directedMovies
+                    .forEach((movie) => { %>
+                        <div class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200">
+                            <figure>
+                                <img src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp" alt="Poster" />
+                            </figure>
+                            <div class="card-body p-4">
+                                <h2 class="card-title text-base">
+                                    <a class="link link-hover" href="/pelicula/<%= movie.movie_id %>">
+                                        <%= movie.title %> (<%= new Date(movie.release_date).getFullYear() %>)
+                                    </a>
+                                </h2>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+        <% } %>
+    </div>
+
+</div>
+
+<!-- Paginado -->
+<div class="join mt-6 flex justify-center">
+    <!-- Boton para ir para atras -->
+    <% if(personData.offset === 0) {%>
+        <button class="join-item btn">«</button>
+    <%} else{%>
+        <a href= "/persona/<%=personData.person_id%>?offset=<%=personData.offset - 10 %>&order=popularity" class="join-item btn">«</a>
+    <%}%>
+
+    <!-- Botton con el nro de pagina -->
+    <button class="join-item btn">Page <%=(personData.offset/10)+1%></button>
+
+    <!-- Boton para ir para atras -->
+    <% if((personData.offset + 10) >= personData.totalActedMovies) {%>
+        <button class="join-item btn">»</button>
+    <%} else{%>
+        <a href="/persona/<%=personData.person_id%>?offset=<%=personData.offset + 10%>&order=popularity" class="join-item btn">»</a>
+    <%}%>
+</div>
+<div id="inicio"><a class="link link-hover" href="/">Inicio</a></div>
+</body>
+</html>

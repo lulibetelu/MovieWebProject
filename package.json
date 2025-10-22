@@ -1,11 +1,12 @@
 {
     "name": "movieweb",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "",
-    "main": "index.js",
+    "main": "app.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "migrate": "node migrations.js"
+        "dev": "nodemon app.js",
+        "css": "npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/style.css",
+        "css:watch": "npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/style.css --watch"
     },
     "keywords": [],
     "author": "",
@@ -14,6 +15,16 @@
         "dotenv": "^16.4.5",
         "ejs": "^3.1.9",
         "express": "^4.18.2",
+        "nodemon": "^3.1.10",
         "pg": "^8.16.3"
+    },
+    "devDependencies": {
+        "@tailwindcss/cli": "^4.1.14",
+        "autoprefixer": "^10.4.21",
+        "connect-livereload": "^0.6.1",
+        "daisyui": "^5.3.7",
+        "livereload": "^0.10.3",
+        "postcss": "^8.5.6",
+        "tailwindcss": "^4.1.14"
     }
 }
