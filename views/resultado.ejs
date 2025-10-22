@@ -6,127 +6,80 @@
 </head>
 
 <body class="flex flex-col min-h-screen">
+    <%- include('./components/navbar', { searchTerm }) %>
 
-  <!-- ====================== BARRA SUPERIOR ====================== -->
-  <header class="navbar bg-base-100 shadow-sm">
-    <div class="flex-1">
-      <a class="btn btn-ghost text-xl">Movie web</a>
-    </div>
+    <!-- ====================== CONTENIDO DE LAS PESTAÑAS ====================== -->
+    <main class="flex-1 p-6 bg-base-200">
+        <!-- PELÍCULAS -->
+        <section id="peliculas" class="tab-panel">
+        <h2 class="text-2xl mb-4">Películas</h2>
+        <% if (movies.length === 0) { %>
+            <p>No hay resultados.</p>
+        <% } else { %>
+            <ul class="list-disc pl-6">
+            <% movies.forEach(movie => { %>
+                <li><a href="/pelicula/<%= movie.id %>" class="link link-hover"><%= movie.name %></a></li>
+            <% }); %>
+            </ul>
+        <% } %>
+        </section>
 
-    <!-- PESTAÑAS (solo los botones) -->
-    <div class="tabs tabs-boxed flex-none">
-      <label class="tab">
-        <input type="radio" name="my_tabs_3" value="peliculas" checked />
-        Películas
-      </label>
-      <label class="tab">
-        <input type="radio" name="my_tabs_3" value="actores" />
-        Actores
-      </label>
-      <label class="tab">
-        <input type="radio" name="my_tabs_3" value="directores" />
-        Directores
-      </label>
-    </div>
+        <!-- ACTORES -->
+        <section id="actores" class="tab-panel hidden">
+        <h2 class="text-2xl mb-4">Actores</h2>
+        <% if (actors.length === 0) { %>
+            <p>No hay resultados.</p>
+        <% } else { %>
+            <ul class="list-disc pl-6">
+            <% actors.forEach(actor => { %>
+                <li><a href="/actor/<%= actor.id %>" class="link link-hover"><%= actor.name %></a></li>
+            <% }); %>
+            </ul>
+        <% } %>
+        </section>
 
-    <!-- FILTRO DE GÉNERO -->
-    <div class="flex-none px-4 gap-2">
-      <select class="select select-bordered w-full max-w-xs">
-        <option disabled selected>Selecciona un género</option>
-        <option>Horror</option>
-        <option>Epic</option>
-        <option>Nose</option>
-      </select>
-    </div>
+        <!-- DIRECTORES -->
+        <section id="directores" class="tab-panel hidden">
+        <h2 class="text-2xl mb-4">Directores</h2>
+        <% if (directors.length === 0) { %>
+            <p>No hay resultados.</p>
+        <% } else { %>
+            <ul class="list-disc pl-6">
+            <% directors.forEach(director => { %>
+                <li><a href="/director/<%= director.id %>" class="link link-hover"><%= director.name %></a></li>
+            <% }); %>
+            </ul>
+        <% } %>
+        </section>
+    </main>
 
 
-    <!-- BUSCADOR -->
-    <div class="flex-none px-4">
-      <label class="input input-bordered flex items-center gap-2">
-        <svg class="h-5 w-5 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-          <g stroke-width="2.5" fill="none" stroke="currentColor">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.3-4.3"></path>
-          </g>
-        </svg>
-        <input type="search" placeholder="Search" class="grow" />
-      </label>
-    </div>
-  </header>
+    <!-- ====================== PIE DE PÁGINA (opcional) ====================== -->
+    <footer class="footer p-4 bg-base-100 text-base-content">
+        <a href="/">Inicio</a>
+    </footer>
 
-  <!-- ====================== CONTENIDO DE LAS PESTAÑAS ====================== -->
-  <main class="flex-1 p-6 bg-base-200">
+    <!-- ====================== JS para cambiar paneles ====================== -->
+    <script>
+        // Escucha los cambios de los radios
+        document.querySelectorAll('input[name="my_tabs_3"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            // Oculta todos los paneles
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+            // Muestra el panel correspondiente al value del radio
+            const panelId = radio.value;
+            const panel = document.getElementById(panelId);
+            if (panel) panel.classList.remove('hidden');
+        });
+        });
 
-    <!-- PELÍCULAS -->
-    <section id="peliculas" class="tab-panel">
-      <h2 class="text-2xl mb-4">Películas</h2>
-      <% if (movies.length === 0) { %>
-        <p>No hay resultados.</p>
-      <% } else { %>
-        <ul class="list-disc pl-6">
-          <% movies.forEach(movie => { %>
-            <li><a href="/pelicula/<%= movie.id %>"><%= movie.name %></a></li>
-          <% }); %>
-        </ul>
-      <% } %>
-    </section>
-
-    <!-- ACTORES -->
-    <section id="actores" class="tab-panel hidden">
-      <h2 class="text-2xl mb-4">Actores</h2>
-      <% if (actors.length === 0) { %>
-        <p>No hay resultados.</p>
-      <% } else { %>
-        <ul class="list-disc pl-6">
-          <% actors.forEach(actor => { %>
-            <li><a href="/actor/<%= actor.id %>"><%= actor.name %></a></li>
-          <% }); %>
-        </ul>
-      <% } %>
-    </section>
-
-    <!-- DIRECTORES -->
-    <section id="directores" class="tab-panel hidden">
-      <h2 class="text-2xl mb-4">Directores</h2>
-      <% if (directors.length === 0) { %>
-        <p>No hay resultados.</p>
-      <% } else { %>
-        <ul class="list-disc pl-6">
-          <% directors.forEach(director => { %>
-            <li><a href="/director/<%= director.id %>"><%= director.name %></a></li>
-          <% }); %>
-        </ul>
-      <% } %>
-    </section>
-
-  </main>
-
-  <!-- ====================== PIE DE PÁGINA (opcional) ====================== -->
-  <footer class="footer p-4 bg-base-100 text-base-content">
-    <a href="/">Inicio</a>
-  </footer>
-
-  <!-- ====================== JS para cambiar paneles ====================== -->
-  <script>
-    // Escucha los cambios de los radios
-    document.querySelectorAll('input[name="my_tabs_3"]').forEach(radio => {
-      radio.addEventListener('change', () => {
-        // Oculta todos los paneles
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-        // Muestra el panel correspondiente al value del radio
-        const panelId = radio.value;
-        const panel = document.getElementById(panelId);
-        if (panel) panel.classList.remove('hidden');
-      });
-    });
-
-    // Inicializa la vista correcta (por si el checked está en otro radio)
-    const checked = document.querySelector('input[name="my_tabs_3"]:checked');
-    if (checked) {
-      const ev = new Event('change');
-      checked.dispatchEvent(ev);
-    }
-  </script>
+        // Inicializa la vista correcta (por si el checked está en otro radio)
+        const checked = document.querySelector('input[name="my_tabs_3"]:checked');
+        if (checked) {
+        const ev = new Event('change');
+        checked.dispatchEvent(ev);
+        }
+    </script>
 </body>
 </html>
 
