@@ -98,7 +98,7 @@
     <% if(personData.offset === 0) {%>
         <button class="join-item btn">«</button>
     <%} else{%>
-        <a href= "/persona/<%=personData.person_id%>?offset=<%=personData.offset - 10 %>&order=m.popularity" class="join-item btn">«</a>
+        <a href= "/persona/<%=personData.person_id%>?offset=<%=personData.offset - 10 %>&order=popularity" class="join-item btn">«</a>
     <%}%>
 
     <!-- Botton con el nro de pagina -->
@@ -108,11 +108,9 @@
     <% if((personData.offset + 10) >= personData.totalActedMovies) {%>
         <button class="join-item btn">»</button>
     <%} else{%>
-        <a href="/persona/<%=personData.person_id%>?offset=<%=personData.offset + 10%>&order=m.popularity" class="join-item btn">»</a>
+        <a href="/persona/<%=personData.person_id%>?offset=<%=personData.offset + 10%>&order=popularity" class="join-item btn">»</a>
     <%}%>
 </div>
 <div id="inicio"><a class="link link-hover" href="/">Inicio</a></div>
 </body>
 </html>
-
-
