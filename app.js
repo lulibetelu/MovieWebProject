@@ -17,6 +17,11 @@ const { Pool } = require("pg");
 const app = express();
 const PORT = process.env.PORT || 3500;
 
+//permite que express entienda los datos que le mandan en el form
+app.use(express.urlencoded({ extended: true }));
+
+const bcrypt = require("bcrypt");
+
 // --- 🔥 Configurar LiveReload ---
 const liveReloadServer = livereload.createServer({
     exts: ["ejs", "css", "js"],
@@ -239,6 +244,7 @@ app.get("/pelicula/:id", async (req, res) => {
         res.status(500).send("Error al cargar los datos de la película.");
     }
 });
+
 app.get("/persona/:id", async (req, res) => {
     const personID = req.params.id;
 
@@ -387,3 +393,58 @@ liveReloadServer.server.once("connection", () => {
         liveReloadServer.refresh("/");
     }, 100);
 });
+
+app.get("/login/", async (req, res) => {
+    res.render("login")
+});
+
+// ruta que recibe la informacion del form
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        // Buscar al usuario por su email
+        const result = await db.query('SELECT * FROM "user" WHERE email = $1', [email]);
+
+        // Si no existe el usuario
+        if (result.rows.length === 0) {
+            return res.send("No existe una cuenta con ese email.");
+        }
+
+        const user = result.rows[0]; // usuario encontrado en la base
+
+        // Comparar contraseñas (bcrypt lo hace)
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+        if (isPasswordCorrect) {
+            res.send(`Bienvenido, ${user.username}!`);
+        } else {
+            res.send("Contraseña incorrecta");
+        }
+
+    } catch (error) {
+        console.error("Error al iniciar sesión:", error);
+        res.status(500).send("Error del servidor al intentar iniciar sesión.");
+    }
+});
+
+app.get("/register", (req, res) => {
+    res.render("register");
+});
+
+app.post("/register", async (req, res) => {
+    const { username, email, password } = req.body;
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10); // el 10 es el "nivel de seguridad"
+
+        const result = await db.query(
+            'INSERT INTO "user" (username, email, password) VALUES ($1, $2, $3) RETURNING id',
+            [username, email, hashedPassword]
+        );
+
+        res.send(`Usuario creado con éxito: ID = ${result.rows[0].id}`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error al registrar el usuario (puede que el email ya exista)");
+    }
+});
+

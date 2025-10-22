@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Login</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="flex items-center justify-center min-h-screen bg-base-200">
+
+<div class="card w-full max-w-md shadow-xl bg-base-100 p-8">
+<h1 class="text-2xl font-bold text-center mb-6">Iniciar sesión</h1>
+
+<!-- el metodo post hace que la informacion no aparezca en el url (para proteger los datos)-->
+<form action="/login" method="POST" class="space-y-4">
+    <div class="form-control">
+        <!--El label crea un subtitulo que esta vinculado con un input especifico -->
+        <!--Al tocar "Email" el cursor se mete automaticamente en el input del email-->
+        <label for="email"> <span class="label-text">Email</span> </label><br>
+        <input id="email" name="email" type="email" required placeholder="Tu email" class="input input-bordered w-full">
+    </div>
+
+    <div class="form-control">
+        <label for="password"><span class="label-text">Contraseña</span></label><br>
+        <!-- el type password hace que no se vea lo que escribe el usuario-->
+        <input id="password" name="password" type="password" required required placeholder="Tu contraseña" class="input input-bordered w-full">
+    </div>
+
+    <div class="form-control mt-4">
+        <button type="submit" class="btn btn-primary w-full">Entrar</button>
+    </div>
+</form>
+
+<div class="divider">o</div>
+
+
+<p class="text-center">¿No tenés una cuenta?
+    <a href="/register" class="text-primary font-semibold">Registrate acá</a>
+</p>
+</div>
+</body>
+</html>
