@@ -267,13 +267,15 @@ app.get("/persona/:id", async (req, res) => {
         FROM person p
         INNER JOIN movie_crew mc on p.person_id = mc.person_id
         INNER JOIN movie m on m.movie_id = mc.movie_id
-        WHERE p.person_id = $1 and mc.job = 'Director';
+        WHERE p.person_id = $1 and mc.job = 'Director'
+        ORDER BY ${order} DESC
+        LIMIT 10 OFFSET $2;
     `;
 
 
     try{
         const actors = (await db.query(actorQuery,[personID,offset])).rows;
-        const directors = (await db.query(directorQuery,[personID])).rows;
+        const directors = (await db.query(directorQuery,[personID,offset])).rows;
 
         if (actors.length === 0 && directors.length === 0) {
             return res.status(404).send("Persona no encontrada.");
@@ -285,13 +287,13 @@ app.get("/persona/:id", async (req, res) => {
                 actors.length === 0
                     ? directors[0].person_name
                     : actors[0].person_name,
-            //gender: actors[0].gender,
+            //gender: actors.length === 0? 'Male' :actors[0].gender,
             offset: offset,
+            order: order,
             actedMovies: [],
             directedMovies: [],
             totalActedMovies: actors.length === 0? 0 : actors[0].total_movies,
-            totalDirectedMovies: directors.length === 0? 0: directors[0].total_movies,
-            order: order
+            totalDirectedMovies: directors.length === 0? 0: directors[0].total_movies
         }
 
         actors.forEach((actor) => {
