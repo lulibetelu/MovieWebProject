@@ -1,0 +1,8 @@
+DROP TABLE IF EXISTS migrations;
+
+CREATE TABLE IF NOT EXISTS migrations (
+  filename TEXT PRIMARY KEY,
+  executed_at TIMESTAMP DEFAULT NOW()
+);
+
+COMMIT;
