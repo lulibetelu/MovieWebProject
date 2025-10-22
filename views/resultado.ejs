@@ -6,7 +6,7 @@
 </head>
 
 <body class="flex flex-col min-h-screen">
-    <%- include('./components/navbar', { searchTerm }) %>
+    <%- include('./components/navbar', { searchTerm: searchTerm,movie: movies.length,actor: actors.length }) %>
 
     <!-- ====================== CONTENIDO DE LAS PESTAÑAS ====================== -->
     <main class="flex-1 p-6 bg-base-200">

@@ -3,15 +3,15 @@
     <!-- PESTAÑAS (solo los botones) -->
     <div class="tabs tabs-lift top-10 translate-y-[12px]">
         <label class="tab">
-        <input type="radio" name="my_tabs_3" value="peliculas" checked />
+        <input type="radio" name="my_tabs_3" value="peliculas" <% if (movie !== 0) { %> checked <% } %> />
         Películas
         </label>
         <label class="tab">
-        <input type="radio" name="my_tabs_3" value="actores" />
+        <input type="radio" name="my_tabs_3" value="actores" <% if (movie === 0 && actor !== 0) { %> checked <% } %>/>
         Actores
         </label>
         <label class="tab">
-        <input type="radio" name="my_tabs_3" value="directores" />
+        <input type="radio" name="my_tabs_3" value="directores" <% if (movie === 0 && actor === 0) { %> checked <% } %>/>
         Directores
         </label>
     </div>
