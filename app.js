@@ -17,6 +17,27 @@ const { Pool } = require("pg");
 const app = express();
 const PORT = process.env.PORT || 3500;
 
+//--- Configurar path para buscar las fotos
+const imageBase = "https://image.tmdb.org/t/p/w200";
+const noMovieBase = "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
+async function buscarPelicula(nombre) {
+    const url = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${nombre}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!data.results) {
+        return [];
+    }
+
+    return data.results.map(movie => ({
+        title: movie.title,
+        overview: movie.overview,
+        image: movie.poster_path ? imageBase + movie.poster_path : null
+    }));
+}
+
+
 // --- 🔥 Configurar LiveReload ---
 const liveReloadServer = livereload.createServer({
     exts: ["ejs", "css", "js"],
@@ -260,7 +281,7 @@ app.get("/persona/:id", async (req, res) => {
         INNER JOIN gender g on mc.gender_id = g.gender_id
         WHERE p.person_id = $1
         ORDER BY ${order} DESC
-        LIMIT 10 OFFSET $2;
+        LIMIT 8 OFFSET $2;
     `;
     const directorQuery = `
         SELECT p.person_id, p.person_name, mc.movie_id, m.title, m.release_date, COUNT(*) OVER() AS total_movies
@@ -269,7 +290,7 @@ app.get("/persona/:id", async (req, res) => {
         INNER JOIN movie m on m.movie_id = mc.movie_id
         WHERE p.person_id = $1 and mc.job = 'Director'
         ORDER BY ${order} DESC
-        LIMIT 10 OFFSET $2;
+        LIMIT 8 OFFSET $2;
     `;
 
 
@@ -287,7 +308,7 @@ app.get("/persona/:id", async (req, res) => {
                 actors.length === 0
                     ? directors[0].person_name
                     : actors[0].person_name,
-            //gender: actors.length === 0? 'Male' :actors[0].gender,
+            gender: actors.length === 0? 'Male' :actors[0].gender,
             offset: offset,
             order: order,
             actedMovies: [],
@@ -296,23 +317,34 @@ app.get("/persona/:id", async (req, res) => {
             totalDirectedMovies: directors.length === 0? 0: directors[0].total_movies
         }
 
-        actors.forEach((actor) => {
+        for (const actor of actors) {
+            const movies = await buscarPelicula(actor.title);
+            const movie = movies.length > 0 ? movies[0] : null;
+
             personData.actedMovies.push({
                 title: actor.title,
                 movie_id: actor.movie_id,
                 character_name: actor.character_name,
                 release_date: actor.release_date,
+                photo_path: movie?.image || noMovieBase
             });
-        });
-        directors.forEach((director) => {
+        }
+        for (const director of directors){
+            const movies = await buscarPelicula(director.title);
+            const movie = movies.length > 0 ? movies[0] : null;
+
             personData.directedMovies.push({
                 title: director.title,
                 movie_id: director.movie_id,
                 release_date: director.release_date,
-            });
-        });
+                photo_path: movie?.image || noMovieBase
 
-        res.render("persona", { personData });
+            });
+        }
+
+
+
+        res.render("persona", { personData, tmdbApiKey: process.env.TMDB_API_KEY });
     } catch (err) {
         console.error(err);
         res.status(500).send("Error al cargar la informacion de la persona");

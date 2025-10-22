@@ -7,11 +7,11 @@
         Películas
         </label>
         <label class="tab">
-        <input type="radio" name="my_tabs_3" value="actores" <% if (movie === 0 && actor !== 0) { %> checked <% } %>/>
+        <input type="radio" name="my_tabs_3" value="actores" <% if ((movie === null || movie === 0) && actor !== 0) { %> checked <% } %>/>
         Actores
         </label>
         <label class="tab">
-        <input type="radio" name="my_tabs_3" value="directores" <% if (movie === 0 && actor === 0) { %> checked <% } %>/>
+        <input type="radio" name="my_tabs_3" value="directores" <% if ((movie === null || movie === 0) && actor === 0) { %> checked <% } %>/>
         Directores
         </label>
     </div>
