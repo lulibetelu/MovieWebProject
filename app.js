@@ -26,6 +26,7 @@ const liveReloadServer = livereload.createServer({
     exts: ["ejs", "css", "js"],
     delay: 100,
 });
+
 liveReloadServer.watch(path.join(__dirname, "views"));
 liveReloadServer.watch(path.join(__dirname, "public"));
 
@@ -38,6 +39,11 @@ app.set("views", path.join(process.cwd(), "views"));
 // Servir archivos estáticos (CSS, JS, imágenes, etc.)
 app.use(express.static("public"));
 
+const error = (msg = "", status = 500) => ({
+    error: msg,
+    status: status,
+});
+
 // Crear un "pool" de conexiones a PostgreSQL usando las variables de entorno
 const db = new Pool({
     user: process.env.DB_USER,
@@ -48,16 +54,24 @@ const db = new Pool({
     options: `-c search_path=movies,public`, //modificar options de acuerdo al nombre del esquema
 });
 
+const DEBUG = process.env.DEBUG === "true" || false;
+const API_MODE = process.env.API_MODE === "true" || false;
+const API_URL = API_MODE ? "/api" : "";
+
 // Configurar el motor de plantillas EJS
 app.set("view engine", "ejs");
 
-// Ruta para la página de inicio
-app.get("/", (req, res) => {
-    res.render("index");
+// * Ruta para la página de inicio
+app.get(API_URL + "/", (req, res) => {
+    if (API_MODE) {
+        res.json({ Home: "Welcome to the Movie Web Project!" });
+    } else {
+        res.render("index");
+    }
 });
 
-// Ruta para buscar películas en la base de datos PostgreSQL
-app.get("/buscar", async (req, res) => {
+// * Ruta para buscar películas en la base de datos PostgreSQL
+app.get(API_URL + "/buscar", async (req, res) => {
     // 4. Convertir a función async
     const searchTerm = req.query.q;
     const page = req.query.page || 1;
@@ -85,6 +99,16 @@ app.get("/buscar", async (req, res) => {
             (row) => row.type === "director",
         );
 
+        if (API_MODE) {
+            res.json({
+                movies: filteredMovies,
+                actors: filteredActors,
+                directors: filteredDirectors,
+                searchTerm,
+            });
+            return;
+        }
+
         res.render("resultado", {
             movies: filteredMovies,
             actors: filteredActors,
@@ -92,13 +116,15 @@ app.get("/buscar", async (req, res) => {
             searchTerm,
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Error en la búsqueda.");
+        if (DEBUG) console.log(err);
+        if (API_MODE)
+            return res.status(500).json(error("Error en la búsqueda."));
+        res.render("error", { error: err });
     }
 });
 
-// Ruta para la página de datos de una película particular (PostgreSQL)
-app.get("/pelicula/:id", async (req, res) => {
+// * Ruta para la página de datos de una película particular (PostgreSQL)
+app.get(API_URL + "/pelicula/:id", async (req, res) => {
     // Convertir a async
     const movieId = req.params.id;
 
@@ -123,7 +149,7 @@ app.get("/pelicula/:id", async (req, res) => {
   `;
 
     try {
-        const result = await db.query(query, [movieId]);
+        const result = await db.query(query, [parseInt(movieId)]);
         const rows = result.rows;
 
         if (rows.length === 0) {
@@ -237,35 +263,46 @@ app.get("/pelicula/:id", async (req, res) => {
             }
         });
 
+        if (API_MODE) return res.json({ movie: movieData });
+
         res.render("pelicula", { movie: movieData });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Error al cargar los datos de la película.");
+        if (DEBUG) console.log(err);
+        if (API_MODE)
+            return res
+                .status(500)
+                .json(error("Error al cargar los datos de la película."));
+
+        res.render("error", {
+            error: error("Error al cargar los datos de la película.", 500),
+        });
     }
 });
-app.get("/persona/:id", async (req, res) => {
+
+// * Ruta para obtener información de una persona
+app.get(API_URL + "/persona/:id", async (req, res) => {
     const personID = req.params.id;
 
     const offset = req.query.offset
         ? Math.max(parseInt(req.query.offset), 0)
         : 0;
 
+    const AscOrDesc = req.query.desc === "f" ? "ASC" : "DESC";
+  
     let order = "";
     switch (req.query.order) {
-        case "Popularity":
+        case "popularity":
             order = "m.popularity";
             break;
-        case "Release_date":
+        case "release_date":
             order = "m.release_date";
             break;
-        case "Title":
+        case "title":
             order = "m.title";
             break;
         default:
             order = "m.popularity";
     }
-
-    const AscOrDesc = req.query.desc === "f" ? "ASC" : "DESC";
 
     const actorQuery = `
         SELECT p.person_id, p.person_name, m.title,m.movie_id,mc.character_name, g.gender, m.release_date, m.popularity, COUNT(*) OVER() AS total_movies
@@ -337,19 +374,30 @@ app.get("/persona/:id", async (req, res) => {
             });
         });
 
-        res.render("persona", {
-            personData,
-            tmdbApiKey: process.env.TMDB_API_KEY,
+        if (API_MODE) return res.json({ 
+          personData,
+          tmdbApiKey: process.env.TMDB_API_KEY
         });
+  
+        res.render("persona", { personData, tmdbApiKey: process.env.TMDB_API_KEY });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Error al cargar la informacion de la persona");
+        if (DEBUG) console.log(err);
+        if (API_MODE)
+            return res
+                .status(500)
+                .json(error("Error al cargar la información de la persona"));
+
+        res.render("error", { error: err });
     }
 });
 
-app.listen(PORT, () =>
-    console.log(`Servidor corriendo en http://localhost:${PORT}`),
-);
+app.listen(PORT, () => {
+    if (API_MODE)
+        return console.log(
+            `Servidor corriendo modo API en http://localhost:${PORT}`,
+        );
+    console.log(`Servidor corriendo modo WEB en http://localhost:${PORT}`);
+});
 
 // Cuando el servidor de livereload detecte un cambio, recarga el navegador
 liveReloadServer.server.once("connection", () => {
