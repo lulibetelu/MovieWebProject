@@ -124,8 +124,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        animateCounter('ratedMovies', <%= user.ratedMovies %>);
-        animateCounter('writtenReviews', <%= user.writtenReviews %>);
+        animateCounter('ratedMovies', <%= user.ratedMovies || 0 %>);
+        animateCounter('writtenReviews', <%= user.writtenReviews || 0 %>);
     });
 </script>
 </body>
