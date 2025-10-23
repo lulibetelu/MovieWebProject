@@ -17,7 +17,7 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-start p-6">
 
-<!-- ENCABEZADO -->
+<!-- header -->
 <div class="text-center mb-12">
     <h1 class="text-5xl font-bold mb-2">
         <span class="accent-orange"><%= user.username %></span>
@@ -25,7 +25,7 @@
     <p class="text-gray-400"><%= user.email %></p>
 </div>
 
-<!-- ESTADÍSTICAS -->
+<!-- cantidad de peliculas rateadas y reviewed -->
 <div class="grid grid-cols-2 gap-8 text-center mb-16 max-w-3xl w-full">
     <div class="p-6 rounded-2xl bg-gradient-to-b from-[#ff7b00] to-[#ffb347] shadow-lg transform hover:scale-105 transition duration-300">
         <h3 id="ratedMovies" class="text-4xl font-bold text-black">0</h3>
@@ -37,10 +37,10 @@
     </div>
 </div>
 
-<!-- ÚLTIMAS ACTIVIDADES -->
+<!-- recientes -->
 <div class="w-full max-w-5xl space-y-16">
 
-    <!-- PELÍCULAS RATEADAS -->
+    <!-- peliculas rateadas -->
     <section>
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-2xl font-bold accent-orange">Últimas películas calificadas</h2>
@@ -69,7 +69,7 @@
         <% } %>
     </section>
 
-    <!-- RESEÑAS -->
+    <!-- reviews -->
     <section>
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-2xl font-bold soft-yellow">Últimas reseñas</h2>
@@ -91,9 +91,9 @@
 
 </div>
 
-<!-- BOTONES -->
+<!-- botones -->
 <div class="mt-16 flex justify-center gap-4">
-    <a href="/" class="btn bg-transparent border-[#ff7b00] text-[#ff7b00] hover:bg-[#ff7b00] hover:text-black transition">Volver al inicio</a>
+    <a href="/buscar?q=" class="btn bg-transparent border-[#ff7b00] text-[#ff7b00] hover:bg-[#ff7b00] hover:text-black transition">Volver al inicio</a>
     <a href="/logout" class="btn bg-[#ff7b00] text-black hover:bg-[#ffdd7d] hover:text-black border-none transition">Cerrar sesión</a>
 </div>
 
@@ -102,15 +102,18 @@
     function animateCounter(id, target) {
         const el = document.getElementById(id);
         let count = 0;
-        const increment = Math.ceil(target / 100);
+
+        const steps = 300;
+        const increment = Math.ceil(target / steps);
+
         const interval = setInterval(() => {
             count += increment;
             if (count >= target) {
                 count = target;
                 clearInterval(interval);
             }
-            el.textContent = count;
-        }, 15);
+            el.textContent = Math.floor(count);
+        }, 35);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
