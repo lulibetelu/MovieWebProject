@@ -1,13 +1,13 @@
 {
     "name": "movieweb",
-    "version": "1.0.1",
+    "version": "1.2.0",
     "description": "",
-    "main": "app.js",
+    "main": "../app.js",
     "scripts": {
-        "dev": "nodemon app.js",
+        "dev": "../node_modules/.bin/nodemon app.js",
         "css": "npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/style.css",
         "css:watch": "npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/style.css --watch",
-        "migrate": "node migrations.js"
+        "migrate": "node ../migrations.js"
     },
     "keywords": [],
     "author": "",
