@@ -346,7 +346,7 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
         });
 
         if (API_MODE) return res.json({ personData });
-        res.render("person", { personData });
+        res.render("persona", { personData });
     } catch (err) {
         if (DEBUG) console.log(err);
         if (API_MODE)
