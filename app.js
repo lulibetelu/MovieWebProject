@@ -113,7 +113,8 @@ app.get(API_URL + "/buscar", async (req, res) => {
         });
     } catch (err) {
         if (DEBUG) console.log(err);
-        if (API_MODE) return res.json(error('Error en la búsqueda.', 500));
+        if (API_MODE)
+            return res.status(500).json(error("Error en la búsqueda."));
         res.render("error", { error: err });
     }
 });
@@ -144,7 +145,7 @@ app.get(API_URL + "/pelicula/:id", async (req, res) => {
   `;
 
     try {
-        const result = await db.query(query, [movieId]);
+        const result = await db.query(query, [parseInt(movieId)]);
         const rows = result.rows;
 
         if (rows.length === 0) {
@@ -264,15 +265,15 @@ app.get(API_URL + "/pelicula/:id", async (req, res) => {
     } catch (err) {
         if (DEBUG) console.log(err);
         if (API_MODE)
-            return res.json(error("Error al cargar los datos de la película."));
+            return res
+                .status(500)
+                .json(error("Error al cargar los datos de la película."));
 
         res.render("error", {
-            error: error("Error al cargar los datos de la película."),
+            error: error("Error al cargar los datos de la película.", 500),
         });
     }
 });
-app.get("/persona/:id", async (req, res) => {
-    const personID = req.params.id;
 
 // * Ruta para obtener información de una persona
 app.get(API_URL + "/persona/:id", async (req, res) => {
@@ -282,13 +283,20 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
         ? Math.max(parseInt(req.query.offset), 0)
         : 0;
 
-    const allowedOrders = {
-        popularity: "m.popularity",
-        release_date: "m.release_date",
-        title: "m.title",
-    };
-
-    const order = allowedOrders[req.query.order] || "m.popularity";
+    let order = "";
+    switch (req.query.order) {
+        case "popularity":
+            order = "m.popularity";
+            break;
+        case "release_date":
+            order = "m.release_date";
+            break;
+        case "title":
+            order = "m.title";
+            break;
+        default:
+            order = "m.popularity";
+    }
 
     const actorQuery = `
         SELECT p.person_id, p.person_name, m.title,m.movie_id,mc.character_name, g.gender, m.release_date, COUNT(*) OVER() AS total_movies
@@ -297,7 +305,7 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
         INNER JOIN movie m on m.movie_id = mc.movie_id
         INNER JOIN gender g on mc.gender_id = g.gender_id
         WHERE p.person_id = $1
-        ORDER BY ${order} DESC
+        ORDER BY $3 DESC
         LIMIT 10 OFFSET $2;
     `;
     const directorQuery = `
@@ -308,10 +316,10 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
         WHERE p.person_id = $1 and mc.job = 'Director';
     `;
 
-
-    try{
-        const actors = (await db.query(actorQuery,[personID,offset])).rows;
-        const directors = (await db.query(directorQuery,[personID])).rows;
+    try {
+        const actors = (await db.query(actorQuery, [personID, offset, order]))
+            .rows;
+        const directors = (await db.query(directorQuery, [personID])).rows;
 
         if (actors.length === 0 && directors.length === 0) {
             return res.status(404).send("Persona no encontrada.");
@@ -327,10 +335,11 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
             offset: offset,
             actedMovies: [],
             directedMovies: [],
-            totalActedMovies: actors.length === 0? 0 : actors[0].total_movies,
-            totalDirectedMovies: directors.length === 0? 0: directors[0].total_movies,
-            order: order
-        }
+            totalActedMovies: actors.length === 0 ? 0 : actors[0].total_movies,
+            totalDirectedMovies:
+                directors.length === 0 ? 0 : directors[0].total_movies,
+            order: order,
+        };
 
         actors.forEach((actor) => {
             personData.actedMovies.push({
@@ -347,20 +356,19 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
                 release_date: director.release_date,
             });
         });
-      
+
         if (API_MODE) return res.json({ personData });
         res.render("persona", { personData });
     } catch (err) {
         if (DEBUG) console.log(err);
         if (API_MODE)
-            return res.json(
-                error("Error al cargar la informacion de la persona"),
-            );
+            return res
+                .status(500)
+                .json(error("Error al cargar la información de la persona"));
 
         res.render("error", { error: err });
     }
 });
-
 
 app.listen(PORT, () => {
     if (API_MODE)
