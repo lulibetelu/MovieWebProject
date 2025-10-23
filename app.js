@@ -26,10 +26,10 @@ const session = require("express-session");
 
 app.use(
     session({
-        secret: "clave-secreta", // poné una cadena aleatoria segura
+        secret: process.env.SECRET_KEY,
         resave: false,
         saveUninitialized: false,
-    })
+    }),
 );
 //--- path para la foto vacia
 const noMovieBase =
@@ -130,7 +130,6 @@ app.get(API_URL + "/buscar", async (req, res) => {
             searchTerm,
             user: req.session.user,
         });
-
     } catch (err) {
         if (DEBUG) console.log(err);
         if (API_MODE)
@@ -304,7 +303,7 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
         : 0;
 
     const AscOrDesc = req.query.desc === "f" ? "ASC" : "DESC";
-  
+
     let order = "";
     switch (req.query.order) {
         case "Popularity":
@@ -341,12 +340,9 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
     `;
 
     try {
-        const actors = (
-            await db.query(actorQuery, [personID, offset])
-        ).rows;
-        const directors = (
-            await db.query(directorQuery, [personID, offset])
-        ).rows;
+        const actors = (await db.query(actorQuery, [personID, offset])).rows;
+        const directors = (await db.query(directorQuery, [personID, offset]))
+            .rows;
 
         if (actors.length === 0 && directors.length === 0) {
             return res.status(404).send("Persona no encontrada.");
@@ -393,12 +389,15 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
         if (API_MODE) {
             res.json({
                 personData,
-                tmdbApiKey: process.env.TMDB_API_KEY
+                tmdbApiKey: process.env.TMDB_API_KEY,
             });
             return;
         }
-  
-        res.render("persona", { personData, tmdbApiKey: process.env.TMDB_API_KEY });
+
+        res.render("persona", {
+            personData,
+            tmdbApiKey: process.env.TMDB_API_KEY,
+        });
     } catch (err) {
         if (DEBUG) console.log(err);
         if (API_MODE)
@@ -426,15 +425,17 @@ liveReloadServer.server.once("connection", () => {
 });
 
 app.get("/login/", async (req, res) => {
-    res.render("login")
+    res.render("login");
 });
 
 // ruta que recibe la informacion del form
-app.post('/login', async (req, res) => {
+app.post("/login", async (req, res) => {
     const { email, password } = req.body;
     try {
         // Buscar al usuario por su email
-        const result = await db.query('SELECT * FROM "user" WHERE email = $1', [email]);
+        const result = await db.query('SELECT * FROM "user" WHERE email = $1', [
+            email,
+        ]);
 
         // Si no existe el usuario
         if (result.rows.length === 0) {
@@ -456,7 +457,6 @@ app.post('/login', async (req, res) => {
             email: user.email,
         };
         res.redirect("/buscar?q=");
-
     } catch (error) {
         console.error("Error al iniciar sesión:", error);
         res.status(500).send("Error del servidor al intentar iniciar sesión.");
@@ -474,18 +474,19 @@ app.post("/register", async (req, res) => {
 
         const result = await db.query(
             'INSERT INTO "user" (username, email, password) VALUES ($1, $2, $3) RETURNING id',
-            [username, email, hashedPassword]
+            [username, email, hashedPassword],
         );
 
-        res.redirect("/login")
+        res.redirect("/login");
     } catch (err) {
         console.error(err);
-        res.status(500).send("Error al registrar el usuario (puede que el email ya exista)");
+        res.status(500).send(
+            "Error al registrar el usuario (puede que el email ya exista)",
+        );
     }
 });
 
 app.get("/profile", async (req, res) => {
-
     if (!req.session.user) {
         return res.redirect("/login");
     }
@@ -495,39 +496,45 @@ app.get("/profile", async (req, res) => {
     try {
         const userResult = await db.query(
             'SELECT username, email FROM "user" WHERE id = $1',
-            [userId]
+            [userId],
         );
         const user = userResult.rows[0];
 
         const ratedResult = await db.query(
             "SELECT COUNT(*) FROM user_movie WHERE user_id = $1 AND rating IS NOT NULL",
-            [userId]
+            [userId],
         );
         const ratedMovies = parseInt(ratedResult.rows[0].count);
 
         const reviewResult = await db.query(
             "SELECT COUNT(*) FROM user_movie WHERE user_id = $1 AND review IS NOT NULL",
-            [userId]
+            [userId],
         );
         const writtenReviews = parseInt(reviewResult.rows[0].count);
 
-        const lastRatedResult = await db.query(`
+        const lastRatedResult = await db.query(
+            `
           SELECT m.movie_id, m.title, um.rating
           FROM user_movie um
           JOIN movie m ON um.movie_id = m.movie_id
           WHERE um.user_id = $1 AND um.rating IS NOT NULL
           ORDER BY um.id DESC
           LIMIT 5
-        `, [userId]);
+        `,
+            [userId],
+        );
 
-        const lastReviewsResult = await db.query(`
+        const lastReviewsResult = await db.query(
+            `
           SELECT m.movie_id, m.title, um.review AS text
           FROM user_movie um
           JOIN movie m ON um.movie_id = m.movie_id
           WHERE um.user_id = $1 AND um.review IS NOT NULL
           ORDER BY um.id DESC
           LIMIT 5
-        `, [userId]);
+        `,
+            [userId],
+        );
 
         res.render("movie_user", {
             user: {
@@ -536,14 +543,11 @@ app.get("/profile", async (req, res) => {
                 ratedMovies,
                 writtenReviews,
                 lastRated: lastRatedResult.rows,
-                lastReviews: lastReviewsResult.rows
-            }
+                lastReviews: lastReviewsResult.rows,
+            },
         });
-
     } catch (error) {
         console.error("Error al cargar el perfil:", error);
         res.status(500).send("Error al cargar el perfil del usuario.");
     }
 });
-
-
