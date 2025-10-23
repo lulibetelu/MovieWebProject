@@ -6,7 +6,8 @@
     "scripts": {
         "dev": "nodemon app.js",
         "css": "npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/style.css",
-        "css:watch": "npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/style.css --watch"
+        "css:watch": "npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/style.css --watch",
+        "migrate": "node migrations.js"
     },
     "keywords": [],
     "author": "",
