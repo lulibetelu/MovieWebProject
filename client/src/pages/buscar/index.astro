@@ -1,0 +1,116 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+import { API_URL } from "../../data/config";
+
+// Habilita SSR para esta página
+export const prerender = false;
+
+// Access query parameters from Astro.url.searchParams
+const searchQuery = Astro.url.searchParams.get("q") || "";
+
+const res = await fetch(`${API_URL}/buscar?q=${searchQuery}`);
+const results = await res.json();
+
+// Normaliza los datos provenientes de la API
+const movies = results.movies ?? results.peliculas ?? [];
+const actors = results.actors ?? results.actores ?? [];
+const directors = results.directors ?? results.directores ?? [];
+
+console.log(results);
+---
+
+<Layout title="Search Results">
+    <!-- ====================== CONTENIDO DE LAS PESTAÑAS ====================== -->
+    <main class="flex-1 p-6 bg-base-200">
+        <!-- PELÍCULAS -->
+        <section id="peliculas" class="tab-panel">
+            <h2 class="text-2xl mb-4">Películas</h2>
+            {
+                movies.length === 0 ? (
+                    <p>No hay resultados.</p>
+                ) : (
+                    <ul class="list-disc pl-6">
+                        {movies.map((movie) => (
+                            <li>
+                                <a
+                                    href={`/pelicula/${movie.id ?? movie.movie_id}`}
+                                    class="link link-hover"
+                                >
+                                    {movie.title ?? movie.name}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                )
+            }
+        </section>
+
+        <!-- ACTORES -->
+        <section id="actores" class="tab-panel hidden">
+            <h2 class="text-2xl mb-4">Actores</h2>
+            {
+                actors.length === 0 ? (
+                    <p>No hay resultados.</p>
+                ) : (
+                    <ul class="list-disc pl-6">
+                        {actors.map((actor) => (
+                            <li>
+                                <a
+                                    href={`/persona/${actor.id ?? actor.person_id}`}
+                                    class="link link-hover"
+                                >
+                                    {actor.person_name ?? actor.name}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                )
+            }
+        </section>
+
+        <!-- DIRECTORES -->
+        <section id="directores" class="tab-panel hidden">
+            <h2 class="text-2xl mb-4">Directores</h2>
+            {
+                directors.length === 0 ? (
+                    <p>No hay resultados.</p>
+                ) : (
+                    <ul class="list-disc pl-6">
+                        {directors.map((director) => (
+                            <li>
+                                <a
+                                    href={`/persona/${director.id ?? director.person_id}`}
+                                    class="link link-hover"
+                                >
+                                    {director.person_name ?? director.name}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                )
+            }
+        </section>
+    </main>
+
+    <script>
+        // Esperamos a que el DOM esté listo
+        document.addEventListener("DOMContentLoaded", () => {
+            const tabs = document.querySelectorAll('input[name="my_tabs_3"]');
+            const panels = document.querySelectorAll(".tab-panel");
+
+            tabs.forEach((tab) => {
+                tab.addEventListener("change", () => {
+                    // Ocultar todas las secciones
+                    panels.forEach((panel) => panel.classList.add("hidden"));
+
+                    // Mostrar la sección que coincide con el value del tab
+                    const activePanel = document.getElementById(tab.value);
+                    if (activePanel) {
+                        activePanel.classList.remove("hidden");
+                    }
+                });
+            });
+        });
+    </script>
+</Layout>
