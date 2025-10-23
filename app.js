@@ -17,25 +17,8 @@ const { Pool } = require("pg");
 const app = express();
 const PORT = process.env.PORT || 3500;
 
-//--- Configurar path para buscar las fotos
-const imageBase = "https://image.tmdb.org/t/p/w200";
+//--- path para la foto vacia
 const noMovieBase = "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
-async function buscarPelicula(nombre) {
-    const url = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.TMDB_API_KEY}&query=${nombre}`;
-
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (!data.results) {
-        return [];
-    }
-
-    return data.results.map(movie => ({
-        title: movie.title,
-        overview: movie.overview,
-        image: movie.poster_path ? imageBase + movie.poster_path : null
-    }));
-}
 
 
 // --- 🔥 Configurar LiveReload ---
@@ -330,28 +313,22 @@ app.get("/persona/:id", async (req, res) => {
         }
 
         for (const actor of actors) {
-            //const movies = await buscarPelicula(actor.title);
-            //const movie = movies.length > 0 ? movies[0] : null;
 
             personData.actedMovies.push({
                 title: actor.title,
                 movie_id: actor.movie_id,
                 character_name: actor.character_name,
                 release_date: actor.release_date,
-                //photo_path: movie?.image || noMovieBase,
                 photo_path: noMovieBase,
                 popularity: actor.popularity
             });
         }
         for (const director of directors){
-            //const movies = await buscarPelicula(director.title);
-            //const movie = movies.length > 0 ? movies[0] : null;
 
             personData.directedMovies.push({
                 title: director.title,
                 movie_id: director.movie_id,
                 release_date: director.release_date,
-                //photo_path: movie?.image || noMovieBase,
                 photo_path: noMovieBase,
                 popularity: director.popularity
             });
