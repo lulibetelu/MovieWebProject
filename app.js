@@ -260,7 +260,7 @@ app.get(API_URL + "/pelicula/:id", async (req, res) => {
 
         if (API_MODE) return res.json({ movie: movieData });
 
-        res.render("movie", { movie: movieData });
+        res.render("pelicula", { movie: movieData });
     } catch (err) {
         if (DEBUG) console.log(err);
         if (API_MODE)
