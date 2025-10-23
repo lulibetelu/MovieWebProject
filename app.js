@@ -271,6 +271,8 @@ app.get(API_URL + "/pelicula/:id", async (req, res) => {
         });
     }
 });
+app.get("/persona/:id", async (req, res) => {
+    const personID = req.params.id;
 
 // * Ruta para obtener información de una persona
 app.get(API_URL + "/persona/:id", async (req, res) => {
@@ -306,9 +308,10 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
         WHERE p.person_id = $1 and mc.job = 'Director';
     `;
 
-    try {
-        const actors = (await db.query(actorQuery, [personID, offset])).rows;
-        const directors = (await db.query(directorQuery, [personID])).rows;
+
+    try{
+        const actors = (await db.query(actorQuery,[personID,offset])).rows;
+        const directors = (await db.query(directorQuery,[personID])).rows;
 
         if (actors.length === 0 && directors.length === 0) {
             return res.status(404).send("Persona no encontrada.");
@@ -320,14 +323,14 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
                 actors.length === 0
                     ? directors[0].person_name
                     : actors[0].person_name,
+            //gender: actors[0].gender,
             offset: offset,
             actedMovies: [],
             directedMovies: [],
-            totalActedMovies: actors.length === 0 ? 0 : actors[0].total_movies,
-            totalDirectedMovies:
-                directors.length === 0 ? 0 : directors[0].total_movies,
-            order: order,
-        };
+            totalActedMovies: actors.length === 0? 0 : actors[0].total_movies,
+            totalDirectedMovies: directors.length === 0? 0: directors[0].total_movies,
+            order: order
+        }
 
         actors.forEach((actor) => {
             personData.actedMovies.push({
@@ -344,7 +347,7 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
                 release_date: director.release_date,
             });
         });
-
+      
         if (API_MODE) return res.json({ personData });
         res.render("persona", { personData });
     } catch (err) {
@@ -357,6 +360,7 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
         res.render("error", { error: err });
     }
 });
+
 
 app.listen(PORT, () => {
     if (API_MODE)
