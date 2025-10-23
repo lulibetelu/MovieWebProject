@@ -330,27 +330,29 @@ app.get("/persona/:id", async (req, res) => {
         }
 
         for (const actor of actors) {
-            const movies = await buscarPelicula(actor.title);
-            const movie = movies.length > 0 ? movies[0] : null;
+            //const movies = await buscarPelicula(actor.title);
+            //const movie = movies.length > 0 ? movies[0] : null;
 
             personData.actedMovies.push({
                 title: actor.title,
                 movie_id: actor.movie_id,
                 character_name: actor.character_name,
                 release_date: actor.release_date,
-                photo_path: movie?.image || noMovieBase,
+                //photo_path: movie?.image || noMovieBase,
+                photo_path: noMovieBase,
                 popularity: actor.popularity
             });
         }
         for (const director of directors){
-            const movies = await buscarPelicula(director.title);
-            const movie = movies.length > 0 ? movies[0] : null;
+            //const movies = await buscarPelicula(director.title);
+            //const movie = movies.length > 0 ? movies[0] : null;
 
             personData.directedMovies.push({
                 title: director.title,
                 movie_id: director.movie_id,
                 release_date: director.release_date,
-                photo_path: movie?.image || noMovieBase,
+                //photo_path: movie?.image || noMovieBase,
+                photo_path: noMovieBase,
                 popularity: director.popularity
             });
         }
