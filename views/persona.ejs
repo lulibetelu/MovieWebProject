@@ -185,10 +185,8 @@
             <%} else{%>
             <a href= "/persona/<%=personData.person_id%>?offset=<%=personData.offset - 8 %>&order=<%=personData.order%>&desc=<%=personData.ascOrDesc%>" class="join-item btn">«</a>
             <%}%>
-
             <!-- Botton con el nro de pagina -->
             <button class="join-item btn">Page <%=(personData.offset/8)+1%></button>
-
             <!-- Boton para ir para atras -->
             <% if((personData.offset + 10) >= personData.totalActedMovies) {%>
                 <button class="join-item btn">»</button>

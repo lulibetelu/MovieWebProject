@@ -291,13 +291,13 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
   
     let order = "";
     switch (req.query.order) {
-        case "popularity":
+        case "Popularity":
             order = "m.popularity";
             break;
-        case "release_date":
+        case "Release_date":
             order = "m.release_date";
             break;
-        case "title":
+        case "Title":
             order = "m.title";
             break;
         default:
@@ -311,7 +311,7 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
         INNER JOIN movie m on m.movie_id = mc.movie_id
         INNER JOIN gender g on mc.gender_id = g.gender_id
         WHERE p.person_id = $1
-        ORDER BY $3 $4
+        ORDER BY ${order} ${AscOrDesc}
         LIMIT 8 OFFSET $2;
     `;
     const directorQuery = `
@@ -320,16 +320,16 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
         INNER JOIN movie_crew mc on p.person_id = mc.person_id
         INNER JOIN movie m on m.movie_id = mc.movie_id
         WHERE p.person_id = $1 and mc.job = 'Director'
-        ORDER BY $3 $4
+        ORDER BY ${order} ${AscOrDesc}
         LIMIT 8 OFFSET $2;
     `;
 
     try {
         const actors = (
-            await db.query(actorQuery, [personID, offset, order, AscOrDesc])
+            await db.query(actorQuery, [personID, offset])
         ).rows;
         const directors = (
-            await db.query(directorQuery, [personID, offset, order, AscOrDesc])
+            await db.query(directorQuery, [personID, offset])
         ).rows;
 
         if (actors.length === 0 && directors.length === 0) {
@@ -374,10 +374,13 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
             });
         });
 
-        if (API_MODE) return res.json({ 
-          personData,
-          tmdbApiKey: process.env.TMDB_API_KEY
-        });
+        if (API_MODE) {
+            res.json({
+                personData,
+                tmdbApiKey: process.env.TMDB_API_KEY
+            });
+            return;
+        }
   
         res.render("persona", { personData, tmdbApiKey: process.env.TMDB_API_KEY });
     } catch (err) {
@@ -387,7 +390,7 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
                 .status(500)
                 .json(error("Error al cargar la información de la persona"));
 
-        res.render("error", { error: err });
+        res.render("persona", { error: err });
     }
 });
 
