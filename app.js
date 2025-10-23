@@ -51,7 +51,7 @@ const db = new Pool({
 });
 
 const DEBUG = process.env.DEBUG === "true" || false;
-const API_MODE = process.env.API_MODE || false;
+const API_MODE = process.env.API_MODE === "true" || false;
 const API_URL = API_MODE ? "/api" : "";
 
 // Configurar el motor de plantillas EJS
@@ -105,7 +105,7 @@ app.get(API_URL + "/buscar", async (req, res) => {
             return;
         }
 
-        res.render("search", {
+        res.render("resultado", {
             movies: filteredMovies,
             actors: filteredActors,
             directors: filteredDirectors,
@@ -358,9 +358,13 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
     }
 });
 
-app.listen(PORT, () =>
-    console.log(`Servidor corriendo en http://localhost:${PORT}`),
-);
+app.listen(PORT, () => {
+    if (API_MODE)
+        return console.log(
+            `Servidor corriendo modo API en http://localhost:${PORT}`,
+        );
+    console.log(`Servidor corriendo modo WEB en http://localhost:${PORT}`);
+});
 
 // Cuando el servidor de livereload detecte un cambio, recarga el navegador
 liveReloadServer.server.once("connection", () => {
