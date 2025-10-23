@@ -1,0 +1,121 @@
+---
+import "../../assets/app.css";
+import { API_URL } from "../../data/config";
+import DetailLayout from "../../layouts/DetailLayout.astro";
+
+import Layout from "../../layouts/Layout.astro";
+
+export const prerender = false;
+
+const { id } = Astro.params;
+
+let movie = null;
+
+try {
+    const res = await fetch(`${API_URL}/pelicula/${id}`);
+    if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    movie = data.movie ?? data;
+} catch (err) {
+    movie = null;
+}
+
+const monthNames = [
+    "Ene",
+    "Feb",
+    "Mar",
+    "Abr",
+    "May",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dic",
+];
+
+let formattedDate = "";
+if (movie?.release_date) {
+    const date = new Date(movie.release_date);
+    if (!isNaN(date.getTime())) {
+        const day = date.getDate();
+        const month = monthNames[date.getMonth()];
+        const year = date.getFullYear();
+        formattedDate = `${day}-${month}-${year}`;
+    }
+}
+---
+
+<DetailLayout title={movie?.title ?? "Película"}>
+    {
+        !movie ? (
+            <p>No se pudo cargar la película.</p>
+        ) : (
+            <>
+                <h1>{movie.title}</h1>
+                {formattedDate && (
+                    <p>
+                        <strong>Fecha:</strong> {formattedDate}
+                    </p>
+                )}
+
+                <h3>Directores</h3>
+                <ul>
+                    {(movie.directors ?? []).map((director) => (
+                        <li>
+                            <a
+                                href={`/persona/${director.crew_member_id}?offset=0&order=popularity`}
+                            >
+                                {director.crew_member_name}
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+
+                <h3>Escritores</h3>
+                <ul>
+                    {(movie.writers ?? []).map((writer) => (
+                        <li>{writer.crew_member_name}</li>
+                    ))}
+                </ul>
+
+                <h3>Argumento</h3>
+                <div id="overview">
+                    <p>{movie.overview}</p>
+                </div>
+
+                <h3>Elenco</h3>
+                <ul>
+                    {[...(movie.cast ?? [])]
+                        .sort((a, b) => a.cast_order - b.cast_order)
+                        .map((actor) => (
+                            <li>
+                                <a href={`/persona/${actor.actor_id}`}>
+                                    {actor.actor_name}
+                                </a>{" "}
+                                - {actor.character_name}
+                            </li>
+                        ))}
+                </ul>
+
+                <h3>Equipo técnico</h3>
+                <ul>
+                    {(movie.crew ?? []).map((crewMember) => (
+                        <li>
+                            {crewMember.crew_member_name} -{" "}
+                            {crewMember.department_name} ({crewMember.job})
+                        </li>
+                    ))}
+                </ul>
+
+                <p />
+                <div id="inicio">
+                    <a href="/">Inicio</a>
+                </div>
+            </>
+        )
+    }
+</DetailLayout>

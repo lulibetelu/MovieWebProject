@@ -9,8 +9,6 @@ require("dotenv").config();
 
 const path = require("path");
 const express = require("express");
-const livereload = require("livereload");
-const connectLivereload = require("connect-livereload");
 
 const { Pool } = require("pg");
 
@@ -20,24 +18,6 @@ const PORT = process.env.PORT || 3500;
 //--- path para la foto vacia
 const noMovieBase =
     "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
-
-// --- 🔥 Configurar LiveReload ---
-const liveReloadServer = livereload.createServer({
-    exts: ["ejs", "css", "js"],
-    delay: 100,
-});
-
-liveReloadServer.watch(path.join(__dirname, "views"));
-liveReloadServer.watch(path.join(__dirname, "public"));
-
-// Middleware para inyectar el script en las páginas
-app.use(connectLivereload());
-
-// Serve static files from the "views" directory
-app.set("views", path.join(process.cwd(), "views"));
-
-// Servir archivos estáticos (CSS, JS, imágenes, etc.)
-app.use(express.static("public"));
 
 const error = (msg = "", status = 500) => ({
     error: msg,
@@ -57,9 +37,6 @@ const db = new Pool({
 const DEBUG = process.env.DEBUG === "true" || false;
 const API_MODE = process.env.API_MODE === "true" || false;
 const API_URL = API_MODE ? "/api" : "";
-
-// Configurar el motor de plantillas EJS
-app.set("view engine", "ejs");
 
 // * Ruta para la página de inicio
 app.get(API_URL + "/", (req, res) => {
@@ -400,11 +377,4 @@ app.listen(PORT, () => {
             `Servidor corriendo modo API en http://localhost:${PORT}`,
         );
     console.log(`Servidor corriendo modo WEB en http://localhost:${PORT}`);
-});
-
-// Cuando el servidor de livereload detecte un cambio, recarga el navegador
-liveReloadServer.server.once("connection", () => {
-    setTimeout(() => {
-        liveReloadServer.refresh("/");
-    }, 100);
 });

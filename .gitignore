@@ -1,10 +1,11 @@
 # Archivo de secretos y variables de entorno
-.env
+*/.env
 
 # Directorio de dependencias de Node.js.
 # Se puede regenerar en cualquier momento ejecutando "npm install".
 node_modules/
-package-lock.json
+*/package-lock.json
+*-lock.json
 
 # Logs de NPM
 npm-debug.log*
