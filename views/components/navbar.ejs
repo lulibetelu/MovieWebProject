@@ -39,6 +39,31 @@
             <input type="search" name="q" placeholder="Search" value="<%= searchTerm %>" class="grow" />
             </label>
         </form>
+
+        <!-- Menu del usuario -->
+        <% if (typeof user !== 'undefined' && user && user.username) { %>
+            <!-- Si el usuario está logueado -->
+            <div class="dropdown">
+                <label tabindex="0" class="btn btn-ghost flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M5.121 17.804A9.004 9.004 0 0112 15c2.137 0 4.1.747 5.879 2.004M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span><%= user.username %></span>
+                </label>
+                <ul tabindex="0" class="menu dropdown-content mt-2 p-2 shadow bg-base-100 rounded-box w-48">
+                    <li><a href="/profile">Perfil</a></li>
+                    <li><a href="/rated">Peliculas Calificadas</a></li>
+                    <li><a href="/reviews">Reseñas</a></li>
+                    <li><a href="/logout" class="text-error">Cerrar sesión</a></li>
+                </ul>
+            </div>
+        <% } else { %>
+            <!-- Si el usuario NO está logueado -->
+            <a href="/login" class="btn btn-primary ml-2">Login</a>
+        <% } %>
+        <!-- FIN DEL DROPDOWN -->
     </div>
 
 
