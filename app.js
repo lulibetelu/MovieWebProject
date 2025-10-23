@@ -113,7 +113,7 @@ app.get(API_URL + "/buscar", async (req, res) => {
         });
     } catch (err) {
         if (DEBUG) console.log(err);
-        if (API_MODE) return res.json(Error());
+        if (API_MODE) return res.json(error('Error en la búsqueda.', 500));
         res.render("error", { error: err });
     }
 });
