@@ -32,7 +32,7 @@
         <% } else { %>
             <ul class="list-disc pl-6">
             <% actors.forEach(actor => { %>
-                <li><a href="/persona/<%= actor.id %>?offset=<%=0%>&order=popularity" class="link link-hover"><%= actor.name %></a></li>
+                <li><a href="/persona/<%= actor.id %>?offset=<%=0%>&order=Popularity&desc=t" class="link link-hover"><%= actor.name %></a></li>
             <% }); %>
             </ul>
         <% } %>
@@ -46,7 +46,7 @@
         <% } else { %>
             <ul class="list-disc pl-6">
             <% directors.forEach(director => { %>
-                <li><a href="/persona/<%= director.id %>?offset=<%=0%>&order=popularity" class="link link-hover"><%= director.name %></a></li>
+                <li><a href="/persona/<%= director.id %>?offset=<%=0%>&order=Popularity&desc=t" class="link link-hover"><%= director.name %></a></li>
             <% }); %>
             </ul>
         <% } %>
