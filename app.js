@@ -500,10 +500,11 @@ app.get("/profile", async (req, res) => {
         );
         const user = userResult.rows[0];
 
-        const ratedResult = await db.query(
+        /*const ratedResult = await db.query(
             "SELECT COUNT(*) FROM user_movie WHERE user_id = $1 AND rating IS NOT NULL",
             [userId],
         );
+
         const ratedMovies = parseInt(ratedResult.rows[0].count);
 
         const reviewResult = await db.query(
@@ -512,38 +513,19 @@ app.get("/profile", async (req, res) => {
         );
         const writtenReviews = parseInt(reviewResult.rows[0].count);
 
-        const lastRatedResult = await db.query(
-            `
-          SELECT m.movie_id, m.title, um.rating
-          FROM user_movie um
-          JOIN movie m ON um.movie_id = m.movie_id
-          WHERE um.user_id = $1 AND um.rating IS NOT NULL
-          ORDER BY um.id DESC
-          LIMIT 5
-        `,
-            [userId],
-        );
+        //const lastRatedResult = await db.query( );
 
-        const lastReviewsResult = await db.query(
-            `
-          SELECT m.movie_id, m.title, um.review AS text
-          FROM user_movie um
-          JOIN movie m ON um.movie_id = m.movie_id
-          WHERE um.user_id = $1 AND um.review IS NOT NULL
-          ORDER BY um.id DESC
-          LIMIT 5
-        `,
-            [userId],
-        );
 
+        //const lastReviewsResult = await db.query( );
+*/
         res.render("movie_user", {
             user: {
                 username: user.username,
                 email: user.email,
-                ratedMovies,
-                writtenReviews,
-                lastRated: lastRatedResult.rows,
-                lastReviews: lastReviewsResult.rows,
+                //ratedMovies,
+                //writtenReviews,
+                //lastRated: lastRatedResult.rows,
+               // lastReviews: lastReviewsResult.rows,
             },
         });
     } catch (error) {
