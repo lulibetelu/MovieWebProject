@@ -22,6 +22,16 @@ app.use(express.urlencoded({ extended: true }));
 
 const bcrypt = require("bcrypt");
 
+const session = require("express-session");
+
+app.use(
+    session({
+        secret: "clave-secreta", // poné una cadena aleatoria segura
+        resave: false,
+        saveUninitialized: false,
+    })
+);
+
 // --- 🔥 Configurar LiveReload ---
 const liveReloadServer = livereload.createServer({
     exts: ["ejs", "css", "js"],
@@ -91,7 +101,9 @@ app.get("/buscar", async (req, res) => {
             actors: filteredActors,
             directors: filteredDirectors,
             searchTerm,
+            user: req.session.user,
         });
+
     } catch (err) {
         console.error(err);
         res.status(500).send("Error en la búsqueda.");
@@ -415,11 +427,16 @@ app.post('/login', async (req, res) => {
         // Comparar contraseñas (bcrypt lo hace)
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
-        if (isPasswordCorrect) {
-            res.send(`Bienvenido, ${user.username}!`);
-        } else {
+        if (!isPasswordCorrect) {
             res.send("Contraseña incorrecta");
         }
+
+        req.session.user = {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+        };
+        res.redirect("/buscar?q=");
 
     } catch (error) {
         console.error("Error al iniciar sesión:", error);
@@ -441,10 +458,22 @@ app.post("/register", async (req, res) => {
             [username, email, hashedPassword]
         );
 
-        res.send(`Usuario creado con éxito: ID = ${result.rows[0].id}`);
+        res.redirect("/login")
     } catch (err) {
         console.error(err);
         res.status(500).send("Error al registrar el usuario (puede que el email ya exista)");
     }
 });
+
+// app.get("/profile", (req, res) => {
+//     const user = {
+//         username: req.session.user.username,
+//         email: req.session.user.email,
+//         created_at: req.session.user.created_at || null,
+//         ratedMovies: req.session.user.ratedMovies || 0,
+//         writtenReviews: req.session.user.writtenReviews || 0
+//     };
+//
+//     res.render("user", { user });
+// });
 
