@@ -2252,6 +2252,9 @@
   .static {
     position: static;
   }
+  .inset-0 {
+    inset: calc(var(--spacing) * 0);
+  }
   .top-10 {
     top: calc(var(--spacing) * 10);
   }
@@ -2519,6 +2522,8 @@
   }
   .ml-2 {
     margin-left: calc(var(--spacing) * 2);
+  .mb-4 {
+    margin-bottom: calc(var(--spacing) * 4);
   }
   .status {
     @layer daisyui.component {
@@ -2670,6 +2675,14 @@
       }
     }
   }
+  .card-actions {
+    @layer daisyui.component {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: calc(0.25rem * 2);
+    }
+  }
   .card-title {
     @layer daisyui.component {
       display: flex;
@@ -2776,11 +2789,19 @@
   .table {
     display: table;
   }
+  .h-3\/4 {
+    height: calc(3/4 * 100%);
+  }
+  .h-4 {
+    height: calc(var(--spacing) * 4);
+  }
   .h-5 {
     height: calc(var(--spacing) * 5);
   }
   .h-48 {
     height: calc(var(--spacing) * 48);
+  .h-96 {
+    height: calc(var(--spacing) * 96);
   }
   .h-\[1em\] {
     height: 1em;
@@ -2791,14 +2812,22 @@
   .min-h-screen {
     min-height: 100vh;
   }
+  .w-3\/4 {
+    width: calc(3/4 * 100%);
+  }
   .w-5 {
     width: calc(var(--spacing) * 5);
   }
   .w-48 {
     width: calc(var(--spacing) * 48);
+  .w-28 {
+    width: calc(var(--spacing) * 28);
   }
   .w-52 {
     width: calc(var(--spacing) * 52);
+  }
+  .w-85 {
+    width: calc(var(--spacing) * 85);
   }
   .w-fit {
     width: fit-content;
@@ -3064,6 +3093,16 @@
   }
   .p-3 {
     padding: calc(var(--spacing) * 3);
+  .bg-orange-400 {
+    background-color: var(--color-orange-400);
+  }
+  .mask-star-2 {
+    @layer daisyui.modifier {
+      mask-image: url("data:image/svg+xml,%3csvg width='192' height='180' xmlns='http://www.w3.org/2000/svg'%3e%3cpath fill='black' d='m96 153.044-58.779 26.243 7.02-63.513L.894 68.481l63.117-13.01L96 0l31.989 55.472 63.117 13.01-43.347 47.292 7.02 63.513z' fill-rule='evenodd'/%3e%3c/svg%3e");
+    }
+  }
+  .p-2 {
+    padding: calc(var(--spacing) * 2);
   }
   .p-4 {
     padding: calc(var(--spacing) * 4);
@@ -3150,6 +3189,11 @@
   }
   .text-blue-600 {
     color: var(--color-blue-600);
+  .text-\[\#ff8820\] {
+    color: #ff8820;
+  }
+  .text-base-content {
+    color: var(--color-base-content);
   }
   .text-error {
     color: var(--color-error);

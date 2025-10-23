@@ -29,7 +29,7 @@ const formattedDate = `${day}-${month}-${year}`;
 <ul>
     <% movie.directors.forEach((director) => { %>
         <li>
-            <a href="/persona/<%= director.crew_member_id %>?offset=<%= 0 %>&order=popularity"><%= director.crew_member_name %></a>
+            <a href="/persona/<%= director.crew_member_id %>?offset=<%= 0 %>&order=Popularity&desc=t"><%= director.crew_member_name %></a>
         </li>
     <% }); %>
 </ul>
@@ -46,7 +46,7 @@ const formattedDate = `${day}-${month}-${year}`;
 <h3>Elenco</h3>
 <ul>
     <% movie.cast.sort((a, b) => a.cast_order - b.cast_order).forEach((actor) => { %>
-        <li><a href="/persona/<%= actor.actor_id %>"><%= actor.actor_name %></a> - <%= actor.character_name %></li>
+        <li><a href="/persona/<%= actor.actor_id %>?offset=<%= 0 %>&order=Popularity&desc=t"><%= actor.actor_name %></a> - <%= actor.character_name %></li>
     <% }); %>
 </ul>
 <h3>Equipo técnico</h3>

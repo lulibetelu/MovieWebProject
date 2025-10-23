@@ -31,12 +31,16 @@ app.use(
         saveUninitialized: false,
     })
 );
+//--- path para la foto vacia
+const noMovieBase =
+    "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
 
 // --- 🔥 Configurar LiveReload ---
 const liveReloadServer = livereload.createServer({
     exts: ["ejs", "css", "js"],
     delay: 100,
 });
+
 liveReloadServer.watch(path.join(__dirname, "views"));
 liveReloadServer.watch(path.join(__dirname, "public"));
 
@@ -49,6 +53,11 @@ app.set("views", path.join(process.cwd(), "views"));
 // Servir archivos estáticos (CSS, JS, imágenes, etc.)
 app.use(express.static("public"));
 
+const error = (msg = "", status = 500) => ({
+    error: msg,
+    status: status,
+});
+
 // Crear un "pool" de conexiones a PostgreSQL usando las variables de entorno
 const db = new Pool({
     user: process.env.DB_USER,
@@ -59,16 +68,24 @@ const db = new Pool({
     options: `-c search_path=movies,public`, //modificar options de acuerdo al nombre del esquema
 });
 
+const DEBUG = process.env.DEBUG === "true" || false;
+const API_MODE = process.env.API_MODE === "true" || false;
+const API_URL = API_MODE ? "/api" : "";
+
 // Configurar el motor de plantillas EJS
 app.set("view engine", "ejs");
 
-// Ruta para la página de inicio
-app.get("/", (req, res) => {
-    res.render("index");
+// * Ruta para la página de inicio
+app.get(API_URL + "/", (req, res) => {
+    if (API_MODE) {
+        res.json({ Home: "Welcome to the Movie Web Project!" });
+    } else {
+        res.render("index");
+    }
 });
 
-// Ruta para buscar películas en la base de datos PostgreSQL
-app.get("/buscar", async (req, res) => {
+// * Ruta para buscar películas en la base de datos PostgreSQL
+app.get(API_URL + "/buscar", async (req, res) => {
     // 4. Convertir a función async
     const searchTerm = req.query.q;
     const page = req.query.page || 1;
@@ -96,6 +113,16 @@ app.get("/buscar", async (req, res) => {
             (row) => row.type === "director",
         );
 
+        if (API_MODE) {
+            res.json({
+                movies: filteredMovies,
+                actors: filteredActors,
+                directors: filteredDirectors,
+                searchTerm,
+            });
+            return;
+        }
+
         res.render("resultado", {
             movies: filteredMovies,
             actors: filteredActors,
@@ -105,13 +132,15 @@ app.get("/buscar", async (req, res) => {
         });
 
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Error en la búsqueda.");
+        if (DEBUG) console.log(err);
+        if (API_MODE)
+            return res.status(500).json(error("Error en la búsqueda."));
+        res.render("error", { error: err });
     }
 });
 
-// Ruta para la página de datos de una película particular (PostgreSQL)
-app.get("/pelicula/:id", async (req, res) => {
+// * Ruta para la página de datos de una película particular (PostgreSQL)
+app.get(API_URL + "/pelicula/:id", async (req, res) => {
     // Convertir a async
     const movieId = req.params.id;
 
@@ -136,7 +165,7 @@ app.get("/pelicula/:id", async (req, res) => {
   `;
 
     try {
-        const result = await db.query(query, [movieId]);
+        const result = await db.query(query, [parseInt(movieId)]);
         const rows = result.rows;
 
         if (rows.length === 0) {
@@ -250,48 +279,74 @@ app.get("/pelicula/:id", async (req, res) => {
             }
         });
 
+        if (API_MODE) return res.json({ movie: movieData });
+
         res.render("pelicula", { movie: movieData });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Error al cargar los datos de la película.");
+        if (DEBUG) console.log(err);
+        if (API_MODE)
+            return res
+                .status(500)
+                .json(error("Error al cargar los datos de la película."));
+
+        res.render("error", {
+            error: error("Error al cargar los datos de la película.", 500),
+        });
     }
 });
 
-app.get("/persona/:id", async (req, res) => {
+// * Ruta para obtener información de una persona
+app.get(API_URL + "/persona/:id", async (req, res) => {
     const personID = req.params.id;
 
+    const offset = req.query.offset
+        ? Math.max(parseInt(req.query.offset), 0)
+        : 0;
 
-
-    const offset = req.query.offset ? Math.max(parseInt(req.query.offset), 0) : 0;
-    const allowedOrders = {
-        popularity: 'm.popularity',
-        release_date: 'm.release_date',
-        title: 'm.title'
-    };
-    const order = allowedOrders[req.query.order] || 'm.popularity';
+    const AscOrDesc = req.query.desc === "f" ? "ASC" : "DESC";
+  
+    let order = "";
+    switch (req.query.order) {
+        case "Popularity":
+            order = "m.popularity";
+            break;
+        case "Release_date":
+            order = "m.release_date";
+            break;
+        case "Title":
+            order = "m.title";
+            break;
+        default:
+            order = "m.popularity";
+    }
 
     const actorQuery = `
-        SELECT p.person_id, p.person_name, m.title,m.movie_id,mc.character_name, g.gender, m.release_date, COUNT(*) OVER() AS total_movies
+        SELECT p.person_id, p.person_name, m.title,m.movie_id,mc.character_name, g.gender, m.release_date, m.popularity, COUNT(*) OVER() AS total_movies
         FROM person p
         INNER JOIN movie_cast mc on mc.person_id = p.person_id
         INNER JOIN movie m on m.movie_id = mc.movie_id
         INNER JOIN gender g on mc.gender_id = g.gender_id
         WHERE p.person_id = $1
-        ORDER BY ${order} DESC
-        LIMIT 10 OFFSET $2;
+        ORDER BY ${order} ${AscOrDesc}
+        LIMIT 8 OFFSET $2;
     `;
     const directorQuery = `
-        SELECT p.person_id, p.person_name, mc.movie_id, m.title, m.release_date, COUNT(*) OVER() AS total_movies
+        SELECT p.person_id, p.person_name, mc.movie_id, m.title, m.release_date, m.popularity, COUNT(*) OVER() AS total_movies
         FROM person p
         INNER JOIN movie_crew mc on p.person_id = mc.person_id
         INNER JOIN movie m on m.movie_id = mc.movie_id
-        WHERE p.person_id = $1 and mc.job = 'Director';
+        WHERE p.person_id = $1 and mc.job = 'Director'
+        ORDER BY ${order} ${AscOrDesc}
+        LIMIT 8 OFFSET $2;
     `;
 
-
-    try{
-        const actors = (await db.query(actorQuery,[personID,offset])).rows;
-        const directors = (await db.query(directorQuery,[personID])).rows;
+    try {
+        const actors = (
+            await db.query(actorQuery, [personID, offset])
+        ).rows;
+        const directors = (
+            await db.query(directorQuery, [personID, offset])
+        ).rows;
 
         if (actors.length === 0 && directors.length === 0) {
             return res.status(404).send("Persona no encontrada.");
@@ -303,14 +358,16 @@ app.get("/persona/:id", async (req, res) => {
                 actors.length === 0
                     ? directors[0].person_name
                     : actors[0].person_name,
-            //gender: actors[0].gender,
+            gender: actors.length === 0 ? "Male" : actors[0].gender,
             offset: offset,
+            order: req.query.order,
+            ascOrDesc: AscOrDesc === "DESC" ? "t" : "f",
             actedMovies: [],
             directedMovies: [],
-            totalActedMovies: actors.length === 0? 0 : actors[0].total_movies,
-            totalDirectedMovies: directors.length === 0? 0: directors[0].total_movies,
-            order: order
-        }
+            totalActedMovies: actors.length === 0 ? 0 : actors[0].total_movies,
+            totalDirectedMovies:
+                directors.length === 0 ? 0 : directors[0].total_movies,
+        };
 
         actors.forEach((actor) => {
             personData.actedMovies.push({
@@ -318,86 +375,48 @@ app.get("/persona/:id", async (req, res) => {
                 movie_id: actor.movie_id,
                 character_name: actor.character_name,
                 release_date: actor.release_date,
+                photo_path: noMovieBase,
+                popularity: actor.popularity,
             });
         });
+
         directors.forEach((director) => {
             personData.directedMovies.push({
                 title: director.title,
                 movie_id: director.movie_id,
                 release_date: director.release_date,
+                photo_path: noMovieBase,
+                popularity: director.popularity,
             });
         });
 
-        res.render("persona", { personData });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error al cargar la informacion de la persona");
-    }
-});
-
-// Ruta para mostrar la página de un actor específico (PostgreSQL)
-app.get("/actor/:id", async (req, res) => {
-    try {
-        const result = await db.query(query, [actorId]);
-        const rows = result.rows;
-
-        if (rows.length === 0) {
-            return res.status(404).send("Actor no encontrado.");
+        if (API_MODE) {
+            res.json({
+                personData,
+                tmdbApiKey: process.env.TMDB_API_KEY
+            });
+            return;
         }
-
-        const personData = {
-            actor_id: actorId,
-            actor_name: rows[0].person_name,
-            gender: rows[0].gender,
-            movies: [],
-        };
-
-        rows.forEach((row) => {
-            personData.movies.push({
-                title: row.title,
-                movie_id: row.movie_id,
-                character_name: row.character_name,
-                release_date: row.release_date,
-            });
-        });
-
-        res.render("actor", { personData });
-        //const actorName = movies.length > 0 ? movies[0].actorname : ''; // Ojo: postgres devuelve todo en minúsculas por defecto
-        //res.render('actor', { actorName, movies });
+  
+        res.render("persona", { personData, tmdbApiKey: process.env.TMDB_API_KEY });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Error al cargar las películas del actor.");
+        if (DEBUG) console.log(err);
+        if (API_MODE)
+            return res
+                .status(500)
+                .json(error("Error al cargar la información de la persona"));
+
+        res.render("persona", { error: err });
     }
 });
 
-// Ruta para mostrar la página de un director específico (PostgreSQL)
-app.get("/director/:id", async (req, res) => {
-    const directorId = req.params.id;
-
-    const query = `
-    SELECT DISTINCT
-      person.person_name as directorName,
-      movie.*
-    FROM movie
-    INNER JOIN movie_crew ON movie.movie_id = movie_crew.movie_id
-    INNER JOIN person ON person.person_id = movie_crew.person_id
-    WHERE movie_crew.job = 'Director' AND movie_crew.person_id = $1;
-  `;
-
-    try {
-        const result = await db.query(query, [directorId]);
-        const movies = result.rows;
-        const directorName = movies.length > 0 ? movies[0].directorname : ""; // Ojo: postgres devuelve todo en minúsculas por defecto
-        res.render("director", { directorName, movies });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error al cargar las películas del director.");
-    }
+app.listen(PORT, () => {
+    if (API_MODE)
+        return console.log(
+            `Servidor corriendo modo API en http://localhost:${PORT}`,
+        );
+    console.log(`Servidor corriendo modo WEB en http://localhost:${PORT}`);
 });
-
-app.listen(PORT, () =>
-    console.log(`Servidor corriendo en http://localhost:${PORT}`),
-);
 
 // Cuando el servidor de livereload detecte un cambio, recarga el navegador
 liveReloadServer.server.once("connection", () => {
