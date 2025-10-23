@@ -18,8 +18,8 @@ const app = express();
 const PORT = process.env.PORT || 3500;
 
 //--- path para la foto vacia
-const noMovieBase = "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
-
+const noMovieBase =
+    "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
 
 // --- 🔥 Configurar LiveReload ---
 const liveReloadServer = livereload.createServer({
@@ -246,20 +246,26 @@ app.get("/pelicula/:id", async (req, res) => {
 app.get("/persona/:id", async (req, res) => {
     const personID = req.params.id;
 
+    const offset = req.query.offset
+        ? Math.max(parseInt(req.query.offset), 0)
+        : 0;
 
-
-    const offset = req.query.offset ? Math.max(parseInt(req.query.offset), 0) : 0;
-    const allowedOrders = {
-        Popularity: 'm.popularity',
-        Release_date: 'm.release_date',
-        Title: 'm.title'
-    };
-    var order = allowedOrders[req.query.order] || 'm.popularity';
-    const allowedAscORDesc = {
-        t: 'DESC',
-        f: 'ASC'
+    let order = "";
+    switch (req.query.order) {
+        case "Popularity":
+            order = "m.popularity";
+            break;
+        case "Release_date":
+            order = "m.release_date";
+            break;
+        case "Title":
+            order = "m.title";
+            break;
+        default:
+            order = "m.popularity";
     }
-    const AscOrDesc = allowedAscORDesc[req.query.desc] || 'DESC';
+
+    const AscOrDesc = req.query.desc === "f" ? "ASC" : "DESC";
 
     const actorQuery = `
         SELECT p.person_id, p.person_name, m.title,m.movie_id,mc.character_name, g.gender, m.release_date, m.popularity, COUNT(*) OVER() AS total_movies
@@ -268,7 +274,7 @@ app.get("/persona/:id", async (req, res) => {
         INNER JOIN movie m on m.movie_id = mc.movie_id
         INNER JOIN gender g on mc.gender_id = g.gender_id
         WHERE p.person_id = $1
-        ORDER BY ${order} ${AscOrDesc}
+        ORDER BY $3 $4
         LIMIT 8 OFFSET $2;
     `;
     const directorQuery = `
@@ -277,20 +283,17 @@ app.get("/persona/:id", async (req, res) => {
         INNER JOIN movie_crew mc on p.person_id = mc.person_id
         INNER JOIN movie m on m.movie_id = mc.movie_id
         WHERE p.person_id = $1 and mc.job = 'Director'
-        ORDER BY ${order} ${AscOrDesc}
+        ORDER BY $3 $4
         LIMIT 8 OFFSET $2;
     `;
 
-    if(order === "m.popularity") {
-        order = 'Popularity';
-    }else if(order === "m.title") {
-        order = 'Title';
-    }else{
-        order = 'Release_date';
-    }
-    try{
-        const actors = (await db.query(actorQuery,[personID,offset])).rows;
-        const directors = (await db.query(directorQuery,[personID,offset])).rows;
+    try {
+        const actors = (
+            await db.query(actorQuery, [personID, offset, order, AscOrDesc])
+        ).rows;
+        const directors = (
+            await db.query(directorQuery, [personID, offset, order, AscOrDesc])
+        ).rows;
 
         if (actors.length === 0 && directors.length === 0) {
             return res.status(404).send("Persona no encontrada.");
@@ -302,44 +305,47 @@ app.get("/persona/:id", async (req, res) => {
                 actors.length === 0
                     ? directors[0].person_name
                     : actors[0].person_name,
-            gender: actors.length === 0? 'Male' :actors[0].gender,
+            gender: actors.length === 0 ? "Male" : actors[0].gender,
             offset: offset,
-            order: order,
-            ascOrDesc: AscOrDesc === 'DESC'?'t':'f',
+            order: req.query.order,
+            ascOrDesc: AscOrDesc === "DESC" ? "t" : "f",
             actedMovies: [],
             directedMovies: [],
-            totalActedMovies: actors.length === 0? 0 : actors[0].total_movies,
-            totalDirectedMovies: directors.length === 0? 0: directors[0].total_movies
-        }
+            totalActedMovies: actors.length === 0 ? 0 : actors[0].total_movies,
+            totalDirectedMovies:
+                directors.length === 0 ? 0 : directors[0].total_movies,
+        };
 
-        for (const actor of actors) {
-
+        actors.forEach((actor) => {
             personData.actedMovies.push({
                 title: actor.title,
                 movie_id: actor.movie_id,
                 character_name: actor.character_name,
                 release_date: actor.release_date,
                 photo_path: noMovieBase,
-                popularity: actor.popularity
+                popularity: actor.popularity,
             });
-        }
-        for (const director of directors){
+        });
 
+        directors.forEach((director) => {
             personData.directedMovies.push({
                 title: director.title,
                 movie_id: director.movie_id,
                 release_date: director.release_date,
                 photo_path: noMovieBase,
-                popularity: director.popularity
+                popularity: director.popularity,
             });
-        }
-        res.render("persona", { personData, tmdbApiKey: process.env.TMDB_API_KEY});
+        });
+
+        res.render("persona", {
+            personData,
+            tmdbApiKey: process.env.TMDB_API_KEY,
+        });
     } catch (err) {
         console.error(err);
         res.status(500).send("Error al cargar la informacion de la persona");
     }
 });
-
 
 app.listen(PORT, () =>
     console.log(`Servidor corriendo en http://localhost:${PORT}`),
