@@ -34,17 +34,17 @@ RETURNS TABLE (
             STRING_AGG(DISTINCT lr.language_role, ',')
 
         FROM movie m
-        JOIN movie_company mp on m.movie_id = mp.movie_id
-        JOIN production_company  on mp.company_id = production_company.company_id
-        JOIN production_country on m.movie_id = production_country.movie_id
-        JOIN country c on production_country.country_id = c.country_id
-        JOIN movie_genres mg on m.movie_id = mg.movie_id
-        JOIN genre g on g.genre_id = mg.genre_id
-        JOIN movie_keywords mk on m.movie_id = mk.movie_id
-        JOIN keyword k on mk.keyword_id = k.keyword_id
-        JOIN movie_languages ml on m.movie_id = ml.movie_id
-        JOIN language l on ml.language_id = l.language_id
-        JOIN language_role lr on ml.language_role_id = lr.role_id
+        LEFT JOIN movie_company mp on m.movie_id = mp.movie_id
+        LEFT JOIN production_company  on mp.company_id = production_company.company_id
+        LEFT JOIN production_country on m.movie_id = production_country.movie_id
+        LEFT JOIN country c on production_country.country_id = c.country_id
+        LEFT JOIN movie_genres mg on m.movie_id = mg.movie_id
+        LEFT JOIN genre g on g.genre_id = mg.genre_id
+        LEFT JOIN movie_keywords mk on m.movie_id = mk.movie_id
+        LEFT JOIN keyword k on mk.keyword_id = k.keyword_id
+        LEFT JOIN movie_languages ml on m.movie_id = ml.movie_id
+        LEFT JOIN language l on ml.language_id = l.language_id
+        LEFT JOIN language_role lr on ml.language_role_id = lr.role_id
         WHERE m.movie_id = id
         GROUP BY m.movie_id;
     END;
