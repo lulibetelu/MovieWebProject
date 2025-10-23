@@ -72,7 +72,14 @@
                     <div class="grid grid-cols-4 md:grid-cols-4 gap-6">
                         <% personData.actedMovies
                         .forEach((movie) => { %>
-                            <div class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200">
+                            <div style="align-content: center" class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200">
+                                <!--<div style="margin:5px; align-self: center" class="rating">
+                                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" aria-label="1 star" />
+                                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" aria-label="2 star" />
+                                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" aria-label="3 star" />
+                                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" aria-label="4 star" />
+                                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-orange-400" aria-label="5 star" < if (personData.popularity >=100000000) { > checked < } >/>
+                                </div> -->
                                 <figure>
                                     <img src="<%=movie.photo_path%>" alt="Poster" />
                                 </figure>

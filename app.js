@@ -279,7 +279,7 @@ app.get("/persona/:id", async (req, res) => {
     const AscOrDesc = allowedAscORDesc[req.query.desc] || 'DESC';
 
     const actorQuery = `
-        SELECT p.person_id, p.person_name, m.title,m.movie_id,mc.character_name, g.gender, m.release_date, COUNT(*) OVER() AS total_movies
+        SELECT p.person_id, p.person_name, m.title,m.movie_id,mc.character_name, g.gender, m.release_date, m.popularity, COUNT(*) OVER() AS total_movies
         FROM person p
         INNER JOIN movie_cast mc on mc.person_id = p.person_id
         INNER JOIN movie m on m.movie_id = mc.movie_id
@@ -289,7 +289,7 @@ app.get("/persona/:id", async (req, res) => {
         LIMIT 8 OFFSET $2;
     `;
     const directorQuery = `
-        SELECT p.person_id, p.person_name, mc.movie_id, m.title, m.release_date, COUNT(*) OVER() AS total_movies
+        SELECT p.person_id, p.person_name, mc.movie_id, m.title, m.release_date, m.popularity, COUNT(*) OVER() AS total_movies
         FROM person p
         INNER JOIN movie_crew mc on p.person_id = mc.person_id
         INNER JOIN movie m on m.movie_id = mc.movie_id
@@ -338,7 +338,8 @@ app.get("/persona/:id", async (req, res) => {
                 movie_id: actor.movie_id,
                 character_name: actor.character_name,
                 release_date: actor.release_date,
-                photo_path: movie?.image || noMovieBase
+                photo_path: movie?.image || noMovieBase,
+                popularity: actor.popularity
             });
         }
         for (const director of directors){
@@ -349,8 +350,8 @@ app.get("/persona/:id", async (req, res) => {
                 title: director.title,
                 movie_id: director.movie_id,
                 release_date: director.release_date,
-                photo_path: movie?.image || noMovieBase
-
+                photo_path: movie?.image || noMovieBase,
+                popularity: director.popularity
             });
         }
         res.render("persona", { personData, tmdbApiKey: process.env.TMDB_API_KEY});
