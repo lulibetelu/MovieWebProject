@@ -58,7 +58,14 @@
                             <% } %>
                             <div class="p-3">
                                 <p class="text-white font-semibold text-sm truncate"><%= movie.title %></p>
-                                <p class="text-[#ffdd7d] text-xs mt-1">★ <%= movie.rating %>/10</p>
+                                <div class="rating-sm ">
+                                    <input type="radio" name="rating-1" class="mask mask-star" aria-label="1 star" />
+                                    <input type="radio" name="rating-1" class="mask mask-star" aria-label="2 star" checked="checked" />
+                                    <input type="radio" name="rating-1" class="mask mask-star" aria-label="3 star" />
+                                    <input type="radio" name="rating-1" class="mask mask-star" aria-label="4 star" />
+                                    <input type="radio" name="rating-1" class="mask mask-star" aria-label="5 star" />
+
+                                </div>
                             </div>
                         </a>
                     </div>

@@ -335,66 +335,6 @@ app.get("/persona/:id", async (req, res) => {
     }
 });
 
-// Ruta para mostrar la página de un actor específico (PostgreSQL)
-app.get("/actor/:id", async (req, res) => {
-    try {
-        const result = await db.query(query, [actorId]);
-        const rows = result.rows;
-
-        if (rows.length === 0) {
-            return res.status(404).send("Actor no encontrado.");
-        }
-
-        const personData = {
-            actor_id: actorId,
-            actor_name: rows[0].person_name,
-            gender: rows[0].gender,
-            movies: [],
-        };
-
-        rows.forEach((row) => {
-            personData.movies.push({
-                title: row.title,
-                movie_id: row.movie_id,
-                character_name: row.character_name,
-                release_date: row.release_date,
-            });
-        });
-
-        res.render("actor", { personData });
-        //const actorName = movies.length > 0 ? movies[0].actorname : ''; // Ojo: postgres devuelve todo en minúsculas por defecto
-        //res.render('actor', { actorName, movies });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error al cargar las películas del actor.");
-    }
-});
-
-// Ruta para mostrar la página de un director específico (PostgreSQL)
-app.get("/director/:id", async (req, res) => {
-    const directorId = req.params.id;
-
-    const query = `
-    SELECT DISTINCT
-      person.person_name as directorName,
-      movie.*
-    FROM movie
-    INNER JOIN movie_crew ON movie.movie_id = movie_crew.movie_id
-    INNER JOIN person ON person.person_id = movie_crew.person_id
-    WHERE movie_crew.job = 'Director' AND movie_crew.person_id = $1;
-  `;
-
-    try {
-        const result = await db.query(query, [directorId]);
-        const movies = result.rows;
-        const directorName = movies.length > 0 ? movies[0].directorname : ""; // Ojo: postgres devuelve todo en minúsculas por defecto
-        res.render("director", { directorName, movies });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error al cargar las películas del director.");
-    }
-});
-
 app.listen(PORT, () =>
     console.log(`Servidor corriendo en http://localhost:${PORT}`),
 );
@@ -407,28 +347,29 @@ liveReloadServer.server.once("connection", () => {
 });
 
 app.get("/login/", async (req, res) => {
-    res.render("login")
+    res.render("login", {popUp: false})
 });
 
 // ruta que recibe la informacion del form
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
+
     try {
         // Buscar al usuario por su email
         const result = await db.query('SELECT * FROM "user" WHERE email = $1', [email]);
-
         // Si no existe el usuario
         if (result.rows.length === 0) {
             return res.send("No existe una cuenta con ese email.");
+
         }
 
         const user = result.rows[0]; // usuario encontrado en la base
-
         // Comparar contraseñas (bcrypt lo hace)
+
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
         if (!isPasswordCorrect) {
-            res.send("Contraseña incorrecta");
+            res.render("login", {popUp: true});
         }
 
         req.session.user = {
@@ -527,4 +468,55 @@ app.get("/profile", async (req, res) => {
     }
 });
 
+app.get("/reviews", async (req, res) =>{
+    if (!req.session.user) {
+        return res.redirect("/login");
+    }
+    const userId = req.session.user.id;
 
+    try{
+        const reviewed_movies = await db.query(
+            `SELECT m.movie_id, m.title, um.review
+            FROM user_movie um
+            INNER JOIN movie m ON um.movie_id = m.movie_id
+            WHERE um.user_id = $1
+            ORDER BY um.id DESC
+            `, [userId]
+        );
+
+        const rows = reviewed_movies.rows
+
+        const movie_user = {
+            movie: [],
+            user_id : rows[0].user_id
+        }
+
+        rows.forEach(row => {
+            movie_user.movie.push({
+                title: row.title,
+                movie_id: row.movie_id
+            })
+        });
+
+        res.render("reviews", {movie_user})
+
+    } catch (error) {
+        console.error("Error al cargar la página:", error);
+        res.status(500).send("Error al cargar la página.");
+    }
+
+});
+
+app.get('/logout', (req, res) => {
+    // Destruye la sesión
+    req.session.destroy(err => {
+        if (err) {
+            console.error("Error al cerrar sesión:", err);
+            return res.status(500).send("No se pudo cerrar sesión");
+        }
+        // Limpiar la cookie (opcional, pero recomendable)
+        res.clearCookie('connect.sid');
+        // Redirigir al inicio
+        res.redirect('/');
+    });
+});
