@@ -98,16 +98,25 @@
                     <p>No dirigió ninguna película</p>
                 <% } else { %>
                     <!-- Dropdown Order By (solo en esta pestaña) -->
-                    <div style="margin-bottom: 15px" class="flex justify-end mb-4">
-                        <details class="dropdown">
-                            <summary class="btn btn-sm">Order By</summary>
-                            <ul class="menu dropdown-content bg-base-100 rounded-box z-10 w-52 p-2 shadow">
-                                <li><a href="?offset=<%= personData.offset %>&order=popularity">Popularity</a></li>
-                                <li><a href="?offset=<%= personData.offset %>&order=title">Alphabetical</a></li>
-                                <li><a href="?offset=<%= personData.offset %>&order=release_date">Release Date</a></li>
-                            </ul>
-                        </details>
-                    </div>
+                        <div class="flex">
+                            <a href="?offset=<%= personData.offset %>&order=<%=personData.order%>&desc=<%=personData.ascOrDesc === 't' ? 'f' : 't' %>" style="margin-bottom: 15px; height: 31px" class="btn flex justify-end mb-4">
+                                <% if (personData.ascOrDesc === 't') { %>
+                                    ↓
+                                <% } else { %>
+                                    ↑
+                                <% } %>
+                            </a>
+                            <div style="margin-bottom: 15px" class="flex justify-end mb-4">
+                                <details class="dropdown">
+                                    <summary class="btn btn-sm"><%=personData.order%></summary>
+                                    <ul class="menu dropdown-content bg-base-100 rounded-box z-10 w-52 p-2 shadow">
+                                        <li><a href="?offset=<%= personData.offset %>&order=Popularity&desc=<%=personData.ascOrDesc%>">Popularity</a></li>
+                                        <li><a href="?offset=<%= personData.offset %>&order=Title&desc=<%=personData.ascOrDesc%>">Title</a></li>
+                                        <li><a href="?offset=<%= personData.offset %>&order=Release_date&desc=<%=personData.ascOrDesc%>">Release Date</a></li>
+                                    </ul>
+                                </details>
+                            </div>
+                        </div>
 
 
                     <!-- Contenido Peliculas dirigidas -->

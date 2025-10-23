@@ -353,8 +353,7 @@ app.get("/persona/:id", async (req, res) => {
 
             });
         }
-
-        res.render("persona", { personData, tmdbApiKey: process.env.TMDB_API_KEY });
+        res.render("persona", { personData, tmdbApiKey: process.env.TMDB_API_KEY});
     } catch (err) {
         console.error(err);
         res.status(500).send("Error al cargar la informacion de la persona");
