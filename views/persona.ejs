@@ -8,7 +8,7 @@
 <%- include('./components/navbar_pers',{personName: personData.person_name}) %>
 <div style="display: flex">
     <!--Persona-->
-    <div style = "width: 30%">
+    <div style = "width: 30%; margin-top: 20px">
         <div class="card bg-base-100 w-85 shadow-sm ">
             <figure class="relative w-90% h-96 bg-base-200 flex items-center justify-center rounded-xl overflow-hidden">
                 <!-- Skeleton visible al principio -->
@@ -30,6 +30,8 @@
                 <h2 class="card-title"><%=personData.person_name%></h2>
                 <ul>
                     <li>Gender: <%=personData.gender%></li>
+                    <li>Acted Movies: <%=personData.totalActedMovies%> </li>
+                    <li>Directed Movies: <%=personData.totalDirectedMovies%> </li>
                 </ul>
                 <div class="card-actions justify-end">
                     <button class="btn btn-primary">Buy Now</button>
@@ -145,7 +147,20 @@
                         .forEach((movie) => { %>
                             <div class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200">
                                 <figure>
-                                    <img src="<%=movie.photo_path%>" alt="Poster" />
+                                    <!-- Skeleton visible al principio -->
+                                    <div class="absolute inset-0 flex flex-col gap-4 p-4 bg-base-200 animate-pulse movie-skeleton rounded-xl overflow-hidden">
+                                        <div class="skeleton h-3/4 w-full rounded-xl"></div>
+                                        <div class="skeleton h-4 w-32"></div>
+                                        <div class="skeleton h-4 w-3/4"></div>
+                                    </div>
+
+                                    <!-- Imagen oculta inicialmente -->
+                                    <img
+                                            data-title="<%= movie.title %>"
+                                            data-type="<%= movie.photo_path %>"
+                                            class="hidden movie-poster"
+                                            alt="Poster"
+                                    />
                                 </figure>
                                 <div class="card-body p-4">
                                     <h2 class="card-title text-base">
