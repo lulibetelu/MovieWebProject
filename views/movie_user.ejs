@@ -5,52 +5,104 @@
     <title>Perfil de <%= user.username %></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@3.2.2/dist/full.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }
+        .accent-orange { color: #ff7b00; }
+        .soft-yellow { color: #ffdd7d; }
+    </style>
 </head>
-<body class="bg-gray-100">
+<body class="min-h-screen flex flex-col items-center justify-start p-6">
 
-<div class="min-h-screen flex flex-col items-center justify-center p-4">
-    <div class="card w-full max-w-xl bg-white shadow-xl rounded-xl p-6">
-        <h1 class="text-3xl font-bold text-center mb-6">
-            Perfil de <span class="text-primary"><%= user.username %></span>
-        </h1>
+<!-- ENCABEZADO -->
+<div class="text-center mb-12">
+    <h1 class="text-5xl font-bold mb-2">
+        <span class="accent-orange"><%= user.username %></span>
+    </h1>
+    <p class="text-gray-400"><%= user.email %></p>
+</div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div class="p-4 bg-gray-50 rounded-lg shadow-sm">
-                <h2 class="text-lg font-semibold">Email</h2>
-                <p class="text-gray-700"><%= user.email %></p>
-            </div>
-            <% if(user.created_at){ %>
-                <div class="p-4 bg-gray-50 rounded-lg shadow-sm">
-                    <h2 class="text-lg font-semibold">Fecha de registro</h2>
-                    <p class="text-gray-700"><%= user.created_at %></p>
-                </div>
-            <% } %>
-        </div>
-
-        <div class="grid grid-cols-2 gap-6 text-center mb-6">
-            <div class="p-6 bg-primary text-white rounded-xl shadow-lg hover:shadow-xl transition duration-300">
-                <h3 id="ratedMovies" class="text-2xl font-bold">0</h3>
-                <p class="mt-2 text-sm">Películas calificadas</p>
-            </div>
-            <div class="p-6 bg-secondary text-white rounded-xl shadow-lg hover:shadow-xl transition duration-300">
-                <h3 id="writtenReviews" class="text-2xl font-bold">0</h3>
-                <p class="mt-2 text-sm">Reseñas escritas</p>
-            </div>
-        </div>
-
-        <div class="mt-6 flex justify-center gap-4">
-            <a href="/" class="btn btn-outline btn-primary">Volver al inicio</a>
-            <a href="/logout" class="btn btn-primary">Cerrar sesión</a>
-        </div>
+<!-- ESTADÍSTICAS -->
+<div class="grid grid-cols-2 gap-8 text-center mb-16 max-w-3xl w-full">
+    <div class="p-6 rounded-2xl bg-gradient-to-b from-[#ff7b00] to-[#ffb347] shadow-lg transform hover:scale-105 transition duration-300">
+        <h3 id="ratedMovies" class="text-4xl font-bold text-black">0</h3>
+        <p class="mt-2 text-sm text-black font-semibold">Películas calificadas</p>
+    </div>
+    <div class="p-6 rounded-2xl bg-gradient-to-b from-[#ffdd7d] to-[#ffd24c] shadow-lg transform hover:scale-105 transition duration-300">
+        <h3 id="writtenReviews" class="text-4xl font-bold text-black">0</h3>
+        <p class="mt-2 text-sm text-black font-semibold">Reseñas escritas</p>
     </div>
 </div>
 
+<!-- ÚLTIMAS ACTIVIDADES -->
+<div class="w-full max-w-5xl space-y-16">
+
+    <!-- PELÍCULAS RATEADAS -->
+    <section>
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold accent-orange">Últimas películas calificadas</h2>
+            <a href="/rated" class="text-sm soft-yellow hover:text-white transition">Ver todas →</a>
+        </div>
+        <% if (user.lastRated && user.lastRated.length > 0) { %>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                <% user.lastRated.forEach(movie => { %>
+                    <div class="bg-[#1a1a1a] rounded-xl overflow-hidden shadow-lg hover:scale-105 transition">
+                        <a href="/pelicula/<%= movie.movie_id %>">
+                            <% if (movie.poster_path) { %>
+                                <img src="<%= movie.poster_path %>" alt="<%= movie.title %>" class="w-full h-48 object-cover">
+                            <% } else { %>
+                                <div class="w-full h-48 bg-gray-800 flex items-center justify-center text-gray-400 text-sm">Sin imagen</div>
+                            <% } %>
+                            <div class="p-3">
+                                <p class="text-white font-semibold text-sm truncate"><%= movie.title %></p>
+                                <p class="text-[#ffdd7d] text-xs mt-1">★ <%= movie.rating %>/10</p>
+                            </div>
+                        </a>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <p class="text-gray-500 italic">Todavía no calificaste ninguna película.</p>
+        <% } %>
+    </section>
+
+    <!-- RESEÑAS -->
+    <section>
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold soft-yellow">Últimas reseñas</h2>
+            <a href="/reviews" class="text-sm accent-orange hover:text-white transition">Ver todas →</a>
+        </div>
+        <% if (user.lastReviews && user.lastReviews.length > 0) { %>
+            <div class="space-y-4">
+                <% user.lastReviews.forEach(review => { %>
+                    <div class="bg-[#1a1a1a] p-5 rounded-xl border border-[#ff7b00]/20 hover:border-[#ff7b00]/40 transition">
+                        <a href="/pelicula/<%= review.movie_id %>" class="text-lg font-semibold accent-orange hover:underline"><%= review.title %></a>
+                        <p class="text-gray-300 mt-2 italic">“<%= review.text %>”</p>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <p class="text-gray-500 italic">Todavía no escribiste ninguna reseña.</p>
+        <% } %>
+    </section>
+
+</div>
+
+<!-- BOTONES -->
+<div class="mt-16 flex justify-center gap-4">
+    <a href="/" class="btn bg-transparent border-[#ff7b00] text-[#ff7b00] hover:bg-[#ff7b00] hover:text-black transition">Volver al inicio</a>
+    <a href="/logout" class="btn bg-[#ff7b00] text-black hover:bg-[#ffdd7d] hover:text-black border-none transition">Cerrar sesión</a>
+</div>
+
 <script>
-    // Función para animar los contadores
+    // Contadores animados
     function animateCounter(id, target) {
         const el = document.getElementById(id);
         let count = 0;
-        const increment = Math.ceil(target / 100); // 100 pasos
+        const increment = Math.ceil(target / 100);
         const interval = setInterval(() => {
             count += increment;
             if (count >= target) {
@@ -58,15 +110,13 @@
                 clearInterval(interval);
             }
             el.textContent = count;
-        }, 15); // cada 15ms
+        }, 15);
     }
 
-    // Animar ambos contadores al cargar la página
     document.addEventListener('DOMContentLoaded', () => {
         animateCounter('ratedMovies', <%= user.ratedMovies %>);
         animateCounter('writtenReviews', <%= user.writtenReviews %>);
     });
 </script>
-
 </body>
 </html>

@@ -465,15 +465,66 @@ app.post("/register", async (req, res) => {
     }
 });
 
-// app.get("/profile", (req, res) => {
-//     const user = {
-//         username: req.session.user.username,
-//         email: req.session.user.email,
-//         created_at: req.session.user.created_at || null,
-//         ratedMovies: req.session.user.ratedMovies || 0,
-//         writtenReviews: req.session.user.writtenReviews || 0
-//     };
-//
-//     res.render("user", { user });
-// });
+app.get("/profile", async (req, res) => {
+
+    if (!req.session.user) {
+        return res.redirect("/login");
+    }
+
+    const userId = req.session.user.id;
+
+    try {
+        const userResult = await db.query(
+            'SELECT username, email FROM "user" WHERE id = $1',
+            [userId]
+        );
+        const user = userResult.rows[0];
+
+        const ratedResult = await db.query(
+            "SELECT COUNT(*) FROM user_movie WHERE user_id = $1 AND rating IS NOT NULL",
+            [userId]
+        );
+        const ratedMovies = parseInt(ratedResult.rows[0].count);
+
+        const reviewResult = await db.query(
+            "SELECT COUNT(*) FROM user_movie WHERE user_id = $1 AND review IS NOT NULL",
+            [userId]
+        );
+        const writtenReviews = parseInt(reviewResult.rows[0].count);
+
+        const lastRatedResult = await db.query(`
+          SELECT m.movie_id, m.title, um.rating
+          FROM user_movie um
+          JOIN movie m ON um.movie_id = m.movie_id
+          WHERE um.user_id = $1 AND um.rating IS NOT NULL
+          ORDER BY um.id DESC
+          LIMIT 5
+        `, [userId]);
+
+        const lastReviewsResult = await db.query(`
+          SELECT m.movie_id, m.title, um.review AS text
+          FROM user_movie um
+          JOIN movie m ON um.movie_id = m.movie_id
+          WHERE um.user_id = $1 AND um.review IS NOT NULL
+          ORDER BY um.id DESC
+          LIMIT 5
+        `, [userId]);
+
+        res.render("movie_user", {
+            user: {
+                username: user.username,
+                email: user.email,
+                ratedMovies,
+                writtenReviews,
+                lastRated: lastRatedResult.rows,
+                lastReviews: lastReviewsResult.rows
+            }
+        });
+
+    } catch (error) {
+        console.error("Error al cargar el perfil:", error);
+        res.status(500).send("Error al cargar el perfil del usuario.");
+    }
+});
+
 
