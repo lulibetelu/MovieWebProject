@@ -10,7 +10,6 @@ export default function PersonImages({ data }) {
             const res = await fetch(`https://api.themoviedb.org/3/search/person?api_key=${apiKey}&query=${personName}`);
             const datos = await res.json();
             setPerson_image(base + datos.results[0].profile_path);
-            console.log(datos.results)
         })();
     }, [data]);
 
