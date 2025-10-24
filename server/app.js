@@ -269,6 +269,8 @@ app.get(API_URL + "/pelicula/:id", async (req, res) => {
 // * Ruta para obtener información de una persona
 app.get(API_URL + "/persona/:id", async (req, res) => {
     const personID = req.params.id;
+    console.log(req.path);
+    console.log(req.query.order);
 
     const offset = req.query.offset
         ? Math.max(parseInt(req.query.offset), 0)

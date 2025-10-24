@@ -4,13 +4,24 @@ import DetailLayout from "../../layouts/DetailLayout.astro";
 import Layout from "../../layouts/Layout.astro";
 
 const { id } = Astro.params;
+const url = new URL(Astro.request.url);
+let order = url.searchParams.get("order") || "Popularity";
+let offset = parseInt(url.searchParams.get("offset")) || 0;
+let desc = url.searchParams.get("desc") || "t";
+
 export const prerender = false;
 
 let personData;
 let tmdbApiKey;
 
 try {
-    const res = await fetch(`${API_URL}/persona/${id}`);
+    //const params = new URLSearchParams(window.location.search);
+    //console.log(params);
+    /*const offset = params.get("offset") || 0;
+    const order = params.get("order") || "Popularity";
+    const desc = params.get("desc") || "t";*/
+
+    const res = await fetch(`${API_URL}/persona/${id}?offset=${offset}&order=${order}&desc=${desc}`);
     if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
     }
@@ -21,6 +32,7 @@ try {
     personData = null;
     tmdbApiKey = null;
 }
+
 ---
 
 <DetailLayout title={personData.person_name}>
@@ -184,6 +196,45 @@ try {
                             personData.directedMovies.length === 0 ? (
                                 <p>No dirigió ninguna película</p>
                             ) : (
+                                <div class="flex mb-4">
+                                    <a
+                                            href={`?offset=${personData.offset}&order=${personData.order}&desc=${personData.ascOrDesc === "t" ? "f" : "t"}`}
+                                            class="btn mr-2"
+                                    >
+                                        {personData.ascOrDesc === "t"
+                                            ? "↓"
+                                            : "↑"}
+                                    </a>
+
+                                    <details class="dropdown">
+                                        <summary class="btn btn-sm">
+                                            {personData.order}
+                                        </summary>
+                                        <ul class="menu dropdown-content bg-base-100 rounded-box z-10 w-52 p-2 shadow">
+                                            <li>
+                                                <a
+                                                        href={`?offset=${personData.offset}&order=Popularity&desc=${personData.ascOrDesc}`}
+                                                >
+                                                    Popularity
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a
+                                                        href={`?offset=${personData.offset}&order=Title&desc=${personData.ascOrDesc}`}
+                                                >
+                                                    Title
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a
+                                                        href={`?offset=${personData.offset}&order=Release_date&desc=${personData.ascOrDesc}`}
+                                                >
+                                                    Release Date
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </details>
+                                </div>
                                 <div class="grid grid-cols-4 gap-6">
                                     {personData.directedMovies.map((movie) => (
                                         <div class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200">
