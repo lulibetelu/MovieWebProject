@@ -76,14 +76,14 @@ const { movie = 0, actor = 0, searchTerm = "", user = null } = Astro.props;
                             <a href="/reviews">Reseñas</a>
                         </li>
                         <li>
-                            <a href="/logout" class="text-error">
+                            <a href="/auth/logout" class="text-error">
                                 Cerrar sesión
                             </a>
                         </li>
                     </ul>
                 </div>
             ) : (
-                <a href="/login" class="btn btn-primary ml-2">
+                <a href="/auth/login" class="btn btn-primary ml-2">
                     Login
                 </a>
             )
