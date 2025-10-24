@@ -1,6 +1,7 @@
 ---
 import { API_URL } from "../../data/config";
 import DetailLayout from "../../layouts/DetailLayout.astro";
+
 import Layout from "../../layouts/Layout.astro";
 
 const { id } = Astro.params;
@@ -38,10 +39,6 @@ try {
 <DetailLayout title={personData.person_name}>
     <body class="p-6">
         <!-- Navbar -->
-        <component
-            src="../components/NavbarPers.astro"
-            personName={personData.person_name}></component>
-
         <div class="flex">
             <!-- Persona -->
             <div class="w-1/3 mt-5">

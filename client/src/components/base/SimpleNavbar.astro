@@ -15,16 +15,6 @@ const { movie = 0, actor = 0, searchTerm = "", user = null } = Astro.props;
 >
     <!-- FILTRO + BUSCADOR + USUARIO -->
     <div class="flex">
-        <!-- FILTRO DE GÉNERO -->
-        <div class="flex-none px-2">
-            <select class="select select-bordered w-full max-w-xs">
-                <option disabled selected>Selecciona un género</option>
-                <option>Horror</option>
-                <option>Epic</option>
-                <option>Nose</option>
-            </select>
-        </div>
-
         <!-- BUSCADOR -->
         <form action="/buscar" method="GET" class="flex-none px-2">
             <label class="input input-bordered flex items-center gap-2">
