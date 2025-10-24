@@ -1,5 +1,4 @@
 ---
-
 import { API_URL } from "../../data/config";
 
 /**
@@ -13,18 +12,16 @@ const { movie = 0, actor = 0, searchTerm = "", user = null } = Astro.props;
 
 function isChecked(tab: string) {
     if (tab === "peliculas") return movie !== 0;
-    if (tab === "actores")
-        return (movie === null || movie === 0) && actor !== 0;
-    if (tab === "directores")
-        return (movie === null || movie === 0) && actor === 0;
+    if (tab === "actores") return !movie && actor !== 0;
+    if (tab === "directores") return !movie && actor === 0;
     return false;
 }
 
-let error = null
+let error = null;
 try {
     const res = await fetch(`${API_URL}/`);
     await res.json();
-    error = false
+    error = false;
 } catch (e) {
     error = true;
 }
@@ -45,6 +42,7 @@ try {
             />
             Películas
         </label>
+
         <label class="tab">
             <input
                 type="radio"
@@ -54,6 +52,7 @@ try {
             />
             Actores
         </label>
+
         <label class="tab">
             <input
                 type="radio"
@@ -154,12 +153,20 @@ try {
 
     <!-- TÍTULO -->
     <div>
-        <div aria-label={error === true ? 'error' : error === false ? 'success' : 'status'} class:list={{
-            'status': true,
-            'status-lg': true,
-            'status-error': error === true,
-            'status-success': error === false,
-        }}></div>
+        <div
+            aria-label={error === true
+                ? "error"
+                : error === false
+                  ? "success"
+                  : "status"}
+            class:list={{
+                status: true,
+                "status-lg": true,
+                "status-error": error === true,
+                "status-success": error === false,
+            }}
+        >
+        </div>
 
         <a class="btn btn-ghost text-xl" href="/">Movie web</a>
     </div>

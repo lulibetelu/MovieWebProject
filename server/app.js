@@ -265,7 +265,7 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
         : 0;
 
     const AscOrDesc = req.query.desc === "f" ? "ASC" : "DESC";
-  
+
     let order = "";
     switch (req.query.order) {
         case "Popularity":
@@ -302,12 +302,9 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
     `;
 
     try {
-        const actors = (
-            await db.query(actorQuery, [personID, offset])
-        ).rows;
-        const directors = (
-            await db.query(directorQuery, [personID, offset])
-        ).rows;
+        const actors = (await db.query(actorQuery, [personID, offset])).rows;
+        const directors = (await db.query(directorQuery, [personID, offset]))
+            .rows;
 
         if (actors.length === 0 && directors.length === 0) {
             return res.status(404).send("Persona no encontrada.");
@@ -354,12 +351,15 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
         if (API_MODE) {
             res.json({
                 personData,
-                tmdbApiKey: process.env.TMDB_API_KEY
+                tmdbApiKey: process.env.TMDB_API_KEY,
             });
             return;
         }
-  
-        res.render("persona", { personData, tmdbApiKey: process.env.TMDB_API_KEY });
+
+        res.render("persona", {
+            personData,
+            tmdbApiKey: process.env.TMDB_API_KEY,
+        });
     } catch (err) {
         if (DEBUG) console.log(err);
         if (API_MODE)
@@ -374,7 +374,9 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
 app.listen(PORT, () => {
     if (API_MODE)
         return console.log(
-            `Servidor corriendo modo API en http://localhost:${PORT}`,
+            `Servidor corriendo modo API en http://localhost:${PORT} con DEBUG ${DEBUG}`,
         );
-    console.log(`Servidor corriendo modo WEB en http://localhost:${PORT}`);
+    console.log(
+        `Servidor corriendo modo WEB en http://localhost:${PORT} con DEBUG ${DEBUG}`,
+    );
 });
