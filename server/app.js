@@ -5,6 +5,7 @@
 // DB_PORT=5432
 // DB_DATABASE=movies
 
+
 require("dotenv").config();
 
 const path = require("path");
@@ -269,8 +270,6 @@ app.get(API_URL + "/pelicula/:id", async (req, res) => {
 // * Ruta para obtener información de una persona
 app.get(API_URL + "/persona/:id", async (req, res) => {
     const personID = req.params.id;
-    console.log(req.path);
-    console.log(req.query.order);
 
     const offset = req.query.offset
         ? Math.max(parseInt(req.query.offset), 0)
@@ -494,6 +493,18 @@ app.get("/logout", async (req, res) => {
         res.clearCookie("connect.sid");
         res.redirect("/");
     });
+});
+
+app.get("/persona/:id/photo", (req, res) => {
+    const { id } = req.params;
+
+    // 🔹 En un caso real buscarías el dato en la base o el filesystem
+    const photo = {
+        id,
+        url: `http://localhost:3500/images/person_${id}.jpg`
+    };
+
+    res.json(photo);
 });
 
 app.listen(PORT, () => {

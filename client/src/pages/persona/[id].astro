@@ -1,8 +1,9 @@
 ---
 import { API_URL } from "../../data/config";
 import DetailLayout from "../../layouts/DetailLayout.astro";
+import PersonImages from "../../components/TMDB_Images/PersonImages.jsx";
+import MovieImages from "../../components/TMDB_Images/MovieImages.jsx";
 
-import Layout from "../../layouts/Layout.astro";
 
 const { id } = Astro.params;
 const url = new URL(Astro.request.url);
@@ -28,7 +29,6 @@ try {
     personData = null;
     tmdbApiKey = null;
 }
-
 ---
 
 <DetailLayout title={personData.person_name}>
@@ -41,20 +41,9 @@ try {
                     <figure
                         class="relative w-full h-96 bg-base-200 flex items-center justify-center rounded-xl overflow-hidden"
                     >
-                        <div
-                            id="person-loader"
-                            class="absolute inset-0 flex flex-col gap-4 p-4 bg-base-200"
-                        >
-                            <div class="skeleton h-3/4 w-full"></div>
-                            <div class="skeleton h-4 w-28"></div>
-                            <div class="skeleton h-4 w-full"></div>
-                            <div class="skeleton h-4 w-3/4"></div>
-                        </div>
-                        <img
-                            id="person-image"
-                            alt="Foto persona"
-                            class="hidden"
-                        />
+                        <PersonImages data={{personName:personData.person_name,
+                            apiKey: tmdbApiKey
+                        }} client:load />
                     </figure>
                     <div class="card-body">
                         <h2 class="card-title">{personData.person_name}</h2>
@@ -67,9 +56,6 @@ try {
                                 }
                             </li>
                         </ul>
-                        <div class="card-actions justify-end">
-                            <button class="btn btn-primary">Buy Now</button>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -135,20 +121,10 @@ try {
                                         {personData.actedMovies.map((movie) => (
                                             <div class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200">
                                                 <figure class="relative h-72 bg-base-200 flex items-center justify-center rounded-xl overflow-hidden">
-                                                    <div class="absolute inset-0 flex flex-col gap-4 p-4 bg-base-200 animate-pulse movie-skeleton rounded-xl overflow-hidden">
-                                                        <div class="skeleton h-3/4 w-full rounded-xl" />
-                                                        <div class="skeleton h-4 w-32" />
-                                                        <div class="skeleton h-4 w-3/4" />
-                                                    </div>
-
-                                                    <img
-                                                        data-title={movie.title}
-                                                        data-type={
-                                                            movie.photo_path
-                                                        }
-                                                        class="hidden movie-poster"
-                                                        alt="Poster"
-                                                    />
+                                                    <MovieImages data={{
+                                                        title: movie.title,
+                                                        apiKey: tmdbApiKey
+                                                    }} client:load />
                                                 </figure>
                                                 <div class="card-body p-4">
                                                     <h2 class="card-title text-base">
@@ -231,17 +207,10 @@ try {
                                     {personData.directedMovies.map((movie) => (
                                         <div class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200">
                                             <figure>
-                                                <div class="absolute inset-0 flex flex-col gap-4 p-4 bg-base-200 animate-pulse movie-skeleton rounded-xl overflow-hidden">
-                                                    <div class="skeleton h-3/4 w-full rounded-xl" />
-                                                    <div class="skeleton h-4 w-32" />
-                                                    <div class="skeleton h-4 w-3/4" />
-                                                </div>
-                                                <img
-                                                    data-title={movie.title}
-                                                    data-type={movie.photo_path}
-                                                    class="hidden movie-poster"
-                                                    alt="Poster"
-                                                />
+                                                <MovieImages data={{
+                                                    title: movie.title,
+                                                    apiKey: tmdbApiKey
+                                                }} client:load />
                                             </figure>
                                             <div class="card-body p-4">
                                                 <h2 class="card-title text-base">
@@ -298,87 +267,5 @@ try {
                 </div>
             </div>
         </div>
-
-        <!-- Scripts -->
-        <script is:inline>
-            document.addEventListener("DOMContentLoaded", async () => {
-                const loader = document.getElementById("person-loader");
-                const img = document.getElementById("person-image");
-                const personName = personData.person_name;
-
-                try {
-                    loader.classList.remove("hidden");
-
-                    const response = await fetch(
-                        `https://api.themoviedb.org/3/search/person?api_key=${tmdbApiKey}&query=${encodeURIComponent(personName)}`,
-                    );
-                    const data = await response.json();
-
-                    if (data.results?.length && data.results[0].profile_path) {
-                        img.src = `https://image.tmdb.org/t/p/w300${data.results[0].profile_path}`;
-                    } else {
-                        img.src =
-                            `https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png`;
-                    }
-
-                    img.onload = () => {
-                        loader.classList.add("hidden");
-                        img.classList.remove("hidden");
-                    };
-                } catch {
-                    loader.classList.add("hidden");
-                    img.src =
-                        "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
-                    img.classList.remove("hidden");
-                }
-
-                document.dispatchEvent(new Event("script1Done"));
-            });
-
-            document.addEventListener("script1Done", async () => {
-                const apiKey = {tmdbApiKey};
-                const posters = document.querySelectorAll(".movie-poster");
-
-                posters.forEach(async (img) => {
-                    const title = img.dataset.title;
-                    const fallback = img.dataset.type;
-
-                    try {
-                        const response = await fetch(
-                            `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${title}`,
-                        );
-                        const data = await response.json();
-
-                        if (
-                            data.results?.length &&
-                            data.results[0].poster_path
-                        ) {
-                            img.src = `https://image.tmdb.org/t/p/w200${data.results[0].poster_path}`;
-                        } else {
-                            img.src =
-                                fallback ||
-                                "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
-                        }
-
-                        img.onload = () => {
-                            const skeleton = img
-                                .closest("figure")
-                                .querySelector(".movie-skeleton");
-                            skeleton.classList.add("hidden");
-                            img.classList.remove("hidden");
-                        };
-                    } catch {
-                        const skeleton = img
-                            .closest("figure")
-                            .querySelector(".movie-skeleton");
-                        skeleton.classList.add("hidden");
-                        img.src =
-                            fallback ||
-                            "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
-                        img.classList.remove("hidden");
-                    }
-                });
-            });
-        </script>
     </body>
 </DetailLayout>
