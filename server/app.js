@@ -5,6 +5,7 @@
 // DB_PORT=5432
 // DB_DATABASE=movies
 
+
 require("dotenv").config();
 
 const path = require("path");
@@ -494,6 +495,18 @@ app.get("/logout", async (req, res) => {
         res.clearCookie("connect.sid");
         res.redirect("/");
     });
+});
+
+app.get("/persona/:id/photo", (req, res) => {
+    const { id } = req.params;
+
+    // 🔹 En un caso real buscarías el dato en la base o el filesystem
+    const photo = {
+        id,
+        url: `http://localhost:3500/images/person_${id}.jpg`
+    };
+
+    res.json(photo);
 });
 
 app.listen(PORT, () => {

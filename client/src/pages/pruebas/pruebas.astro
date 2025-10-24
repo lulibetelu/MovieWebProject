@@ -1,0 +1,15 @@
+---
+import DetailLayout from "../../layouts/DetailLayout.astro";
+import PersonImages from "../../components/TMDB_Images/PersonImages.jsx";
+
+
+const url = new URL(Astro.request.url);
+let name = url.searchParams.get("name") || "Tom Hardy";
+---
+
+<DetailLayout>
+    <h1>Hola</h1>
+
+    <PersonImages personName={name} client:load />  <!-- 👈 se monta cuando carga el HTML -->
+
+</DetailLayout>
