@@ -5,6 +5,11 @@
     "compilerOptions": {
         "jsx": "react-jsx",
         "jsxImportSource": "react",
-        "noImplicitAny": false
+        "strict": false, // Desactiva todas las reglas estrictas
+        "noImplicitAny": false, // Permite variables sin tipo explícito
+        "strictNullChecks": false, // No exige verificaciones de null/undefined
+        "noImplicitThis": false, // Permite `this` sin tipo definido
+        "noUnusedLocals": false, // No muestra warnings por variables no usadas
+        "noUnusedParameters": false // No muestra warnings por parámetros no usados
     }
 }

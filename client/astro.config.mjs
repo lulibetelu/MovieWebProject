@@ -7,11 +7,9 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
+    output: 'static',
     integrations: [react(), vue()],
     vite: {
         plugins: [tailwindcss()],
-    },
-    typescript: {
-        diagnostics: false,
     },
 });

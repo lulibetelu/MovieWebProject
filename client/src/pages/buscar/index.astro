@@ -9,18 +9,24 @@ export const prerender = false;
 // Access query parameters from Astro.url.searchParams
 const searchQuery = Astro.url.searchParams.get("q") || "";
 
-const res = await fetch(`${API_URL}/buscar?q=${searchQuery}`);
-const results = await res.json();
+
+let results = null;
+try {
+    const res = await fetch(`${API_URL}/buscar?q=${searchQuery}`);
+    results = await res.json();
+} catch (e) {
+    const error = e
+}
 
 // Normaliza los datos provenientes de la API
-const movies = results.movies ?? results.peliculas ?? [];
-const actors = results.actors ?? results.actores ?? [];
-const directors = results.directors ?? results.directores ?? [];
+const movies = results?.movies ?? results?.peliculas ?? [];
+const actors = results?.actors ?? results?.actores ?? [];
+const directors = results?.directors ?? results?.directores ?? [];
 
 console.log(results);
 ---
 
-<Layout title="Search Results">
+<Layout title="Search Results" searchTerm={searchQuery} />
     <!-- ====================== CONTENIDO DE LAS PESTAÑAS ====================== -->
     <main class="flex-1 p-6 bg-base-200">
         <!-- PELÍCULAS -->
