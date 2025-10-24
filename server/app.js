@@ -335,8 +335,7 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
             actedMovies: [],
             directedMovies: [],
             totalActedMovies: actors.length === 0 ? 0 : actors[0].total_movies,
-            totalDirectedMovies:
-                directors.length === 0 ? 0 : directors[0].total_movies,
+            totalDirectedMovies: directors.length === 0 ? 0 : directors[0].total_movies,
         };
 
         actors.forEach((actor) => {

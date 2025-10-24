@@ -107,10 +107,10 @@ try {
                                         </a>
 
                                         <details class="dropdown">
-                                            <summary class="btn btn-sm">
+                                            <summary style="height:40px" class="btn btn-sm">
                                                 {personData.order}
                                             </summary>
-                                            <ul class="menu dropdown-content bg-base-100 rounded-box z-10 w-52 p-2 shadow">
+                                            <ul class="menu dropdown-content bg-base-100 rounded-box z-10 w-60 p-2 shadow">
                                                 <li>
                                                     <a
                                                         href={`?offset=${personData.offset}&order=Popularity&desc=${personData.ascOrDesc}`}
@@ -309,12 +309,11 @@ try {
             document.addEventListener("DOMContentLoaded", async () => {
                 const loader = document.getElementById("person-loader");
                 const img = document.getElementById("person-image");
-                const personName = "{personData.person_name}";
-                const apiKey = "{tmdbApiKey}";
+                const personName = personData.person_name;
 
                 try {
                     const response = await fetch(
-                        `https://api.themoviedb.org/3/search/person?api_key=${apiKey}&query=${encodeURIComponent(personName)}`,
+                        `https://api.themoviedb.org/3/search/person?api_key=${tmdbApiKey}&query=${personName}`,
                     );
                     const data = await response.json();
 
@@ -340,7 +339,7 @@ try {
             });
 
             document.addEventListener("script1Done", async () => {
-                const apiKey = "{tmdbApiKey}";
+                const apiKey = {tmdbApiKey};
                 const posters = document.querySelectorAll(".movie-poster");
 
                 posters.forEach(async (img) => {
@@ -349,7 +348,7 @@ try {
 
                     try {
                         const response = await fetch(
-                            `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(title)}`,
+                            `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${title}`,
                         );
                         const data = await response.json();
 
