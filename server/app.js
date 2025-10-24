@@ -10,11 +10,8 @@ require("dotenv").config();
 
 const path = require("path");
 const express = require("express");
-<<<<<<< HEAD
 const bcrypt = require("bcrypt");
 const session = require("express-session");
-=======
->>>>>>> main
 
 const { Pool } = require("pg");
 
@@ -44,7 +41,6 @@ const DEBUG = process.env.DEBUG === "true" || false;
 const API_MODE = process.env.API_MODE === "true" || false;
 const API_URL = API_MODE ? "/api" : "";
 
-<<<<<<< HEAD
 app.use(
     session({
         secret: process.env.SECRET_KEY,
@@ -53,8 +49,6 @@ app.use(
     }),
 );
 
-=======
->>>>>>> main
 // * Ruta para la página de inicio
 app.get(API_URL + "/", (req, res) => {
     if (API_MODE) {
@@ -518,12 +512,7 @@ app.listen(PORT, () => {
         return console.log(
             `Servidor corriendo modo API en http://localhost:${PORT} con DEBUG ${DEBUG}`,
         );
-<<<<<<< HEAD
     console.log(
         `Servidor corriendo modo WEB en http://localhost:${PORT} con DEBUG ${DEBUG}`,
     );
 });
-=======
-    console.log(`Servidor corriendo modo WEB en http://localhost:${PORT}`);
-});
->>>>>>> main
