@@ -16,11 +16,6 @@ let personData;
 let tmdbApiKey;
 
 try {
-    //const params = new URLSearchParams(window.location.search);
-    //console.log(params);
-    /*const offset = params.get("offset") || 0;
-    const order = params.get("order") || "Popularity";
-    const desc = params.get("desc") || "t";*/
 
     const res = await fetch(`${API_URL}/persona/${id}?offset=${offset}&order=${order}&desc=${desc}`);
     if (!res.ok) {
@@ -312,8 +307,10 @@ try {
                 const personName = personData.person_name;
 
                 try {
+                    loader.classList.remove("hidden");
+
                     const response = await fetch(
-                        `https://api.themoviedb.org/3/search/person?api_key=${tmdbApiKey}&query=${personName}`,
+                        `https://api.themoviedb.org/3/search/person?api_key=${tmdbApiKey}&query=${encodeURIComponent(personName)}`,
                     );
                     const data = await response.json();
 
@@ -321,7 +318,7 @@ try {
                         img.src = `https://image.tmdb.org/t/p/w300${data.results[0].profile_path}`;
                     } else {
                         img.src =
-                            "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
+                            `https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png`;
                     }
 
                     img.onload = () => {
