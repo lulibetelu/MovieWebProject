@@ -8,7 +8,7 @@ const fs = require("fs");
 const path = require("path");
 const { Client } = require("pg");
 
-const migrationsDir = path.resolve("./db/migrations");
+const migrationsDir = path.resolve("./../db/migrations");
 
 require("dotenv").config();
 
