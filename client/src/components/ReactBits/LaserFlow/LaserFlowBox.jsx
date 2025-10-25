@@ -150,7 +150,7 @@ export default function LaserFlowBox() {
                             viewBox="0 0 24 24"
                             stroke-width="2.5"
                             stroke="currentColor"
-                            class="size-[1.2em]"
+                            className="size-[1.2em]"
                         >
                             <path
                                 stroke-linecap="round"
