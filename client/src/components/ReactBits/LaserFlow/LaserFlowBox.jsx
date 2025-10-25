@@ -70,7 +70,7 @@ export default function LaserFlowBox() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "var(--color-base-content);",
+                    color: "var(--color-base-content)",
                     fontSize: "2rem",
                     zIndex: 6,
                 }}
