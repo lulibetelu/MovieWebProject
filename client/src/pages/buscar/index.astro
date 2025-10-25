@@ -1,0 +1,168 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+import { API_URL } from "../../data/config";
+
+// Habilita SSR para esta página
+export const prerender = false;
+
+// Access query parameters from Astro.url.searchParams
+const searchQuery = Astro.url.searchParams.get("q") || "";
+
+let results = null;
+try {
+    const res = await fetch(`${API_URL}/buscar?q=${searchQuery}`);
+    results = await res.json();
+} catch (e) {
+    console.error(e);
+}
+
+// Normaliza los datos provenientes de la API
+const movies = results?.movies ?? results?.peliculas ?? [];
+const actors = results?.actors ?? results?.actores ?? [];
+const directors = results?.directors ?? results?.directores ?? [];
+---
+
+<Layout>
+    <main class="min-h-[calc(100vh-64px)] bg-base-200">
+        <section class="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-10 space-y-8">
+            <!-- Header con stats -->
+            <div
+                class="card bg-base-100 border border-primary/20 shadow-md shadow-primary/10"
+            >
+                <div class="card-body">
+                    <h2 class="card-title text-2xl md:text-3xl">
+                        Resultados para <span class="text-primary"
+                            >"{searchQuery}"</span
+                        >
+                    </h2>
+                </div>
+            </div>
+
+            <!-- PELÍCULAS -->
+            <section id="peliculas" class="tab-panel">
+                <h2 class="text-xl md:text-2xl font-bold mb-4">Películas</h2>
+                {
+                    movies.length === 0 ? (
+                        <div class="alert alert-warning" role="alert">
+                            <span>No hay resultados.</span>
+                        </div>
+                    ) : (
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {movies.map((movie: any) => (
+                                <a
+                                    href={`/pelicula/${movie.id ?? movie.movie_id}`}
+                                    class="card bg-base-100 border border-base-300 hover:border-primary transition shadow-sm hover:shadow-primary/20"
+                                    aria-label={`Ver detalle de ${movie.title ?? movie.name}`}
+                                >
+                                    <div class="card-body">
+                                        <h3 class="card-title">
+                                            {movie.title ?? movie.name}
+                                        </h3>
+                                        <div class="card-actions justify-end">
+                                            <span class="btn btn-primary btn-sm">
+                                                Ver detalle
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
+                    )
+                }
+            </section>
+
+            <!-- ACTORES -->
+            <section id="actores" class="tab-panel hidden">
+                <h2 class="text-xl md:text-2xl font-bold mb-4">Actores</h2>
+                {
+                    actors.length === 0 ? (
+                        <div class="alert alert-warning" role="alert">
+                            <span>No hay resultados.</span>
+                        </div>
+                    ) : (
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {actors.map((actor: any) => (
+                                <a
+                                    href={`/persona/${actor.id ?? actor.person_id}`}
+                                    class="card bg-base-100 border border-base-300 hover:border-primary transition shadow-sm hover:shadow-primary/20"
+                                    aria-label={`Ver perfil de ${actor.person_name ?? actor.name}`}
+                                >
+                                    <div class="card-body">
+                                        <h3 class="card-title">
+                                            {actor.person_name ?? actor.name}
+                                        </h3>
+                                        <div class="card-actions justify-end">
+                                            <span class="btn btn-primary btn-sm">
+                                                Ver perfil
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
+                    )
+                }
+            </section>
+
+            <!-- DIRECTORES -->
+            <section id="directores" class="tab-panel hidden">
+                <h2 class="text-xl md:text-2xl font-bold mb-4">Directores</h2>
+                {
+                    directors.length === 0 ? (
+                        <div class="alert alert-warning" role="alert">
+                            <span>No hay resultados.</span>
+                        </div>
+                    ) : (
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {directors.map((director: any) => (
+                                <a
+                                    href={`/persona/${director.id ?? director.person_id}`}
+                                    class="card bg-base-100 border border-base-300 hover:border-primary transition shadow-sm hover:shadow-primary/20"
+                                    aria-label={`Ver perfil de ${director.person_name ?? director.name}`}
+                                >
+                                    <div class="card-body">
+                                        <h3 class="card-title">
+                                            {director.person_name ??
+                                                director.name}
+                                        </h3>
+                                        <div class="card-actions justify-end">
+                                            <span class="btn btn-primary btn-sm">
+                                                Ver perfil
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
+                    )
+                }
+            </section>
+        </section>
+    </main>
+
+    <script>
+        // Esperamos a que el DOM esté listo
+        document.addEventListener("DOMContentLoaded", () => {
+            /** @type {NodeListOf<HTMLInputElement>} */
+            const tabs = document.querySelectorAll('input[name="my_tabs_3"]');
+            /** @type {NodeListOf<HTMLElement>} */
+            const panels = document.querySelectorAll(".tab-panel");
+
+            if (!tabs.length) return;
+
+            tabs.forEach((tab) => {
+                tab.addEventListener("change", () => {
+                    // Ocultar todas las secciones
+                    panels.forEach((panel) => panel.classList.add("hidden"));
+
+                    // Mostrar la sección que coincide con el value del tab
+                    const activePanel = document.getElementById(tab.value);
+                    if (activePanel) {
+                        activePanel.classList.remove("hidden");
+                    }
+                });
+            });
+        });
+    </script>
+</Layout>

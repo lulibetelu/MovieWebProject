@@ -1,0 +1,271 @@
+---
+import { API_URL } from "../../data/config";
+import DetailLayout from "../../layouts/DetailLayout.astro";
+import PersonImages from "../../components/TMDB_Images/PersonImages.jsx";
+import MovieImages from "../../components/TMDB_Images/MovieImages.jsx";
+
+
+const { id } = Astro.params;
+const url = new URL(Astro.request.url);
+let order = url.searchParams.get("order") || "Popularity";
+let offset = parseInt(url.searchParams.get("offset")) || 0;
+let desc = url.searchParams.get("desc") || "t";
+
+export const prerender = false;
+
+let personData;
+let tmdbApiKey;
+
+try {
+
+    const res = await fetch(`${API_URL}/persona/${id}?offset=${offset}&order=${order}&desc=${desc}`);
+    if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    personData = data.personData ?? data;
+    tmdbApiKey = data.tmdbApiKey ?? null;
+} catch (err) {
+    personData = null;
+    tmdbApiKey = null;
+}
+---
+
+<DetailLayout title={personData.person_name}>
+    <body class="p-6">
+        <!-- Navbar -->
+        <div class="flex">
+            <!-- Persona -->
+            <div class="w-1/3 mt-5">
+                <div class="card bg-base-100 w-85 shadow-sm">
+                    <figure
+                        class="relative w-full h-96 bg-base-200 flex items-center justify-center rounded-xl overflow-hidden"
+                    >
+                        <PersonImages data={{personName:personData.person_name,
+                            apiKey: tmdbApiKey
+                        }} client:load />
+                    </figure>
+                    <div class="card-body">
+                        <h2 class="card-title">{personData.person_name}</h2>
+                        <ul>
+                            <li>Gender: {personData.gender}</li>
+                            <li>Acted Movies: {personData.totalActedMovies}</li>
+                            <li>
+                                Directed Movies: {
+                                    personData.totalDirectedMovies
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Películas -->
+            <div class="w-2/3">
+                <div class="tabs tabs-lift w-full">
+                    <!-- TAB Actuadas -->
+                    <input
+                        type="radio"
+                        name="tabs"
+                        class="tab"
+                        aria-label="Películas Actuadas"
+                        checked={personData.actedMovies.length !== 0}
+                    />
+                    <div class="tab-content bg-base-100 border-base-300 p-6">
+                        {
+                            personData.actedMovies.length === 0 ? (
+                                <p>No actuó en ninguna película</p>
+                            ) : (
+                                <>
+                                    <div class="flex mb-4">
+                                        <a
+                                            href={`?offset=${personData.offset}&order=${personData.order}&desc=${personData.ascOrDesc === "t" ? "f" : "t"}`}
+                                            class="btn mr-2"
+                                        >
+                                            {personData.ascOrDesc === "t"
+                                                ? "↓"
+                                                : "↑"}
+                                        </a>
+
+                                        <details class="dropdown">
+                                            <summary style="height:40px" class="btn btn-sm">
+                                                {personData.order}
+                                            </summary>
+                                            <ul class="menu dropdown-content bg-base-100 rounded-box z-10 w-60 p-2 shadow">
+                                                <li>
+                                                    <a
+                                                        href={`?offset=${personData.offset}&order=Popularity&desc=${personData.ascOrDesc}`}
+                                                    >
+                                                        Popularity
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a
+                                                        href={`?offset=${personData.offset}&order=Title&desc=${personData.ascOrDesc}`}
+                                                    >
+                                                        Title
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a
+                                                        href={`?offset=${personData.offset}&order=Release_date&desc=${personData.ascOrDesc}`}
+                                                    >
+                                                        Release Date
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </details>
+                                    </div>
+
+                                    <div class="grid grid-cols-4 gap-6">
+                                        {personData.actedMovies.map((movie) => (
+                                            <div class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200">
+                                                <figure class="relative h-72 bg-base-200 flex items-center justify-center rounded-xl overflow-hidden">
+                                                    <MovieImages data={{
+                                                        title: movie.title,
+                                                        apiKey: tmdbApiKey
+                                                    }} client:load />
+                                                </figure>
+                                                <div class="card-body p-4">
+                                                    <h2 class="card-title text-base">
+                                                        <a
+                                                            class="link link-hover"
+                                                            href={`/pelicula/${movie.movie_id}`}
+                                                        >
+                                                            {movie.title} (
+                                                            {new Date(
+                                                                movie.release_date,
+                                                            ).getFullYear()}
+                                                            )
+                                                        </a>
+                                                    </h2>
+                                                    <p>
+                                                        {movie.character_name}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )
+                        }
+                    </div>
+
+                    <!-- TAB Dirigidas -->
+                    <input
+                        type="radio"
+                        name="tabs"
+                        class="tab"
+                        aria-label="Películas Dirigidas"
+                        checked={personData.actedMovies.length === 0}
+                    />
+                    <div class="tab-content bg-base-100 border-base-300 p-6">
+                        {
+                            personData.directedMovies.length === 0 ? (
+                                <p>No dirigió ninguna película</p>
+                            ) : (
+                                <div class="flex mb-4">
+                                    <a
+                                            href={`?offset=${personData.offset}&order=${personData.order}&desc=${personData.ascOrDesc === "t" ? "f" : "t"}`}
+                                            class="btn mr-2"
+                                    >
+                                        {personData.ascOrDesc === "t"
+                                            ? "↓"
+                                            : "↑"}
+                                    </a>
+
+                                    <details class="dropdown">
+                                        <summary class="btn btn-sm">
+                                            {personData.order}
+                                        </summary>
+                                        <ul class="menu dropdown-content bg-base-100 rounded-box z-10 w-52 p-2 shadow">
+                                            <li>
+                                                <a
+                                                        href={`?offset=${personData.offset}&order=Popularity&desc=${personData.ascOrDesc}`}
+                                                >
+                                                    Popularity
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a
+                                                        href={`?offset=${personData.offset}&order=Title&desc=${personData.ascOrDesc}`}
+                                                >
+                                                    Title
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a
+                                                        href={`?offset=${personData.offset}&order=Release_date&desc=${personData.ascOrDesc}`}
+                                                >
+                                                    Release Date
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </details>
+                                </div>
+                                <div class="grid grid-cols-4 gap-6">
+                                    {personData.directedMovies.map((movie) => (
+                                        <div class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow duration-200">
+                                            <figure>
+                                                <MovieImages data={{
+                                                    title: movie.title,
+                                                    apiKey: tmdbApiKey
+                                                }} client:load />
+                                            </figure>
+                                            <div class="card-body p-4">
+                                                <h2 class="card-title text-base">
+                                                    <a
+                                                        class="link link-hover"
+                                                        href={`/pelicula/${movie.movie_id}`}
+                                                    >
+                                                        {movie.title} (
+                                                        {new Date(
+                                                            movie.release_date,
+                                                        ).getFullYear()}
+                                                        )
+                                                    </a>
+                                                </h2>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )
+                        }
+                    </div>
+                </div>
+
+                <!-- Paginado -->
+                <div class="join mt-6 flex justify-center">
+                    {
+                        personData.offset === 0 ? (
+                            <button class="join-item btn">«</button>
+                        ) : (
+                            <a
+                                href={`/persona/${personData.person_id}?offset=${personData.offset - 8}&order=${personData.order}&desc=${personData.ascOrDesc}`}
+                                class="join-item btn"
+                            >
+                                «
+                            </a>
+                        )
+                    }
+                    <button class="join-item btn"
+                        >Page {personData.offset / 8 + 1}</button
+                    >
+                    {
+                        personData.offset + 10 >=
+                        personData.totalActedMovies ? (
+                            <button class="join-item btn">»</button>
+                        ) : (
+                            <a
+                                href={`/persona/${personData.person_id}?offset=${personData.offset + 8}&order=${personData.order}&desc=${personData.ascOrDesc}`}
+                                class="join-item btn"
+                            >
+                                »
+                            </a>
+                        )
+                    }
+                </div>
+            </div>
+        </div>
+    </body>
+</DetailLayout>

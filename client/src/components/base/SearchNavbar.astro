@@ -1,0 +1,173 @@
+---
+import { API_URL } from "../../data/config";
+
+/**
+ * Props:
+ * - movie: number | null
+ * - actor: number | null
+ * - searchTerm: string
+ * - user: { username: string } | null
+ */
+const { movie = 0, actor = 0, searchTerm = "", user = null } = Astro.props;
+
+function isChecked(tab: string) {
+    if (tab === "peliculas") return movie !== 0;
+    if (tab === "actores") return !movie && actor !== 0;
+    if (tab === "directores") return !movie && actor === 0;
+    return false;
+}
+
+let error = null;
+try {
+    const res = await fetch(`${API_URL}/`);
+    await res.json();
+    error = false;
+} catch (e) {
+    error = true;
+}
+---
+
+<!-- ====================== BARRA SUPERIOR ====================== -->
+<header
+    class="navbar bg-base-100 flex flex-row justify-between shadow-sm w-full"
+>
+    <!-- PESTAÑAS -->
+    <div class="tabs tabs-lift top-10 translate-y-[12px]">
+        <label class="tab">
+            <input
+                type="radio"
+                name="my_tabs_3"
+                value="peliculas"
+                checked={isChecked("peliculas")}
+            />
+            Películas
+        </label>
+
+        <label class="tab">
+            <input
+                type="radio"
+                name="my_tabs_3"
+                value="actores"
+                checked={isChecked("actores")}
+            />
+            Actores
+        </label>
+
+        <label class="tab">
+            <input
+                type="radio"
+                name="my_tabs_3"
+                value="directores"
+                checked={isChecked("directores")}
+            />
+            Directores
+        </label>
+    </div>
+
+    <!-- FILTRO + BUSCADOR + USUARIO -->
+    <div class="flex">
+        <!-- FILTRO DE GÉNERO -->
+        <div class="flex-none px-2">
+            <select class="select select-bordered w-full max-w-xs">
+                <option disabled selected>Selecciona un género</option>
+                <option>Horror</option>
+                <option>Epic</option>
+                <option>Nose</option>
+            </select>
+        </div>
+
+        <!-- BUSCADOR -->
+        <form action="/buscar" method="GET" class="flex-none px-2">
+            <label class="input input-bordered flex items-center gap-2">
+                <svg
+                    class="h-5 w-5 opacity-50"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                >
+                    <g stroke-width="2.5" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </g>
+                </svg>
+                <input
+                    type="search"
+                    name="q"
+                    placeholder="Search"
+                    value={searchTerm}
+                    class="grow"
+                />
+            </label>
+        </form>
+
+        <!-- MENU DE USUARIO -->
+        {
+            user && user.username ? (
+                <div class="dropdown">
+                    <label
+                        tabindex="0"
+                        class="btn btn-ghost flex items-center gap-2"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M5.121 17.804A9.004 9.004 0 0112 15c2.137 0 4.1.747 5.879 2.004M15 10a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                        </svg>
+                        <span>{user.username}</span>
+                    </label>
+                    <ul
+                        tabindex="0"
+                        class="menu dropdown-content mt-2 p-2 shadow bg-base-100 rounded-box w-48"
+                    >
+                        <li>
+                            <a href="/profile">Perfil</a>
+                        </li>
+                        <li>
+                            <a href="/rated">Películas Calificadas</a>
+                        </li>
+                        <li>
+                            <a href="/reviews">Reseñas</a>
+                        </li>
+                        <li>
+                            <a href="/logout" class="text-error">
+                                Cerrar sesión
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            ) : (
+                <a href="/auth/login" class="btn btn-primary ml-2">
+                    Login
+                </a>
+            )
+        }
+    </div>
+
+    <!-- TÍTULO -->
+    <div>
+        <div
+            aria-label={error === true
+                ? "error"
+                : error === false
+                  ? "success"
+                  : "status"}
+            class:list={{
+                status: true,
+                "status-lg": true,
+                "status-error": error === true,
+                "status-success": error === false,
+            }}
+        >
+        </div>
+
+        <a class="btn btn-ghost text-xl" href="/">Movie web</a>
+    </div>
+</header>
