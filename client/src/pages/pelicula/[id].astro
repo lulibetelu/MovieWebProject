@@ -2,12 +2,16 @@
 import "../../assets/app.css";
 import { API_URL } from "../../data/config";
 import DetailLayout from "../../layouts/DetailLayout.astro";
+import MovieImages from "../../components/TMDB_Images/MovieImages";
+import PersonImages from "../../components/TMDB_Images/PersonImages";
 
 export const prerender = false;
 
 const { id } = Astro.params;
 
 let movie = null;
+let tmdbApiKey = null;
+
 
 try {
     const res = await fetch(`${API_URL}/pelicula/${id}`);
@@ -16,6 +20,7 @@ try {
     }
     const data = await res.json();
     movie = data.movie ?? data;
+    tmdbApiKey = data.tmdbApiKey ?? null;
 } catch (err) {
     movie = null;
 }
@@ -74,15 +79,12 @@ if (movie?.release_date) {
                             <!-- Portada + título -->
                             <div class="card lg:card-side bg-base-200/40 border border-primary/20 shadow-lg mb-8">
                                 {
-                                    movie?.poster_url ? (
-                                            <figure class="p-4">
-                                                <img
-                                                        src={movie.poster_url}
-                                                        alt={`Poster de ${movie.title}`}
-                                                        class="w-48 md:w-64 rounded-2xl mask mask-squircle border border-primary/30"
-                                                        loading="lazy"
-                                                />
-                                            </figure>
+                                    (movie?.title && tmdbApiKey) ? (
+                                            <div class="movie-image-wrapper">
+                                                <MovieImages data={{title :movie.title,
+                                                    apiKey: tmdbApiKey
+                                                }} client:load />
+                                            </div>
                                     ) : (
                                             <div class="p-4 flex items-center justify-center">
                                                 <div class="avatar placeholder">
@@ -234,3 +236,20 @@ if (movie?.release_date) {
                 </div>
                 </section>
                 </DetailLayout>
+
+                <style>
+                    .movie-image-wrapper {
+                        width: 300px;              /* ancho fijo */
+                        height: 450px;             /* alto fijo (proporción típica de póster 2:3) */
+                        overflow: hidden;          /* recorta lo que se salga */
+                        border-radius: 12px;       /* bordes redondeados */
+                        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+                    }
+
+                    .movie-image-wrapper img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;         /* mantiene proporción y llena el espacio */
+                        object-position: center;   /* centra la imagen */
+                    }
+                </style>

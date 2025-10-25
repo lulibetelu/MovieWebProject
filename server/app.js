@@ -201,8 +201,8 @@ app.get(API_URL + "/pelicula/:id", async (req, res) => {
         });
 
         // 5️⃣ Responder
-        if (API_MODE) return res.json({ movie: movieData });
-        res.render("pelicula", { movie: movieData });
+        if (API_MODE) return res.json({ movie: movieData, tmdbApiKey: process.env.TMDB_API_KEY,});
+        res.render("pelicula", { movie: movieData, tmdbApiKey: process.env.TMDB_API_KEY, });
 
     } catch (err) {
         if (DEBUG) console.error(err);
