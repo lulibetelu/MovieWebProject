@@ -5,7 +5,6 @@
 // DB_PORT=5432
 // DB_DATABASE=movies
 
-
 require("dotenv").config();
 
 const path = require("path");
@@ -20,10 +19,6 @@ const PORT = process.env.PORT || 3500;
 
 //permite que express entienda los datos que le mandan en el form
 app.use(express.urlencoded({ extended: true }));
-
-const bcrypt = require("bcrypt");
-
-const session = require("express-session");
 
 app.use(
     session({
@@ -52,7 +47,7 @@ const db = new Pool({
 });
 
 const DEBUG = process.env.DEBUG === "true" || false;
-const API_MODE = process.env.API_MODE === "true" || false;
+const API_MODE = process.env.API_MODE !== "false";
 const API_URL = API_MODE ? "/api" : "";
 
 app.use(
@@ -349,7 +344,8 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
             actedMovies: [],
             directedMovies: [],
             totalActedMovies: actors.length === 0 ? 0 : actors[0].total_movies,
-            totalDirectedMovies: directors.length === 0 ? 0 : directors[0].total_movies,
+            totalDirectedMovies:
+                directors.length === 0 ? 0 : directors[0].total_movies,
         };
 
         actors.forEach((actor) => {
@@ -396,6 +392,56 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
     }
 });
 
+app.get("/profile", async (req, res) => {
+    if (!req.session.user)
+        return res.status(404).json({ error: "No se pudo el usuario" });
+
+    const userId = req.session.user.id;
+
+    try {
+        const userResult = await db.query(
+            'SELECT username, email FROM "user" WHERE id = $1',
+            [userId],
+        );
+        const user = userResult.rows[0];
+
+        /*const ratedResult = await db.query(
+                "SELECT COUNT(*) FROM user_movie WHERE user_id = $1 AND rating IS NOT NULL",
+                [userId],
+            );
+
+            const ratedMovies = parseInt(ratedResult.rows[0].count);
+
+            const reviewResult = await db.query(
+                "SELECT COUNT(*) FROM user_movie WHERE user_id = $1 AND review IS NOT NULL",
+                [userId],
+            );
+            const writtenReviews = parseInt(reviewResult.rows[0].count);
+
+            //const lastRatedResult = await db.query( );
+
+
+            //const lastReviewsResult = await db.query( );
+        */
+        res.json({
+            user: {
+                username: user.username,
+                email: user.email,
+                //ratedMovies,
+                //writtenReviews,
+                //lastRated: lastRatedResult.rows,
+                // lastReviews: lastReviewsResult.rows,
+            },
+        });
+    } catch (error) {
+        if (DEBUG) console.error("Error al cargar el perfil:", error);
+        res.status(500).json({
+            error: "Error al cargar el perfil del usuario.",
+        });
+    }
+});
+
+// ========== AUTH ==========
 // ruta que recibe la informacion del form
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
@@ -408,7 +454,9 @@ app.post("/login", async (req, res) => {
 
         // Si no existe el usuario
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "No se encontraron el usuario" });
+            return res
+                .status(404)
+                .json({ error: "No se encontraron el usuario" });
         }
 
         const user = result.rows[0]; // usuario encontrado en la base
@@ -417,7 +465,7 @@ app.post("/login", async (req, res) => {
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
         if (!isPasswordCorrect) {
-            return res.json({ popUp: true })
+            return res.json({ popUp: true });
         }
 
         req.session.user = {
@@ -429,7 +477,9 @@ app.post("/login", async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         if (DEBUG) console.log(error);
-        res.status(500).json({ error: "Error del servidor al intentar iniciar sesión."});
+        res.status(500).json({
+            error: "Error del servidor al intentar iniciar sesión.",
+        });
     }
 });
 
@@ -447,54 +497,9 @@ app.post("/register", async (req, res) => {
         res.json({ success: true, id });
     } catch (err) {
         if (DEBUG) console.error(err);
-        res.status(500).json({ error: "Error al registrar el usuario (puede que el email ya exista)" } );
-    }
-});
-
-app.get("/profile", async (req, res) => {
-    if (!req.session.user)
-        return res.status(404).json({ error: "No se pudo el usuario" });
-
-    const userId = req.session.user.id;
-
-    try {
-        const userResult = await db.query(
-            'SELECT username, email FROM "user" WHERE id = $1',
-            [userId],
-        );
-        const user = userResult.rows[0];
-
-        /*const ratedResult = await db.query(
-            "SELECT COUNT(*) FROM user_movie WHERE user_id = $1 AND rating IS NOT NULL",
-            [userId],
-        );
-
-        const ratedMovies = parseInt(ratedResult.rows[0].count);
-
-        const reviewResult = await db.query(
-            "SELECT COUNT(*) FROM user_movie WHERE user_id = $1 AND review IS NOT NULL",
-            [userId],
-        );
-        const writtenReviews = parseInt(reviewResult.rows[0].count);
-
-        //const lastRatedResult = await db.query( );
-
-
-        //const lastReviewsResult = await db.query( );
-*/
-        res.json({
-            user: {
-                username: user.username,
-                email: user.email,
-                //ratedMovies,
-                //writtenReviews,
-                //lastRated: lastRatedResult.rows,
-                // lastReviews: lastReviewsResult.rows,
-            }
+        res.status(500).json({
+            error: "Error al registrar el usuario (puede que el email ya exista)",
         });
-    } catch (error) {
-        if (DEBUG) console.error("Error al cargar el perfil:", error);
-        res.status(500).json({ error: "Error al cargar el perfil del usuario." });
     }
 });
 
@@ -516,7 +521,7 @@ app.get("/persona/:id/photo", (req, res) => {
     // 🔹 En un caso real buscarías el dato en la base o el filesystem
     const photo = {
         id,
-        url: `http://localhost:3500/images/person_${id}.jpg`
+        url: `http://localhost:3500/images/person_${id}.jpg`,
     };
 
     res.json(photo);
@@ -530,126 +535,4 @@ app.listen(PORT, () => {
     console.log(
         `Servidor corriendo modo WEB en http://localhost:${PORT} con DEBUG ${DEBUG}`,
     );
-});
-
-app.get("/login/", async (req, res) => {
-    res.render("login", {popUp: false});
-});
-
-// ruta que recibe la informacion del form
-app.post("/login", async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        // Buscar al usuario por su email
-        const result = await db.query('SELECT * FROM "user" WHERE email = $1', [
-            email,
-        ]);
-
-        // Si no existe el usuario
-        if (result.rows.length === 0) {
-            return res.send("No existe una cuenta con ese email.");
-        }
-
-        const user = result.rows[0]; // usuario encontrado en la base
-
-        // Comparar contraseñas (bcrypt lo hace)
-        const isPasswordCorrect = await bcrypt.compare(password, user.password);
-
-        if (!isPasswordCorrect) {
-            return res.render("login", {popUp: true})
-        }
-
-        req.session.user = {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-        };
-        res.redirect("/buscar?q=");
-    } catch (error) {
-        console.error("Error al iniciar sesión:", error);
-        res.status(500).send("Error del servidor al intentar iniciar sesión.");
-    }
-});
-
-app.get("/register", (req, res) => {
-    res.render("register");
-});
-
-app.post("/register", async (req, res) => {
-    const { username, email, password } = req.body;
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10); // el 10 es el "nivel de seguridad"
-
-        const result = await db.query(
-            'INSERT INTO "user" (username, email, password) VALUES ($1, $2, $3) RETURNING id',
-            [username, email, hashedPassword],
-        );
-
-        res.redirect("/login");
-    } catch (err) {
-        console.error(err);
-        res.status(500).send(
-            "Error al registrar el usuario (puede que el email ya exista)",
-        );
-    }
-});
-
-app.get("/profile", async (req, res) => {
-    if (!req.session.user) {
-        return res.redirect("/login");
-    }
-
-    const userId = req.session.user.id;
-
-    try {
-        const userResult = await db.query(
-            'SELECT username, email FROM "user" WHERE id = $1',
-            [userId],
-        );
-        const user = userResult.rows[0];
-
-        /*const ratedResult = await db.query(
-            "SELECT COUNT(*) FROM user_movie WHERE user_id = $1 AND rating IS NOT NULL",
-            [userId],
-        );
-
-        const ratedMovies = parseInt(ratedResult.rows[0].count);
-
-        const reviewResult = await db.query(
-            "SELECT COUNT(*) FROM user_movie WHERE user_id = $1 AND review IS NOT NULL",
-            [userId],
-        );
-        const writtenReviews = parseInt(reviewResult.rows[0].count);
-
-        //const lastRatedResult = await db.query( );
-
-
-        //const lastReviewsResult = await db.query( );
-*/
-        res.render("movie_user", {
-            user: {
-                username: user.username,
-                email: user.email,
-                //ratedMovies,
-                //writtenReviews,
-                //lastRated: lastRatedResult.rows,
-               // lastReviews: lastReviewsResult.rows,
-            },
-        });
-    } catch (error) {
-        console.error("Error al cargar el perfil:", error);
-        res.status(500).send("Error al cargar el perfil del usuario.");
-    }
-});
-
-app.get("/logout", async (req, res) => {
-    req.session.destroy((err) => {
-        if (err) {
-            console.error("Error al destruir la sesión:", err);
-            return res.status(500).send("Error al cerrar sesión.");
-        }
-
-        res.clearCookie("connect.sid");
-        res.redirect("/");
-    });
 });
