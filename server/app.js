@@ -123,156 +123,93 @@ app.get(API_URL + "/buscar", async (req, res) => {
 
 // * Ruta para la página de datos de una película particular (PostgreSQL)
 app.get(API_URL + "/pelicula/:id", async (req, res) => {
-    // Convertir a async
-    const movieId = req.params.id;
-
-    const query = `
-    SELECT
-      movie.*,
-      actor.person_name as actor_name,
-      actor.person_id as actor_id,
-      crew_member.person_name as crew_member_name,
-      crew_member.person_id as crew_member_id,
-      movie_cast.character_name,
-      movie_cast.cast_order,
-      department.department_name,
-      movie_crew.job
-    FROM movie
-    LEFT JOIN movie_cast ON movie.movie_id = movie_cast.movie_id
-    LEFT JOIN person as actor ON movie_cast.person_id = actor.person_id
-    LEFT JOIN movie_crew ON movie.movie_id = movie_crew.movie_id
-    LEFT JOIN department ON movie_crew.department_id = department.department_id
-    LEFT JOIN person as crew_member ON crew_member.person_id = movie_crew.person_id
-    WHERE movie.movie_id = $1
-  `;
+    const movieId = parseInt(req.params.id);
 
     try {
-        const result = await db.query(query, [parseInt(movieId)]);
-        const rows = result.rows;
-
-        if (rows.length === 0) {
+        // 1️⃣ Obtener la info general de la película
+        const movieResult = await db.query("SELECT * FROM get_movie_by_id($1)", [movieId]);
+        if (movieResult.rows.length === 0) {
             return res.status(404).send("Película no encontrada.");
         }
+        const movieRow = movieResult.rows[0];
 
+        // 2️⃣ Obtener cast y crew
+        const crewCastResult = await db.query("SELECT * FROM get_movie_crew_and_cast($1)", [movieId]);
+        const crewCastRows = crewCastResult.rows;
+
+        // 3️⃣ Armar el objeto final
         const movieData = {
-            id: rows[0].movie_id,
-            title: rows[0].title,
-            release_date: rows[0].release_date,
-            overview: rows[0].overview,
+            id: movieRow.movie_id ?? movieRow.id,
+            title: movieRow.title,
+            release_date: movieRow.release_date,
+            overview: movieRow.overview,
+            vote_average: movieRow.vote_average,
+            budget: movieRow.budget,
+            homepage: movieRow.homepage,
+            popularity: movieRow.popularity,
+            revenue: movieRow.revenue,
+            runtime: movieRow.runtime,
+            movie_status: movieRow.movie_status,
+            tagline: movieRow.tagline,
+            vote_count: movieRow.vote_count,
+            country: movieRow.country,
+            genre: movieRow.genre,
+            company:movieRow.company,
+            language: movieRow.language,
+            language_role: movieRow.language_role,
             directors: [],
             writers: [],
             cast: [],
             crew: [],
         };
 
-        rows.forEach((row) => {
-            if (
-                row.crew_member_id &&
-                row.crew_member_name &&
-                row.department_name &&
-                row.job
-            ) {
-                const isDuplicate = movieData.directors.some(
-                    (crew_member) =>
-                        crew_member.crew_member_id === row.crew_member_id,
-                );
-                if (
-                    !isDuplicate &&
-                    row.department_name === "Directing" &&
-                    row.job === "Director"
-                ) {
-                    movieData.directors.push({
-                        crew_member_id: row.crew_member_id,
-                        crew_member_name: row.crew_member_name,
-                        department_name: row.department_name,
-                        job: row.job,
-                    });
-                }
-            }
-        });
+        // 4️⃣ Clasificar las personas según su rol
+        crewCastRows.forEach((row) => {
+            const isActor = row.character_name !== null && row.character_name !== undefined;
 
-        rows.forEach((row) => {
-            if (
-                row.crew_member_id &&
-                row.crew_member_name &&
-                row.department_name &&
-                row.job
-            ) {
-                const isDuplicate = movieData.writers.some(
-                    (crew_member) =>
-                        crew_member.crew_member_id === row.crew_member_id,
-                );
-                if (
-                    !isDuplicate &&
-                    row.department_name === "Writing" &&
-                    (row.job === "Writer" || row.job === "Screenplay")
-                ) {
-                    // Ajuste para más roles de escritura
-                    movieData.writers.push({
-                        crew_member_id: row.crew_member_id,
-                        crew_member_name: row.crew_member_name,
-                        department_name: row.department_name,
-                        job: row.job,
-                    });
-                }
-            }
-        });
-
-        rows.forEach((row) => {
-            if (row.actor_id && row.actor_name && row.character_name) {
-                const isDuplicate = movieData.cast.some(
-                    (actor) => actor.actor_id === row.actor_id,
-                );
-                if (!isDuplicate) {
+            if (isActor) {
+                // 🎭 CAST
+                const duplicate = movieData.cast.some(a => a.actor_id === row.person_id);
+                if (!duplicate) {
                     movieData.cast.push({
-                        actor_id: row.actor_id,
-                        actor_name: row.actor_name,
+                        actor_id: row.person_id,
+                        actor_name: row.person_name,
                         character_name: row.character_name,
-                        cast_order: row.cast_order,
+                        cast_order: row.cast_order ?? null,
                     });
                 }
-            }
-        });
+            } else {
+                // 👷 CREW
+                const duplicate = movieData.crew.some(c => c.crew_member_id === row.person_id);
+                if (!duplicate) {
+                    // Clasificar segun departamento y job
+                    const member = {
+                        crew_member_id: row.person_id,
+                        crew_member_name: row.person_name,
+                        job: row.job ?? null,
+                    };
 
-        rows.forEach((row) => {
-            if (
-                row.crew_member_id &&
-                row.crew_member_name &&
-                row.department_name &&
-                row.job
-            ) {
-                const isDuplicate = movieData.crew.some(
-                    (crew_member) =>
-                        crew_member.crew_member_id === row.crew_member_id,
-                );
-                if (!isDuplicate) {
-                    if (
-                        row.department_name !== "Directing" &&
-                        row.department_name !== "Writing"
-                    ) {
-                        movieData.crew.push({
-                            crew_member_id: row.crew_member_id,
-                            crew_member_name: row.crew_member_name,
-                            department_name: row.department_name,
-                            job: row.job,
-                        });
+                    if (row.job === "Director") {
+                        movieData.directors.push(member);
+                    } else if (["Writer", "Screenplay"].includes(row.job)) {
+                        movieData.writers.push(member);
+                    } else {
+                        movieData.crew.push(member);
                     }
                 }
             }
         });
 
+        // 5️⃣ Responder
         if (API_MODE) return res.json({ movie: movieData });
-
         res.render("pelicula", { movie: movieData });
-    } catch (err) {
-        if (DEBUG) console.log(err);
-        if (API_MODE)
-            return res
-                .status(500)
-                .json(error("Error al cargar los datos de la película."));
 
+    } catch (err) {
+        if (DEBUG) console.error(err);
+        if (API_MODE)
+            return res.status(500).json({ error: "Error al cargar los datos de la película." });
         res.render("error", {
-            error: error("Error al cargar los datos de la película.", 500),
+            error: { message: "Error al cargar los datos de la película.", code: 500 },
         });
     }
 });

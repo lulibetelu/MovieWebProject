@@ -149,7 +149,7 @@ if (movie?.release_date) {
                                 <div class="flex flex-wrap gap-2 mt-2">
                                     {
                                         typeof movie?.vote_average !== "undefined" && movie.vote_average !== null && (
-                                            <div class="badge badge-secondary badge-lg">
+                                            <div class="badge badge-outline">
                                                 ⭐ {Number(movie.vote_average).toFixed(1)}
                                             </div>
                                         )
@@ -159,10 +159,6 @@ if (movie?.release_date) {
                                             <div class="badge badge-outline">{movie.runtime} min</div>
                                         )
                                     }
-                                </div>
-
-                                <div class="card-actions justify-end mt-2">
-                                    <a href="/" class="btn btn-primary">Buscar otra</a>
                                 </div>
                             </div>
                         </div>
@@ -270,10 +266,6 @@ if (movie?.release_date) {
                                     }
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="mt-10 flex justify-center">
-                            <a href="/" class="btn btn-primary btn-wide">Inicio</a>
                         </div>
                     </>
                 )
