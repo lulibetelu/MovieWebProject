@@ -3,10 +3,7 @@ import "../assets/app.css";
 
 import HomeLayout from "../layouts/HomeLayout.astro";
 
-import BlurText from "../components/ReactBits/BlurText";
-import LaserFlow from "../components/ReactBits/LaserFlow";
-
-import imagenFondo from "../assets/img/movies-bg.jpg";
+import LaserFlowBox from "../components/ReactBits/LaserFlow/LaserFlowBox";
 ---
 
 <HomeLayout
@@ -14,7 +11,7 @@ import imagenFondo from "../assets/img/movies-bg.jpg";
     class="relative min-h-screen overflow-hidden bg-[#060010]"
 >
     <main
-        class="relative flex min-h-screen flex-col items-center justify-center"
+        class="relative flex min-h-screen w-full flex-col items-center justify-center"
         data-theme="movieweb"
     >
         <Fragment slot="head">
@@ -23,113 +20,6 @@ import imagenFondo from "../assets/img/movies-bg.jpg";
             </style>
         </Fragment>
 
-        <LaserFlow
-            horizontalBeamOffset={0.1}
-            horizontalSizing={0.6}
-            verticalSizing={6}
-            wispDensity={3.0}
-            wispSpeed={18.0}
-            wispIntensity={18}
-            flowSpeed={0.6}
-            flowStrength={0.3}
-            fogIntensity={0.4}
-            fogScale={0.12}
-            fogFallSpeed={1.5}
-            decay={1.5}
-            falloffStart={1.0}
-            verticalBeamOffset={0.0}
-            color="#FF7216"
-            mouseTiltStrength={0.02}
-            client:only="react"
-        />
-
-        <div
-            class="popi absolute top-[72vh] left-1/2 z-10 w-full max-w-6xl -translate-x-1/2 -translate-y-1/2 transform rounded-3xl border border-primary/30 bg-[#060010]/80 p-8 shadow-[0_0_20px_var(--color-primary-soft)] backdrop-blur-sm md:p-12"
-        >
-            <!-- Title with tagline -->
-            <div
-                class="mb-8 h-36 flex flex-col items-center"
-                style="font-family: 'Poppins', sans-serif !important;"
-            >
-                <BlurText
-                    client:only="react"
-                    text="Movie Web App!"
-                    delay={150}
-                    animateBy="words"
-                    direction="top"
-                    className="font-poppins text-5xl font-bold text-base-content md:text-7xl"
-                />
-
-                <p
-                    class="mt-4 text-center text-lg text-neutral-content md:text-xl"
-                >
-                    Discover your next favorite film with a cosmic twist!
-                </p>
-            </div>
-
-            <!-- Search Form -->
-            <form action="/buscar" method="GET" class="flex justify-center">
-                <div class="relative w-full max-w-3xl">
-                    <!-- Search Icon -->
-                    <svg
-                        class="absolute left-4 top-1/2 h-8 w-8 -translate-y-1/2 text-primary"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                    >
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.3-4.3"></path>
-                    </svg>
-
-                    <!-- Input -->
-                    <input
-                        type="text"
-                        name="q"
-                        placeholder="Search your movie..."
-                        class="w-full rounded-2xl border-3 border-primary/40 bg-[#060010]/50 py-5 pl-14 pr-4 text-2xl text-white placeholder-gray-500 shadow-md outline-none transition-all duration-300 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:shadow-[0_0_24px_var(--color-primary)] hover:shadow-[0_0_25px_var(--color-primary)] md:py-6 md:text-3xl"
-                    />
-
-                    <!-- Background Glow -->
-                    <div
-                        class="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-r from-orange-500/10 via-orange-400/20 to-orange-500/10 blur-xl"
-                    >
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <img
-            id="reveal-img"
-            src={imagenFondo.src}
-            alt="Reveal effect"
-            class="absolute top-0 z-5 h-full w-full object-cover mix-blend-screen opacity-40 pointer-events-none"
-            style="--mx: -9999px; --my: -9999px; -webkit-mask-image: radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,1) 0px, rgba(255,255,255,0.95) 80px, rgba(255,255,255,0.6) 160px, rgba(255,255,255,0.25) 240px, rgba(255,255,255,0) 320px); mask-image: radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,1) 0px, rgba(255,255,255,0.95) 80px, rgba(255,255,255,0.6) 160px, rgba(255,255,255,0.25) 240px, rgba(255,255,255,0) 320px);"
-        />
+        <LaserFlowBox client:only="react" />
     </main>
-
-    <script>
-        const container = document.querySelector("main");
-        const revealImg = document.querySelector("#reveal-img");
-
-        if (container) {
-            container.addEventListener("mousemove", (e) => {
-                const rect = container.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                if (revealImg) {
-                    revealImg.style.setProperty("--mx", `${x}px`);
-                    revealImg.style.setProperty("--my", `${y}px`); // Adjusted for full-screen -->
-                }
-            });
-
-            container.addEventListener("mouseleave", () => {
-                if (revealImg) {
-                    revealImg.style.setProperty("--mx", "-9999px");
-                    revealImg.style.setProperty("--my", "-9999px");
-                }
-            });
-        }
-    </script>
 </HomeLayout>
