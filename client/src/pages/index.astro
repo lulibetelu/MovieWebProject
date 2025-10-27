@@ -1,9 +1,33 @@
 ---
 import "../assets/app.css";
+import { API_URL } from "../data/config";
 
 import HomeLayout from "../layouts/HomeLayout.astro";
-
+import MoviesCarousel from "../components/base/MoviesCarousel";
 import LaserFlowBox from "../components/ReactBits/LaserFlow/LaserFlowBox";
+
+// Initialize variables to avoid undefined errors
+let result = { movies: [], tmdbApiKey: "" };
+let tmdbApiKey = "";
+
+/**
+ * `movies` es un array de generos (key), con una lista de objetos película (value)
+ */
+
+try {
+    const response = await fetch(`${API_URL}/top/15`);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    result = await response.json();
+    tmdbApiKey = result.tmdbApiKey || "";
+} catch (e) {
+    console.error("Error fetching data:", e);
+    result = { movies: [{ title: "No movies available" }], tmdbApiKey: "" };
+}
+
+// Ensure prerender for static rendering
+export const prerender = true;
 ---
 
 <HomeLayout
@@ -22,4 +46,22 @@ import LaserFlowBox from "../components/ReactBits/LaserFlow/LaserFlowBox";
 
         <LaserFlowBox client:only="react" />
     </main>
+
+    {
+        result.movies.length === 0 ? (
+            <div class="flex justify-center items-center h-full">
+                <div class="spinner animate-spin inline-block w-8 h-8 border-4 border-primary rounded-full" />
+            </div>
+        ) : (
+            Object.entries(result.movies).map(([genre, movieGroup], idx) => (
+                <MoviesCarousel
+                    client:visible
+                    movieGroup={movieGroup}
+                    title={genre}
+                    tmdbApiKey={tmdbApiKey}
+                    idx={idx}
+                />
+            ))
+        )
+    }
 </HomeLayout>
