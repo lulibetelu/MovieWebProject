@@ -468,6 +468,7 @@ app.get(API_URL + "/top/:limit", async (req, res) => {
             result[key].push({
                 title: movie.title,
                 popularity: movie.popularity,
+                id: movie.id,
             });
         });
 

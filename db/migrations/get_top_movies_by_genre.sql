@@ -1,13 +1,14 @@
 DROP FUNCTION if exists get_top_movies_by_genre(integer);
 
 create function get_top_movies_by_genre(limit_per_genre integer DEFAULT 5)
-    returns TABLE(genre_name text, title text, popularity numeric)
+    returns TABLE(id integer, genre_name text, title text, popularity numeric)
     language sql
 as
 $$
-    SELECT genre_name, title, popularity
+    SELECT movie_id as id, genre_name, title, popularity
     FROM (
         SELECT
+            m.movie_id,
             g.genre_name AS genre_name,
             m.title,
             m.popularity,

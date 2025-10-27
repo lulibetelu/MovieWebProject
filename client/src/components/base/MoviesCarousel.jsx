@@ -37,17 +37,23 @@ const MoviesCarousel = ({
                                             {movies.length > 0 ? (
                                                 movies.map((movie, index) => (
                                                     <div
-                                                        className="card bg-base-300 shadow-xl"
+                                                        className="card bg-base-300 shadow-xl cursor-pointer"
                                                         key={`${index}-${idx}`}
                                                     >
                                                         <MovieImages
                                                             data={{
                                                                 title: movie.title,
                                                                 apiKey: tmdbApiKey,
+                                                                id: movie.id,
                                                             }}
                                                         />
 
-                                                        <div className="card-body">
+                                                        <div
+                                                            className="card-body"
+                                                            onClick={() =>
+                                                                (window.location.href = `/pelicula/${movie.id}`)
+                                                            }
+                                                        >
                                                             <h2 className="card-title">
                                                                 {typeof movie.title ===
                                                                 "string"
