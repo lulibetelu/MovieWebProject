@@ -17,6 +17,8 @@ const { Pool } = require("pg");
 const app = express();
 const PORT = process.env.PORT || 3500;
 
+
+
 //permite que express entienda los datos que le mandan en el form
 app.use(express.urlencoded({ extended: true }));
 
@@ -56,7 +58,30 @@ app.use(
         resave: false,
         saveUninitialized: false,
     }),
+    express.json(),
 );
+
+//setup mongo
+const { MongoClient } = require('mongodb');
+
+const uri = "mongodb://localhost:27017"; // tu servidor local
+const client = new MongoClient(uri);
+
+let mdb; //mongo database
+async function connectMDB() {
+    try {
+        await client.connect();
+        console.log("✅ Conectado a MongoDB");
+        mdb = client.db("test"); // tu base de datos (por ejemplo “test”)
+        const collection = mdb.collection("TestingMongo");
+        const personas = await collection.find().toArray();
+        console.log(personas);
+    } catch (err) {
+        console.error("❌ Error al conectar a MongoDB:", err);
+    }
+}
+connectMDB();
+
 
 // * Ruta para la página de inicio
 app.get(API_URL + "/", (req, res) => {
