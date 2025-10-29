@@ -178,43 +178,34 @@ app.get(API_URL + "/pelicula/:id", async (req, res) => {
         // 4️⃣ Clasificar las personas según su rol
         crewCastRows.forEach((row) => {
             const isActor = row.character_name !== null && row.character_name !== undefined;
-
             if (isActor) {
-                // 🎭 CAST
-                const duplicate = movieData.cast.some(a => a.actor_id === row.person_id);
-                if (!duplicate) {
-                    movieData.cast.push({
-                        actor_id: row.person_id,
-                        actor_name: row.person_name,
-                        character_name: row.character_name,
-                        cast_order: row.cast_order ?? null,
-                    });
-                }
+                movieData.cast.push({
+                    actor_id: row.person_id,
+                    actor_name: row.person_name,
+                    character_name: row.character_name,
+                    cast_order: row.cast_order ?? null,
+                });
             } else {
-                // 👷 CREW
-                const duplicate = movieData.crew.some(c => c.crew_member_id === row.person_id);
-                if (!duplicate) {
-                    // Clasificar segun departamento y job
-                    const member = {
-                        crew_member_id: row.person_id,
-                        crew_member_name: row.person_name,
-                        job: row.job ?? null,
-                    };
+                // Clasificar segun departamento y job
+                const member = {
+                    crew_member_id: row.person_id,
+                    crew_member_name: row.person_name,
+                    job: row.job ?? null,
+                };
 
-                    if (row.job === "Director") {
-                        movieData.directors.push(member);
-                    } else if (["Writer", "Screenplay"].includes(row.job)) {
-                        movieData.writers.push(member);
-                    } else {
-                        movieData.crew.push(member);
-                    }
+                if (row.job === "Director") {
+                    movieData.directors.push(member);
+                } else if (["Writer", "Screenplay"].includes(row.job)) {
+                    movieData.writers.push(member);
+                } else {
+                    movieData.crew.push(member);
                 }
             }
         });
 
         // 5️⃣ Responder
-        if (API_MODE) return res.json({ movie: movieData, tmdbApiKey: process.env.TMDB_API_KEY,});
-        res.render("pelicula", { movie: movieData, tmdbApiKey: process.env.TMDB_API_KEY, });
+        if (API_MODE) return res.json({ movie: movieData});
+        res.render("pelicula", { movie: movieData });
 
     } catch (err) {
         if (DEBUG) console.error(err);

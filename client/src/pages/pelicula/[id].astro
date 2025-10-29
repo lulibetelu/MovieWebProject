@@ -9,8 +9,9 @@ export const prerender = false;
 
 const { id } = Astro.params;
 
-let movie = null;
-let tmdbApiKey = null;
+let movie;
+const tmdbApiKey = import.meta.env.PUBLIC_TMDB_API_KEY;
+
 
 
 try {
@@ -20,7 +21,6 @@ try {
     }
     const data = await res.json();
     movie = data.movie ?? data;
-    tmdbApiKey = data.tmdbApiKey ?? null;
 } catch (err) {
     movie = null;
 }
@@ -68,7 +68,6 @@ if (movie?.release_date) {
                         <div class="badge badge-primary badge-lg">{formattedDate}</div>
                 )}
             </div>
-
             {
                 !movie ? (
                         <div class="alert alert-error">
@@ -159,82 +158,81 @@ if (movie?.release_date) {
                                         </div>
                                 )}
                             </div>
+                            <div>
+                            <!-- Argumento -->
+                            {movie.overview && (
+                                        <div class="card bg-base-200/40 border border-primary/20 shadow-md mb-8">
+                                            <div class="card-body">
+                                                <h3 class="card-title text-primary">Argumento</h3>
+                                                <p>{movie.overview}</p>
+                                            </div>
+                                        </div>
+                                )}
+                            </div>
 
-                <!-- Argumento -->
-                {movie.overview && (
-                            <div class="card bg-base-200/40 border border-primary/20 shadow-md mb-8">
-                                <div class="card-body">
-                                    <h3 class="card-title text-primary">Argumento</h3>
-                                    <p>{movie.overview}</p>
+                            <!-- Tabs de elenco y equipo -->
+                            <div class="tabs tabs-lift w-full">
+                                <input type="radio" name="tabs" class="tab" aria-label="Elenco" checked />
+                                <div class="tab-content bg-base-100 border-base-300 p-6">
+                                    {
+                                        (movie.cast ?? []).length === 0 ? (
+                                                <p class="opacity-70">No hay elenco disponible.</p>
+                                        ) : (
+                                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                                    {movie.cast.map(actor => (
+                                                                <div class="card bg-base-200/40 border border-base-300 hover:border-primary/40 transition">
+                                                                    <div class="card-body p-3">
+                                                                        <h2 class="card-title text-sm font-semibold">
+                                                                            <a href={`/persona/${actor.actor_id}`} class="link link-primary">
+                                                                                {actor.actor_name}
+                                                                            </a>
+                                                                        </h2>
+                                                                        <p class="text-xs opacity-80">{actor.character_name}</p>
+                                                                    </div>
+                                                                </div>
+                                                        ))}
+                                                </div>
+                                        )
+                                    }
+                                </div>
+
+                                <input type="radio" name="tabs" class="tab" aria-label="Equipo Técnico" />
+                                <div class="tab-content bg-base-100 border-base-300 p-6">
+                                    {
+                                        (movie.crew ?? []).length === 0 ? (
+                                                <p class="opacity-70">No hay equipo técnico disponible.</p>
+                                        ) : (
+                                                <div class="overflow-x-auto">
+                                                    <table class="table table-zebra">
+                                                        <thead>
+                                                        <tr>
+                                                            <th>Nombre</th>
+                                                            <th>Puesto</th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        {movie.crew.map(crewMember => (
+                                                                <tr>
+                                                                    <td class="whitespace-nowrap">
+                                                                        {crewMember.crew_member_name}
+                                                                    </td>
+                                                                    <td class="whitespace-nowrap">
+                                                                        {crewMember.job}
+                                                                    </td>
+                                                                </tr>
+                                                        ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                        )
+                                    }
                                 </div>
                             </div>
-                    )}
 
-                <!-- Tabs de elenco y equipo -->
-                <div class="tabs tabs-lift w-full">
-                    <input type="radio" name="tabs" class="tab" aria-label="Elenco" checked />
-                    <div class="tab-content bg-base-100 border-base-300 p-6">
-                        {
-                            (movie.cast ?? []).length === 0 ? (
-                                    <p class="opacity-70">No hay elenco disponible.</p>
-                            ) : (
-                                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                        {[...movie.cast]
-                                            .sort((a,b) => a.cast_order - b.cast_order)
-                                            .map(actor => (
-                                                    <div class="card bg-base-200/40 border border-base-300 hover:border-primary/40 transition">
-                                                        <div class="card-body p-3">
-                                                            <h2 class="card-title text-sm font-semibold">
-                                                                <a href={`/persona/${actor.actor_id}`} class="link link-primary">
-                                                                    {actor.actor_name}
-                                                                </a>
-                                                            </h2>
-                                                            <p class="text-xs opacity-80">{actor.character_name}</p>
-                                                        </div>
-                                                    </div>
-                                            ))}
-                                    </div>
-                            )
-                        }
-                    </div>
-
-                    <input type="radio" name="tabs" class="tab" aria-label="Equipo Técnico" />
-                    <div class="tab-content bg-base-100 border-base-300 p-6">
-                        {
-                            (movie.crew ?? []).length === 0 ? (
-                                    <p class="opacity-70">No hay equipo técnico disponible.</p>
-                            ) : (
-                                    <div class="overflow-x-auto">
-                                        <table class="table table-zebra">
-                                            <thead>
-                                            <tr>
-                                                <th>Nombre</th>
-                                                <th>Puesto</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {movie.crew.map(crewMember => (
-                                                    <tr>
-                                                        <td class="whitespace-nowrap">
-                                                            {crewMember.crew_member_name}
-                                                        </td>
-                                                        <td class="whitespace-nowrap">
-                                                            {crewMember.job}
-                                                        </td>
-                                                    </tr>
-                                            ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                            )
-                        }
-                    </div>
-                </div>
-                </>
-                )
+                        </>)
                 }
                 </div>
-                </section>
+                </section
                 </DetailLayout>
 
                 <style>
