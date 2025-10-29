@@ -1,5 +1,9 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import PersonImages from "../../components/TMDB_Images/PersonImages.jsx";
+import MovieImages from "../../components/TMDB_Images/MovieImages.jsx";
+
+
 
 import { API_URL } from "../../data/config";
 
@@ -48,17 +52,23 @@ const directors = results?.directors ?? results?.directores ?? [];
                             <span>No hay resultados.</span>
                         </div>
                     ) : (
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                             {movies.map((movie: any) => (
                                 <a
                                     href={`/pelicula/${movie.id ?? movie.movie_id}`}
                                     class="card bg-base-100 border border-base-300 hover:border-primary transition shadow-sm hover:shadow-primary/20"
                                     aria-label={`Ver detalle de ${movie.title ?? movie.name}`}
                                 >
-                                    <div class="card-body">
+                                    <div class="card-body h-70">
                                         <h3 class="card-title">
                                             {movie.title ?? movie.name}
                                         </h3>
+                                        <figure
+                                                class="relative w-full h-96 bg-base-200 flex items-center justify-center rounded-xl overflow-hidden"
+                                        >
+                                            <MovieImages data={{title:movie.name,
+                                            }} client:load />
+                                        </figure>
                                         <div class="card-actions justify-end">
                                             <span class="btn btn-primary btn-sm">
                                                 Ver detalle
@@ -81,17 +91,23 @@ const directors = results?.directors ?? results?.directores ?? [];
                             <span>No hay resultados.</span>
                         </div>
                     ) : (
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                             {actors.map((actor: any) => (
                                 <a
                                     href={`/persona/${actor.id ?? actor.person_id}`}
                                     class="card bg-base-100 border border-base-300 hover:border-primary transition shadow-sm hover:shadow-primary/20"
                                     aria-label={`Ver perfil de ${actor.person_name ?? actor.name}`}
                                 >
-                                    <div class="card-body">
+                                    <div class="card-body h-70">
                                         <h3 class="card-title">
                                             {actor.person_name ?? actor.name}
                                         </h3>
+                                        <figure
+                                                class="relative w-full h-96 bg-base-200 flex items-center justify-center rounded-xl overflow-hidden"
+                                        >
+                                            <PersonImages data={{personName:actor.name,
+                                            }} client:load />
+                                        </figure>
                                         <div class="card-actions justify-end">
                                             <span class="btn btn-primary btn-sm">
                                                 Ver perfil
@@ -114,18 +130,24 @@ const directors = results?.directors ?? results?.directores ?? [];
                             <span>No hay resultados.</span>
                         </div>
                     ) : (
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                             {directors.map((director: any) => (
                                 <a
                                     href={`/persona/${director.id ?? director.person_id}`}
                                     class="card bg-base-100 border border-base-300 hover:border-primary transition shadow-sm hover:shadow-primary/20"
                                     aria-label={`Ver perfil de ${director.person_name ?? director.name}`}
                                 >
-                                    <div class="card-body">
+                                    <div class="card-body h-70">
                                         <h3 class="card-title">
                                             {director.person_name ??
                                                 director.name}
                                         </h3>
+                                        <figure
+                                                class="relative w-full h-96 bg-base-200 flex items-center justify-center rounded-xl overflow-hidden"
+                                        >
+                                            <PersonImages data={{personName:director.name,
+                                            }} client:load />
+                                        </figure>
                                         <div class="card-actions justify-end">
                                             <span class="btn btn-primary btn-sm">
                                                 Ver perfil
