@@ -23,8 +23,6 @@ BEGIN
 END;
 $$;
 
-alter function get_top_directors(integer) owner to postgres;
-
 create function get_top_actors(p_limit integer)
     returns TABLE(person_id integer, person_name character varying, movie_count bigint, weighted_popularity numeric)
     language plpgsql
