@@ -28,6 +28,7 @@ app.use(
         resave: false,
         saveUninitialized: false,
     }),
+    express.json(),
 );
 //--- path para la foto vacia
 const noMovieBase =
@@ -52,15 +53,6 @@ const DEBUG = process.env.DEBUG === "true" || false;
 const API_MODE = process.env.API_MODE !== "false";
 const API_URL = API_MODE ? "/api" : "";
 
-app.use(
-    session({
-        secret: process.env.SECRET_KEY,
-        resave: false,
-        saveUninitialized: false,
-    }),
-    express.json(),
-);
-
 //setup mongo
 const { MongoClient } = require('mongodb');
 
@@ -72,10 +64,10 @@ async function connectMDB() {
     try {
         await client.connect();
         console.log("✅ Conectado a MongoDB");
-        mdb = client.db("test"); // tu base de datos (por ejemplo “test”)
-        const collection = mdb.collection("TestingMongo");
-        const personas = await collection.find().toArray();
-        console.log(personas);
+        mdb = client.db("movies"); // tu base de datos (por ejemplo “test”)
+        const collection = mdb.collection("reviews");
+        const review = await collection.find().toArray();
+        console.log(review);
     } catch (err) {
         console.error("❌ Error al conectar a MongoDB:", err);
     }
