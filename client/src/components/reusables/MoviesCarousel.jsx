@@ -1,11 +1,6 @@
 import MovieImages from "../TMDB_Images/MovieImages";
 
-const MoviesCarousel = ({
-    movieGroup = [],
-    title = "",
-    idx = 0,
-    tmdbApiKey = "",
-}) => {
+const MoviesCarousel = ({ movieGroup = [], title = "", idx = 0 }) => {
     const mGroup = movieGroup.reduce((acc, curr, index) => {
         if (index % 5 === 0) acc.push([]);
         acc[Math.floor(index / 5)].push(curr);
@@ -14,7 +9,7 @@ const MoviesCarousel = ({
 
     return (
         <>
-            {!mGroup || !tmdbApiKey ? (
+            {!mGroup ? (
                 <h1 className="text-6xl text-primary font-bold mt-10 ml-5">
                     Movies not found. Server Error.
                 </h1>
@@ -27,12 +22,12 @@ const MoviesCarousel = ({
                             </h1>
 
                             <div className="carousel w-full mt-5 overflow-y-hidden overflow-x-scroll">
-                                {mGroup.map((movies) => {
+                                {mGroup.map((movies, oIdx) => {
                                     return (
                                         <div
                                             className="carousel-item w-full flex justify-center gap-4"
                                             id={`item-${idx}`}
-                                            key={`group-${idx}`}
+                                            key={`group-${idx}-${oIdx}`}
                                         >
                                             {movies.length > 0 ? (
                                                 movies.map((movie, index) => (
@@ -43,7 +38,6 @@ const MoviesCarousel = ({
                                                         <MovieImages
                                                             data={{
                                                                 title: movie.title,
-                                                                apiKey: tmdbApiKey,
                                                                 id: movie.id,
                                                             }}
                                                         />

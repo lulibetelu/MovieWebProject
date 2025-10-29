@@ -7,15 +7,24 @@
 
 require("dotenv").config();
 
-const path = require("path");
 const express = require("express");
 const bcrypt = require("bcrypt");
 const session = require("express-session");
+const cors = require("cors");
 
 const { Pool } = require("pg");
 
 const app = express();
 const PORT = process.env.PORT || 3500;
+
+// Habilitar CORS para el origen del frontend
+app.use(
+    cors({
+        origin: "http://localhost:4321", // Permite solicitudes solo desde este origen
+        methods: ["GET", "POST", "PUT", "DELETE"], // Métodos HTTP permitidos
+        allowedHeaders: ["Content-Type", "Authorization"], // Encabezados permitidos
+    }),
+);
 
 //permite que express entienda los datos que le mandan en el form
 app.use(express.urlencoded({ extended: true }));
@@ -445,7 +454,9 @@ app.get("/profile", async (req, res) => {
 });
 
 app.get(API_URL + "/top/:limit", async (req, res) => {
-    const limit = parseInt(req.params.limit);
+    // Validate limit parameter
+    const limit =
+        parseInt(req.params.limit) >= 40 ? 40 : parseInt(req.params.limit);
 
     try {
         const topMoviesResult = await db.query(
@@ -453,7 +464,7 @@ app.get(API_URL + "/top/:limit", async (req, res) => {
             [],
         );
 
-        // REFORMAT
+        // Not found
         if (!topMoviesResult.rows) {
             return res.status(404).json({
                 error: "No se encontraron películas.",
@@ -481,6 +492,71 @@ app.get(API_URL + "/top/:limit", async (req, res) => {
             console.error("Error al obtener las películas más vistas:", error);
         res.status(500).json({
             error: "Error al obtener las películas más vistas.",
+        });
+    }
+});
+
+app.get(API_URL + "/top-directors/:limit", async (req, res) => {
+    // Validate limit parameter
+    const limit =
+        parseInt(req.params.limit) >= 50 ? 50 : parseInt(req.params.limit);
+
+    try {
+        const topDirectorsResult = await db.query(
+            `SELECT person_id, person_name FROM get_top_directors(${limit})`,
+            [],
+        );
+
+        // Not found
+        if (!topDirectorsResult.rows) {
+            return res.status(404).json({
+                error: "No se encontraron películas.",
+            });
+        }
+
+        res.json({
+            directors: topDirectorsResult.rows,
+            tmdbApiKey: process.env.TMDB_API_KEY,
+        });
+    } catch (error) {
+        if (DEBUG)
+            console.error(
+                "Error al obtener los directores más populares:",
+                error,
+            );
+        res.status(500).json({
+            error: "Error al obtener los directores más populares.",
+        });
+    }
+});
+
+app.get(API_URL + "/top-actors/:limit", async (req, res) => {
+    // Validate limit parameter
+    const limit =
+        parseInt(req.params.limit) >= 100 ? 100 : parseInt(req.params.limit);
+
+    try {
+        const topActorsResult = await db.query(
+            `SELECT person_id, person_name FROM get_top_actors(${limit})`,
+            [],
+        );
+
+        // Not found
+        if (!topActorsResult.rows) {
+            return res.status(404).json({
+                error: "No se encontraron actores.",
+            });
+        }
+
+        res.json({
+            actors: topActorsResult.rows,
+            tmdbApiKey: process.env.TMDB_API_KEY,
+        });
+    } catch (error) {
+        if (DEBUG)
+            console.error("Error al obtener los actores más populares:", error);
+        res.status(500).json({
+            error: "Error al obtener los actores más populares.",
         });
     }
 });
