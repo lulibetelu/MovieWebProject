@@ -46,4 +46,4 @@ BEGIN
 END;
 $$;
 
-alter function get_top_actors(integer) owner to postgres;
+COMMIT;

@@ -24,4 +24,4 @@ $$
     ORDER BY genre_name, popularity DESC;
 $$;
 
-alter function get_top_movies_by_genre(integer) owner to postgres;
+COMMIT;
