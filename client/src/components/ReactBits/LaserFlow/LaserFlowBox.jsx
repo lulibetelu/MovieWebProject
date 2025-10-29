@@ -82,7 +82,7 @@ export default function LaserFlowBox() {
                 <div
                     className="mt-10 h-36 flex flex-col items-center"
                     style={{
-                        fontFamily: "'Poppins', sans-serif !important;",
+                        fontFamily: "'Poppins', sans-serif !important",
                         fontSize: "2rem",
                     }}
                 >
@@ -124,7 +124,7 @@ export default function LaserFlowBox() {
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
-                            stroke-width="2"
+                            strokeWidth="2"
                         >
                             <circle cx="11" cy="11" r="8"></circle>
                             <path d="m21 21-4.3-4.3"></path>
@@ -148,13 +148,13 @@ export default function LaserFlowBox() {
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
-                            stroke-width="2.5"
+                            strokeWidth="2.5"
                             stroke="currentColor"
                             className="size-[1.2em]"
                         >
                             <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
                                 d="M9 5l7 7-7 7"
                             />
                         </svg>

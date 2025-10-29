@@ -7,15 +7,24 @@
 
 require("dotenv").config();
 
-const path = require("path");
 const express = require("express");
 const bcrypt = require("bcrypt");
 const session = require("express-session");
+const cors = require("cors");
 
 const { Pool } = require("pg");
 
 const app = express();
 const PORT = process.env.PORT || 3500;
+
+// Habilitar CORS para el origen del frontend
+app.use(
+    cors({
+        origin: "http://localhost:4321", // Permite solicitudes solo desde este origen
+        methods: ["GET", "POST", "PUT", "DELETE"], // Métodos HTTP permitidos
+        allowedHeaders: ["Content-Type", "Authorization"], // Encabezados permitidos
+    }),
+);
 
 //permite que express entienda los datos que le mandan en el form
 app.use(express.urlencoded({ extended: true }));
@@ -71,12 +80,14 @@ app.get(API_URL + "/", (req, res) => {
 app.get(API_URL + "/buscar", async (req, res) => {
     // 4. Convertir a función async
     const searchTerm = req.query.q;
+    const limit = req.query.limit < 20 ? req.query.limit : 20;
     const page = req.query.page || 1;
     const offset = (page - 1) * 20;
 
     // Los placeholders en pg son $1, $2, etc.
-    const query = "SELECT * FROM search_all($1, 20, $2)"; // ILIKE es case-insensitive en Postgres
+    const query = "SELECT * FROM search_all($1, " + limit + ", $2)"; // ILIKE es case-insensitive en Postgres
     const values = [`%${searchTerm}%`, offset];
+
     try {
         // Usar db.query que devuelve una promesa y acceder a .rows
         const result = await db.query(query, values);
@@ -101,6 +112,7 @@ app.get(API_URL + "/buscar", async (req, res) => {
                 movies: filteredMovies,
                 actors: filteredActors,
                 directors: filteredDirectors,
+                tmdbApiKey: process.env.TMDB_API_KEY,
                 searchTerm,
             });
             return;
@@ -437,6 +449,114 @@ app.get("/profile", async (req, res) => {
         if (DEBUG) console.error("Error al cargar el perfil:", error);
         res.status(500).json({
             error: "Error al cargar el perfil del usuario.",
+        });
+    }
+});
+
+app.get(API_URL + "/top/:limit", async (req, res) => {
+    // Validate limit parameter
+    const limit =
+        parseInt(req.params.limit) >= 40 ? 40 : parseInt(req.params.limit);
+
+    try {
+        const topMoviesResult = await db.query(
+            `SELECT * FROM get_top_movies_by_genre(${limit})`,
+            [],
+        );
+
+        // Not found
+        if (!topMoviesResult.rows) {
+            return res.status(404).json({
+                error: "No se encontraron películas.",
+            });
+        }
+
+        const result = {};
+        topMoviesResult.rows.forEach((movie) => {
+            const key = movie.genre_name.toLowerCase();
+            if (!result[key]) result[key] = [];
+
+            result[key].push({
+                title: movie.title,
+                popularity: movie.popularity,
+                id: movie.id,
+            });
+        });
+
+        res.json({
+            movies: result,
+            tmdbApiKey: process.env.TMDB_API_KEY,
+        });
+    } catch (error) {
+        if (DEBUG)
+            console.error("Error al obtener las películas más vistas:", error);
+        res.status(500).json({
+            error: "Error al obtener las películas más vistas.",
+        });
+    }
+});
+
+app.get(API_URL + "/top-directors/:limit", async (req, res) => {
+    // Validate limit parameter
+    const limit =
+        parseInt(req.params.limit) >= 50 ? 50 : parseInt(req.params.limit);
+
+    try {
+        const topDirectorsResult = await db.query(
+            `SELECT person_id, person_name FROM get_top_directors(${limit})`,
+            [],
+        );
+
+        // Not found
+        if (!topDirectorsResult.rows) {
+            return res.status(404).json({
+                error: "No se encontraron películas.",
+            });
+        }
+
+        res.json({
+            directors: topDirectorsResult.rows,
+            tmdbApiKey: process.env.TMDB_API_KEY,
+        });
+    } catch (error) {
+        if (DEBUG)
+            console.error(
+                "Error al obtener los directores más populares:",
+                error,
+            );
+        res.status(500).json({
+            error: "Error al obtener los directores más populares.",
+        });
+    }
+});
+
+app.get(API_URL + "/top-actors/:limit", async (req, res) => {
+    // Validate limit parameter
+    const limit =
+        parseInt(req.params.limit) >= 100 ? 100 : parseInt(req.params.limit);
+
+    try {
+        const topActorsResult = await db.query(
+            `SELECT person_id, person_name FROM get_top_actors(${limit})`,
+            [],
+        );
+
+        // Not found
+        if (!topActorsResult.rows) {
+            return res.status(404).json({
+                error: "No se encontraron actores.",
+            });
+        }
+
+        res.json({
+            actors: topActorsResult.rows,
+            tmdbApiKey: process.env.TMDB_API_KEY,
+        });
+    } catch (error) {
+        if (DEBUG)
+            console.error("Error al obtener los actores más populares:", error);
+        res.status(500).json({
+            error: "Error al obtener los actores más populares.",
         });
     }
 });

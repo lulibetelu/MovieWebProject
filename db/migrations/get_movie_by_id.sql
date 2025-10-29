@@ -49,3 +49,5 @@ RETURNS TABLE (
         GROUP BY m.movie_id;
     END;
 $$ LANGUAGE plpgsql;
+
+COMMIT;
