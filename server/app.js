@@ -94,7 +94,7 @@ app.get(API_URL + "/", (req, res) => {
 app.get(API_URL + "/buscar", async (req, res) => {
     // 4. Convertir a función async
     const searchTerm = req.query.q;
-    const limit = req.query.limit < 20 ? req.query.limit : 20;
+    const limit = req.query.limit < 20 ? req.query.limit : 18;
     const page = req.query.page || 1;
     const offset = (page - 1) * 20;
 
