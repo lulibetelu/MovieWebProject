@@ -65,7 +65,7 @@ const API_URL = API_MODE ? "/api" : "";
 //setup mongo
 const { MongoClient } = require('mongodb');
 
-const uri = "mongodb://localhost:27017"; // tu servidor local
+const uri = process.env.MONGODB_URI || "mongodb://localhost:27017"; // MongoDB URI from env, fallback to localhost
 const client = new MongoClient(uri);
 
 let mdb; //mongo database
