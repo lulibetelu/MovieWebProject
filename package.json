@@ -12,7 +12,6 @@
         "concurrently": "^8.2.0"
     },
     "dependencies": {
-        "mongodb": "^6.20.0",
         "ogl": "^1.0.11"
     }
 }
