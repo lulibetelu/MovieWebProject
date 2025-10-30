@@ -14,7 +14,7 @@ let desc = url.searchParams.get("desc") || "t";
 export const prerender = false;
 
 let personData;
-let tmdbApiKey;
+const tmdbApiKey = import.meta.env.PUBLIC_TMDB_API_KEY;
 
 try {
 
@@ -24,10 +24,8 @@ try {
     }
     const data = await res.json();
     personData = data.personData ?? data;
-    tmdbApiKey = data.tmdbApiKey ?? null;
 } catch (err) {
     personData = null;
-    tmdbApiKey = null;
 }
 ---
 

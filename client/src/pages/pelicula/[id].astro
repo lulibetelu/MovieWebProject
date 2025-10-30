@@ -2,12 +2,17 @@
 import "../../assets/app.css";
 import { API_URL } from "../../data/config";
 import DetailLayout from "../../layouts/DetailLayout.astro";
+import MovieImages from "../../components/TMDB_Images/MovieImages";
+import PersonImages from "../../components/TMDB_Images/PersonImages";
 
 export const prerender = false;
 
 const { id } = Astro.params;
 
-let movie = null;
+let movie;
+const tmdbApiKey = import.meta.env.PUBLIC_TMDB_API_KEY;
+
+
 
 try {
     const res = await fetch(`${API_URL}/pelicula/${id}`);
@@ -20,20 +25,7 @@ try {
     movie = null;
 }
 
-const monthNames = [
-    "Ene",
-    "Feb",
-    "Mar",
-    "Abr",
-    "May",
-    "Jun",
-    "Jul",
-    "Ago",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dic",
-];
+const monthNames = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 
 let formattedDate = "";
 if (movie?.release_date) {
@@ -50,234 +42,212 @@ if (movie?.release_date) {
 <DetailLayout title={movie?.title ?? "Película"}>
     <section data-theme="movieweb" class="min-h-screen bg-base-100">
         <div class="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-10">
+            <!-- Header -->
             <div class="mb-6 flex items-center justify-between gap-3">
                 <a
-                href="/"
-                class="btn btn-outline btn-primary"
-                onclick="
-                  event.preventDefault();
-                  // si hay historial, volver
-                  if (window.history.length > 1) {
-                    window.history.back();
-                    return;
-                  }
-                  // si hay referrer del mismo origen, ir ahí
-                  try {
-                    if (document.referrer) {
-                      const r = new URL(document.referrer);
-                      if (r.origin === window.location.origin) {
-                        window.location.href = r.href;
-                        return;
-                      }
-                    }
-                  } catch {}
-                  // fallback
-                  window.location.href = this.href;
-                ">
+                        href="/"
+                        class="btn btn-outline btn-primary"
+                        onclick="
+                      event.preventDefault();
+                      if (window.history.length > 1) { window.history.back(); return; }
+                      try {
+                        if (document.referrer) {
+                          const r = new URL(document.referrer);
+                          if (r.origin === window.location.origin) {
+                            window.location.href = r.href;
+                            return;
+                          }
+                        }
+                      } catch {}
+                      window.location.href = this.href;
+                    ">
                     ← Volver
                 </a>
 
-                {
-                    formattedDate && (
-                        <div class="badge badge-primary badge-lg">
-                            {formattedDate}
-                        </div>
-                    )
-                }
+                {formattedDate && (
+                        <div class="badge badge-primary badge-lg">{formattedDate}</div>
+                )}
             </div>
-
             {
                 !movie ? (
-                    <div class="space-y-4">
                         <div class="alert alert-error">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10.34 2.49a2 2 0 0 1 3.32 0l8.24 12.87A2 2 0 0 1 20.24 18H3.76a2 2 0 0 1-1.66-2.64L10.34 2.5zM12 9v4m0 4h.01" />
-                            </svg>
                             <span>No se pudo cargar la película.</span>
                         </div>
-                        <a href="/" class="btn btn-primary">Ir al inicio</a>
-                    </div>
                 ) : (
-                    <>
-                        <!-- Hero / Header -->
-                        <div class="card lg:card-side bg-base-200/40 border border-primary/20 shadow-lg shadow-primary/10 mb-8">
-                            {
-                                movie?.poster_url ? (
-                                    <figure class="p-4">
-                                        <img
-                                            src={movie.poster_url}
-                                            alt={`Poster de ${movie.title}`}
-                                            class="w-48 md:w-64 rounded-2xl mask mask-squircle border border-primary/30"
-                                            loading="lazy"
-                                        />
-                                    </figure>
-                                ) : (
-                                    <div class="p-4 hidden md:flex items-center justify-center">
-                                        <div class="avatar placeholder">
-                                            <div class="w-40 md:w-56 rounded-2xl bg-primary text-primary-content text-6xl font-black flex items-center justify-center">
-                                                {movie.title?.[0] ?? "?"}
+                        <>
+                            <!-- Portada + título -->
+                            <div class="card lg:card-side bg-base-200/40 border border-primary/20 shadow-lg mb-8">
+                                {
+                                    (movie?.title && tmdbApiKey) ? (
+                                            <div class="movie-image-wrapper">
+                                                <MovieImages data={{title :movie.title,
+                                                    apiKey: tmdbApiKey
+                                                }} client:load />
+                                            </div>
+                                    ) : (
+                                            <div class="p-4 flex items-center justify-center">
+                                                <div class="avatar placeholder">
+                                                    <div class="w-40 md:w-56 rounded-2xl bg-primary text-primary-content text-6xl font-black flex items-center justify-center">
+                                                        {movie.title?.[0] ?? "?"}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                    )
+                                }
+
+                                <div class="card-body">
+                                    <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">
+                                        {movie.title}
+                                    </h1>
+
+                                    {movie.tagline && (
+                                            <p class="italic opacity-80 text-xl">{movie.tagline}</p>
+                                    )}
+
+                                    <div class="flex flex-wrap gap-2 mt-3">
+                                        {movie.genre && (
+                                                <div class="badge badge-outline">{movie.genre}</div>
+                                        )}
+                                        {movie.language && (
+                                                <div class="badge badge-outline">
+                                                    Idioma: {movie.language.toUpperCase()}
+                                                </div>
+                                        )}
+                                        {movie.runtime && (
+                                                <div class="badge badge-outline">{movie.runtime} min</div>
+                                        )}
+                                        {typeof movie.vote_average !== "undefined" && (
+                                                <div class="badge badge-outline">
+                                                    ⭐ {Number(movie.vote_average).toFixed(1)}
+                                                </div>
+                                        )}
+                                    </div>
+
+                                    {movie.homepage && (
+                                            <a href={movie.homepage} target="_blank" class="link link-primary mt-2">
+                                                Página oficial
+                                            </a>
+                                    )}
+                                </div>
+                            </div>
+
+                            <!-- Información general -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                                {movie.country && (
+                                        <div class="stat bg-base-200/50">
+                                            <div class="stat-title">País</div>
+                                            <div class="stat-value text-lg">{movie.country}</div>
+                                        </div>
+                                )}
+                                {movie.company && (
+                                        <div class="stat bg-base-200/50">
+                                            <div class="stat-title">Compañía</div>
+                                            <div class="stat-value text-lg">{movie.company}</div>
+                                        </div>
+                                )}
+                                {movie.revenue && (
+                                        <div class="stat bg-base-200/50">
+                                            <div class="stat-title">Recaudación</div>
+                                            <div class="stat-value text-lg">${movie.revenue.toLocaleString()}</div>
+                                        </div>
+                                )}
+                                {movie.budget && (
+                                        <div class="stat bg-base-200/50">
+                                            <div class="stat-title">Presupuesto</div>
+                                            <div class="stat-value text-lg">${movie.budget.toLocaleString()}</div>
+                                        </div>
+                                )}
+                            </div>
+                            <div>
+                            <!-- Argumento -->
+                            {movie.overview && (
+                                        <div class="card bg-base-200/40 border border-primary/20 shadow-md mb-8">
+                                            <div class="card-body">
+                                                <h3 class="card-title text-primary">Argumento</h3>
+                                                <p>{movie.overview}</p>
                                             </div>
                                         </div>
-                                    </div>
-                                )
-                            }
-
-                            <div class="card-body">
-                                <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">
-                                    <span class="text-base-content">{movie.title}</span>
-                                </h1>
-
-                                <div class="flex flex-wrap items-center gap-2">
-                                    {
-                                        (movie.directors ?? []).length > 0 && (
-                                            <>
-                                                <div class="badge badge-outline">Directores</div>
-                                                {(movie.directors ?? []).map((director) => (
-                                                    <a
-                                                        href={`/persona/${director.crew_member_id}?offset=0&order=popularity`}
-                                                        class="badge badge-primary badge-outline hover:badge-primary hover:text-primary-content transition"
-                                                    >
-                                                        {director.crew_member_name}
-                                                    </a>
-                                                ))}
-                                            </>
-                                        )
-                                    }
-                                </div>
-
-                                <div class="flex flex-wrap gap-2 mt-2">
-                                    {
-                                        typeof movie?.vote_average !== "undefined" && movie.vote_average !== null && (
-                                            <div class="badge badge-secondary badge-lg">
-                                                ⭐ {Number(movie.vote_average).toFixed(1)}
-                                            </div>
-                                        )
-                                    }
-                                    {
-                                        typeof movie?.runtime !== "undefined" && movie.runtime !== null && (
-                                            <div class="badge badge-outline">{movie.runtime} min</div>
-                                        )
-                                    }
-                                </div>
-
-                                <div class="card-actions justify-end mt-2">
-                                    <a href="/" class="btn btn-primary">Buscar otra</a>
-                                </div>
+                                )}
                             </div>
-                        </div>
 
-                        <!-- Overview -->
-                        {
-                            (movie.overview ?? "").trim().length > 0 && (
-                                <div class="card bg-base-200/40 border border-primary/20 shadow-md shadow-primary/10 mb-8">
-                                    <div class="card-body">
-                                        <h3 class="card-title text-primary">Argumento</h3>
-                                        <p class="text-base-content/90 leading-relaxed">
-                                            {movie.overview}
-                                        </p>
-                                    </div>
-                                </div>
-                            )
-                        }
-
-                        <!-- Writers -->
-                        {
-                            (movie.writers ?? []).length > 0 && (
-                                <div class="mb-8">
-                                    <h3 class="text-xl font-semibold mb-3">Escritores</h3>
-                                    <div class="flex flex-wrap gap-2">
-                                        {(movie.writers ?? []).map((writer) => (
-                                            <span class="badge badge-outline">{writer.crew_member_name}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )
-                        }
-
-                        <!-- Collapsibles -->
-                        <div class="flex flex-col w-full">
-                            <!-- Cast -->
-                            <details class="collapse collapse-arrow bg-base-200/40 border border-primary/20 shadow-sm">
-                                <summary class="collapse-title text-lg md:text-xl font-semibold">
-                                    Elenco
-                                </summary>
-                                <div class="collapse-content">
+                            <!-- Tabs de elenco y equipo -->
+                            <div class="tabs tabs-lift w-full">
+                                <input type="radio" name="tabs" class="tab" aria-label="Elenco" checked />
+                                <div class="tab-content bg-base-100 border-base-300 p-6">
                                     {
                                         (movie.cast ?? []).length === 0 ? (
-                                            <p class="opacity-70">No hay elenco disponible.</p>
+                                                <p class="opacity-70">No hay elenco disponible.</p>
                                         ) : (
-                                            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                {[...(movie.cast ?? [])]
-                                                    .sort((a, b) => a.cast_order - b.cast_order)
-                                                    .map((actor) => (
-                                                        <li class="p-3 rounded-lg bg-base-100/60 border border-base-300 hover:border-primary/50 transition">
-                                                            <div class="flex items-center gap-3">
-                                                                <div class="avatar placeholder">
-                                                                    <div class="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center font-bold">
-                                                                        {actor.actor_name?.[0] ?? "?"}
+                                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                                    {movie.cast.map(actor => (
+                                                                <div class="card bg-base-200/40 border border-base-300 hover:border-primary/40 transition">
+                                                                    <div class="card-body p-3">
+                                                                        <h2 class="card-title text-sm font-semibold">
+                                                                            <a href={`/persona/${actor.actor_id}`} class="link link-primary">
+                                                                                {actor.actor_name}
+                                                                            </a>
+                                                                        </h2>
+                                                                        <p class="text-xs opacity-80">{actor.character_name}</p>
                                                                     </div>
                                                                 </div>
-                                                                <div class="flex-1 min-w-0">
-                                                                    <a href={`/persona/${actor.actor_id}`} class="link link-primary font-medium truncate">
-                                                                        {actor.actor_name}
-                                                                    </a>
-                                                                    <div class="text-sm opacity-70 truncate">
-                                                                        {actor.character_name}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </li>
-                                                    ))}
-                                            </ul>
+                                                        ))}
+                                                </div>
                                         )
                                     }
                                 </div>
-                            </div>
 
-                            <!-- Crew -->
-                            <div class="collapse collapse-arrow bg-base-200/40 border border-primary/20 shadow-sm">
-                                <input type="checkbox" name="crew" />
-                                <div class="collapse-title text-lg md:text-xl font-semibold">
-                                    Equipo técnico
-                                </div>
-                                <div class="collapse-content">
+                                <input type="radio" name="tabs" class="tab" aria-label="Equipo Técnico" />
+                                <div class="tab-content bg-base-100 border-base-300 p-6">
                                     {
                                         (movie.crew ?? []).length === 0 ? (
-                                            <p class="opacity-70">No hay equipo técnico disponible.</p>
+                                                <p class="opacity-70">No hay equipo técnico disponible.</p>
                                         ) : (
-                                            <div class="overflow-x-auto">
-                                                <table class="table table-zebra">
-                                                    <thead>
+                                                <div class="overflow-x-auto">
+                                                    <table class="table table-zebra">
+                                                        <thead>
                                                         <tr>
                                                             <th>Nombre</th>
-                                                            <th>Departamento</th>
                                                             <th>Puesto</th>
                                                         </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {(movie.crew ?? []).map((crewMember) => (
-                                                            <tr>
-                                                                <td class="whitespace-nowrap">{crewMember.crew_member_name}</td>
-                                                                <td class="whitespace-nowrap">{crewMember.department_name}</td>
-                                                                <td class="whitespace-nowrap">{crewMember.job}</td>
-                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        {movie.crew.map(crewMember => (
+                                                                <tr>
+                                                                    <td class="whitespace-nowrap">
+                                                                        {crewMember.crew_member_name}
+                                                                    </td>
+                                                                    <td class="whitespace-nowrap">
+                                                                        {crewMember.job}
+                                                                    </td>
+                                                                </tr>
                                                         ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                         )
                                     }
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="mt-10 flex justify-center">
-                            <a href="/" class="btn btn-primary btn-wide">Inicio</a>
-                        </div>
-                    </>
-                )
-            }
-        </div>
-    </section>
-</DetailLayout>
+                        </>)
+                }
+                </div>
+                </section
+                </DetailLayout>
+
+                <style>
+                    .movie-image-wrapper {
+                        width: 300px;              /* ancho fijo */
+                        height: 450px;             /* alto fijo (proporción típica de póster 2:3) */
+                        overflow: hidden;          /* recorta lo que se salga */
+                        border-radius: 12px;       /* bordes redondeados */
+                        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+                    }
+
+                    .movie-image-wrapper img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;         /* mantiene proporción y llena el espacio */
+                        object-position: center;   /* centra la imagen */
+                    }
+                </style>
