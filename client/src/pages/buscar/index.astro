@@ -119,7 +119,7 @@ const directors = results?.directors ?? results?.directores ?? [];
                                     >
                                         <!-- Imagen de fondo -->
                                         <PersonImages
-                                                data={{ personName: actor.name }}
+                                                data={{ personName: actor.person_name ?? actor.name }}
                                                 client:load
                                         />
 
