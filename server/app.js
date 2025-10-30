@@ -74,9 +74,6 @@ async function connectMDB() {
         await client.connect();
         console.log("✅ Conectado a MongoDB");
         mdb = client.db("movies"); // tu base de datos (por ejemplo “test”)
-        const collection = mdb.collection("reviews");
-        const review = await collection.find().toArray();
-        console.log(review);
     } catch (err) {
         console.error("❌ Error al conectar a MongoDB:", err);
     }
