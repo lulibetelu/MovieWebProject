@@ -59,22 +59,21 @@ const directors = results?.directors ?? results?.directores ?? [];
                                     class="card bg-base-100 border border-base-300 hover:border-primary transition shadow-sm hover:shadow-primary/20"
                                     aria-label={`Ver detalle de ${movie.title ?? movie.name}`}
                                 >
-                                    <div class="card-body h-70">
-                                        <h3 class="card-title">
-                                            {movie.title ?? movie.name}
-                                        </h3>
-                                        <figure
-                                                class="relative w-full h-96 bg-base-200 flex items-center justify-center rounded-xl overflow-hidden"
-                                        >
-                                            <MovieImages data={{title:movie.name,
-                                            }} client:load />
-                                        </figure>
-                                        <div class="card-actions justify-end">
-                                            <span class="btn btn-primary btn-sm">
-                                                Ver detalle
-                                            </span>
+                                    <figure class="relative w-full h-70 rounded-xl overflow-hidden">
+                                        <MovieImages data={{ title: movie.name }} client:load />
+
+                                        <!-- overlay oscuro para que se lea el texto -->
+                                        <div class="absolute inset-0 bg-black/40"></div>
+
+                                        <div class="absolute inset-0 flex flex-col justify-end p-4 text-white">
+                                            <h3 class="text-xl font-bold drop-shadow-lg">
+                                                {movie.title ?? movie.name}
+                                            </h3>
+                                            <div class="card-actions justify-end">
+                                                <span class="btn btn-primary btn-sm">Ver detalle</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </figure>
                                 </a>
                             ))}
                         </div>
@@ -98,22 +97,21 @@ const directors = results?.directors ?? results?.directores ?? [];
                                     class="card bg-base-100 border border-base-300 hover:border-primary transition shadow-sm hover:shadow-primary/20"
                                     aria-label={`Ver perfil de ${actor.person_name ?? actor.name}`}
                                 >
-                                    <div class="card-body h-70">
-                                        <h3 class="card-title">
-                                            {actor.person_name ?? actor.name}
-                                        </h3>
-                                        <figure
-                                                class="relative w-full h-96 bg-base-200 flex items-center justify-center rounded-xl overflow-hidden"
-                                        >
-                                            <PersonImages data={{personName:actor.name,
-                                            }} client:load />
-                                        </figure>
-                                        <div class="card-actions justify-end">
-                                            <span class="btn btn-primary btn-sm">
-                                                Ver perfil
-                                            </span>
+                                    <figure class="relative w-full h-70 rounded-xl overflow-hidden">
+                                        <PersonImages data={{ personName: actor.name }} client:load />
+
+                                        <!-- overlay oscuro para que se lea el texto -->
+                                        <div class="absolute inset-0 bg-black/40"></div>
+
+                                        <div class="absolute inset-0 flex flex-col justify-end p-4 text-white">
+                                            <h3 class="text-xl font-bold drop-shadow-lg">
+                                                {actor.name}
+                                            </h3>
+                                            <div class="card-actions justify-end">
+                                                <span class="btn btn-primary btn-sm">Ver perfil</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </figure>
                                 </a>
                             ))}
                         </div>
@@ -137,23 +135,21 @@ const directors = results?.directors ?? results?.directores ?? [];
                                     class="card bg-base-100 border border-base-300 hover:border-primary transition shadow-sm hover:shadow-primary/20"
                                     aria-label={`Ver perfil de ${director.person_name ?? director.name}`}
                                 >
-                                    <div class="card-body h-70">
-                                        <h3 class="card-title">
-                                            {director.person_name ??
-                                                director.name}
-                                        </h3>
-                                        <figure
-                                                class="relative w-full h-96 bg-base-200 flex items-center justify-center rounded-xl overflow-hidden"
-                                        >
-                                            <PersonImages data={{personName:director.name,
-                                            }} client:load />
-                                        </figure>
-                                        <div class="card-actions justify-end">
-                                            <span class="btn btn-primary btn-sm">
-                                                Ver perfil
-                                            </span>
+                                    <figure class="relative w-full h-70 rounded-xl overflow-hidden">
+                                        <PersonImages data={{ personName: director.name }} client:load />
+
+                                        <!-- overlay oscuro para que se lea el texto -->
+                                        <div class="absolute inset-0 bg-black/40"></div>
+
+                                        <div class="absolute inset-0 flex flex-col justify-end p-4 text-white">
+                                            <h3 class="text-xl font-bold drop-shadow-lg">
+                                                {director.name}
+                                            </h3>
+                                            <div class="card-actions justify-end">
+                                                <span class="btn btn-primary btn-sm">Ver perfil</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </figure>
                                 </a>
                             ))}
                         </div>

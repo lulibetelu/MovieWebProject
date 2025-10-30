@@ -145,6 +145,37 @@ try {
                                             </div>
                                         ))}
                                     </div>
+                                    <!-- Paginado -->
+                                    <div class="join mt-6 flex justify-center">
+                                        {
+                                            personData.offset === 0 ? (
+                                                    <button class="join-item btn">«</button>
+                                            ) : (
+                                                    <a
+                                                            href={`/persona/${personData.person_id}?offset=${personData.offset - 8}&order=${personData.order}&desc=${personData.ascOrDesc}`}
+                                                            class="join-item btn"
+                                                    >
+                                                        «
+                                                    </a>
+                                            )
+                                        }
+                                        <button class="join-item btn"
+                                        >Page {personData.offset / 8 + 1}</button
+                                        >
+                                        {
+                                            personData.offset + 10 >=
+                                            personData.totalActedMovies ? (
+                                                    <button class="join-item btn">»</button>
+                                            ) : (
+                                                    <a
+                                                            href={`/persona/${personData.person_id}?offset=${personData.offset + 8}&order=${personData.order}&desc=${personData.ascOrDesc}`}
+                                                            class="join-item btn"
+                                                    >
+                                                        »
+                                                    </a>
+                                            )
+                                        }
+                                    </div>
                                 </>
                             )
                         }
@@ -231,38 +262,6 @@ try {
                             )
                         }
                     </div>
-                </div>
-
-                <!-- Paginado -->
-                <div class="join mt-6 flex justify-center">
-                    {
-                        personData.offset === 0 ? (
-                            <button class="join-item btn">«</button>
-                        ) : (
-                            <a
-                                href={`/persona/${personData.person_id}?offset=${personData.offset - 8}&order=${personData.order}&desc=${personData.ascOrDesc}`}
-                                class="join-item btn"
-                            >
-                                «
-                            </a>
-                        )
-                    }
-                    <button class="join-item btn"
-                        >Page {personData.offset / 8 + 1}</button
-                    >
-                    {
-                        personData.offset + 10 >=
-                        personData.totalActedMovies ? (
-                            <button class="join-item btn">»</button>
-                        ) : (
-                            <a
-                                href={`/persona/${personData.person_id}?offset=${personData.offset + 8}&order=${personData.order}&desc=${personData.ascOrDesc}`}
-                                class="join-item btn"
-                            >
-                                »
-                            </a>
-                        )
-                    }
                 </div>
             </div>
         </div>
