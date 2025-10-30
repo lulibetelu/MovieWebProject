@@ -17,6 +17,8 @@ const { Pool } = require("pg");
 const app = express();
 const PORT = process.env.PORT || 3500;
 
+
+
 // Habilitar CORS para el origen del frontend
 app.use(
     cors({
@@ -35,6 +37,7 @@ app.use(
         resave: false,
         saveUninitialized: false,
     }),
+    express.json(),
 );
 //--- path para la foto vacia
 const noMovieBase =
@@ -59,13 +62,24 @@ const DEBUG = process.env.DEBUG === "true" || false;
 const API_MODE = process.env.API_MODE !== "false";
 const API_URL = API_MODE ? "/api" : "";
 
-app.use(
-    session({
-        secret: process.env.SECRET_KEY,
-        resave: false,
-        saveUninitialized: false,
-    }),
-);
+//setup mongo
+const { MongoClient } = require('mongodb');
+
+const uri = process.env.MONGODB_URI || "mongodb://localhost:27017"; // MongoDB URI from env, fallback to localhost
+const client = new MongoClient(uri);
+
+let mdb; //mongo database
+async function connectMDB() {
+    try {
+        await client.connect();
+        console.log("✅ Conectado a MongoDB");
+        mdb = client.db("movies"); // tu base de datos (por ejemplo “test”)
+    } catch (err) {
+        console.error("❌ Error al conectar a MongoDB:", err);
+    }
+}
+connectMDB();
+
 
 // * Ruta para la página de inicio
 app.get(API_URL + "/", (req, res) => {
