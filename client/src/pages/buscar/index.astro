@@ -64,7 +64,7 @@ const directors = results?.directors ?? results?.directores ?? [];
                                     >
                                         <!-- Imagen de fondo -->
                                         <MovieImages
-                                                data={{ title: movie.name }}
+                                                data={{ title: movie.title ?? movie.name }}
                                                 client:load
                                         />
 
