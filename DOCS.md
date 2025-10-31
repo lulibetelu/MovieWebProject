@@ -4,15 +4,15 @@ Guía completa para levantar el proyecto frontend + backend, configurar las vari
 
 ## 📖 Índice
 
-1. [🚀 Comandos principales](#comandos-principales-post-instalación)
-2. [⚙️ Instalación paso a paso](#instalación-paso-a-paso)
-3. [🧠 Configuración del Backend](#configuración-del-backend)
-4. [🎨 Configuración del Frontend](#configuración-del-frontend)
-5. [🗄️ Base de Datos SQL (PostgreSQL)](#base-de-datos-sql-postgresql)
-6. [☁️ Base de Datos NoSQL (MongoDB)](#base-de-datos-nosql-mongodb)
-7. [🧩 Estructura del proyecto](#estructura-del-proyecto)
-8. [💡 Tips finales](#tips-finales)
-9. [🛠️ Stack Tecnológico](#stack-tecnológico)
+1. [🚀 Comandos principales](#-comandos-principales-post-instalación)
+2. [⚙️ Instalación paso a paso](#-instalación-paso-a-paso)
+3. [🧠 Configuración del Backend](#-configuración-del-backend)
+4. [🎨 Configuración del Frontend](#-configuración-del-frontend)
+5. [🗄️ Base de Datos SQL (PostgreSQL)](#-base-de-datos-sql-postgresql)
+6. [☁️ Base de Datos NoSQL (MongoDB)](#-base-de-datos-nosql-mongodb)
+7. [🧩 Estructura del proyecto](#-estructura-del-proyecto)
+8. [💡 Tips finales](#-tips-finales)
+9. [🛠️ Stack Tecnológico](#-stack-tecnológico)
 
 
 ## 🚀 Comandos principales (post instalación)
