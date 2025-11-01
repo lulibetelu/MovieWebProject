@@ -4,6 +4,7 @@ import { API_URL } from "../../data/config";
 import DetailLayout from "../../layouts/DetailLayout.astro";
 import MovieImages from "../../components/TMDB_Images/MovieImages";
 import PersonImages from "../../components/TMDB_Images/PersonImages";
+import AiReview from "../../components/reusables/AiReview";
 
 export const prerender = false;
 
@@ -11,8 +12,6 @@ const { id } = Astro.params;
 
 let movie;
 const tmdbApiKey = import.meta.env.PUBLIC_TMDB_API_KEY;
-
-
 
 try {
     const res = await fetch(`${API_URL}/pelicula/${id}`);
@@ -37,6 +36,21 @@ if (movie?.release_date) {
         formattedDate = `${day}-${month}-${year}`;
     }
 }
+
+// Reviews de ejemplo (Reemplazar por reviews reales)
+const reviews = [
+  "Una obra maestra visual, la fotografía es impresionante y la banda sonora acompaña perfectamente cada escena.",
+  "La historia es buena pero el ritmo se siente lento en algunos tramos, especialmente en la primera mitad.",
+  "Las actuaciones son sobresalientes, especialmente la del protagonista, transmite muchísima emoción.",
+  "Esperaba más del final, me pareció un poco predecible aunque todo lo demás está muy bien logrado.",
+  "La dirección es impecable, se nota el cuidado en cada plano y el uso del color es magnífico.",
+  "El guion tiene momentos brillantes y diálogos muy profundos, pero algunos personajes secundarios están poco desarrollados.",
+  "Una experiencia cinematográfica inolvidable, me mantuvo completamente inmerso de principio a fin.",
+  "La película es visualmente hermosa pero algo confusa en su mensaje, cuesta entender qué quiere transmitir.",
+  "Excelente equilibrio entre acción y drama, no aburre en ningún momento y deja un gran mensaje final.",
+  "Sin duda una de las mejores películas del año, emociona, sorprende y deja pensando mucho después de los créditos."
+];
+
 ---
 
 <DetailLayout title={movie?.title ?? "Película"}>
@@ -79,10 +93,8 @@ if (movie?.release_date) {
                             <div class="card lg:card-side bg-base-200/40 border border-primary/20 shadow-lg mb-8">
                                 {
                                     (movie?.title && tmdbApiKey) ? (
-                                            <div class="movie-image-wrapper">
-                                                <MovieImages data={{title :movie.title,
-                                                    apiKey: tmdbApiKey
-                                                }} client:load />
+                                            <div class="movie-image-wrapper min-w-xs">
+                                                <MovieImages data={{title :movie.title}} client:load />
                                             </div>
                                     ) : (
                                             <div class="p-4 flex items-center justify-center">
@@ -103,6 +115,8 @@ if (movie?.release_date) {
                                     {movie.tagline && (
                                             <p class="italic opacity-80 text-xl">{movie.tagline}</p>
                                     )}
+
+                                    <AiReview client:load reviews={reviews} />
 
                                     <div class="flex flex-wrap gap-2 mt-3">
                                         {movie.genre && (
@@ -226,28 +240,27 @@ if (movie?.release_date) {
                                                 </div>
                                         )
                                     }
-                                </div>
-                            </div>
+                        </div>
+                    </div>
+                </>)
+            }
+        </div>
+    </section>
+</DetailLayout>
 
-                        </>)
-                }
-                </div>
-                </section
-                </DetailLayout>
+<style>
+    .movie-image-wrapper {
+        width: 300px;              /* ancho fijo */
+        height: 450px;             /* alto fijo (proporción típica de póster 2:3) */
+        overflow: hidden;          /* recorta lo que se salga */
+        border-radius: 12px;       /* bordes redondeados */
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
 
-                <style>
-                    .movie-image-wrapper {
-                        width: 300px;              /* ancho fijo */
-                        height: 450px;             /* alto fijo (proporción típica de póster 2:3) */
-                        overflow: hidden;          /* recorta lo que se salga */
-                        border-radius: 12px;       /* bordes redondeados */
-                        box-shadow: 0 0 10px rgba(0,0,0,0.3);
-                    }
-
-                    .movie-image-wrapper img {
-                        width: 100%;
-                        height: 100%;
-                        object-fit: cover;         /* mantiene proporción y llena el espacio */
-                        object-position: center;   /* centra la imagen */
-                    }
-                </style>
+    .movie-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;         /* mantiene proporción y llena el espacio */
+        object-position: center;   /* centra la imagen */
+    }
+</style>
