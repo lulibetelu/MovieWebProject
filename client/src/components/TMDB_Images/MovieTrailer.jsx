@@ -24,12 +24,15 @@ export default function MovieTrailer({ data }) {
             ) {
                 setMovieTrailer(defaultUrl);
                 return;
+            }else{
+                id=datos.results[0].id;
             }
 
             const res2 = await fetch(
                 `https://api.themoviedb.org/3/movie/${id}/videos?api_key=${apiKey}`
             );
             const datos2 = await res2.json();
+            console.log(datos2.results.length)
             if (
                 datos2.results.length === 0 ||
                 datos2.results[0].key === null
@@ -38,28 +41,28 @@ export default function MovieTrailer({ data }) {
                 return;
             }
 
-            key = datos2.results[0].key;
-
 
 
             setMovieTrailer(base + datos2.results[0].key);
         })();
     }, [data]);
 
-    return movieTrailer ? (
-        <iframe width="560" height="315" src={movieTrailer}
-                title="YouTube video player" frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen>
-
-        </iframe>
-    ) : (
-        <div
-            className="absolute inset-0 flex flex-col gap-4 p-4 bg-base-200 animate-pulse movie-skeleton rounded-xl overflow-hidden">
-            <div className="skeleton h-3/4 w-full rounded-xl"/>
-            <div className="skeleton h-4 w-32"/>
-            <div className="skeleton h-4 w-3/4"/>
+    return (
+        <div className="w-full max-w-3xl mx-auto aspect-video rounded-xl overflow-hidden shadow-lg border border-primary/30 bg-black">
+            {movieTrailer ? (
+                <iframe
+                    className="w-full h-full"
+                    src={movieTrailer.replace("watch?v=", "embed/")}
+                    title="Trailer"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                />
+            ) : (
+                <div className="w-full h-full flex items-center justify-center bg-base-200 animate-pulse">
+                    <span className="text-sm opacity-70">Cargando trailer...</span>
+                </div>
+            )}
         </div>
     );
 }

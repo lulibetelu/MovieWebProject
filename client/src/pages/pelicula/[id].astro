@@ -3,6 +3,7 @@ import "../../assets/app.css";
 import { API_URL } from "../../data/config";
 import DetailLayout from "../../layouts/DetailLayout.astro";
 import MovieImages from "../../components/TMDB_Images/MovieImages";
+import MovieTrailer from "../../components/TMDB_Images/MovieTrailer";
 import PersonImages from "../../components/TMDB_Images/PersonImages";
 
 export const prerender = false;
@@ -158,6 +159,10 @@ if (movie?.release_date) {
                                         </div>
                                 )}
                             </div>
+                            <figure class="my-10 flex flex-col items-center">
+                                <MovieTrailer data={{title :movie.title}}
+                                              client:load />
+                            </figure>
                             <div>
                             <!-- Argumento -->
                             {movie.overview && (
