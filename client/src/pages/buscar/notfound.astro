@@ -1,0 +1,29 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+const searchQuery = Astro.url.searchParams.get("q") || "";
+
+if (!searchQuery) return Astro.redirect("/", 302);
+
+export const prerender = false;
+---
+
+<Layout
+    actual="notfound"
+    title={`No se encontraron resultados para "${searchQuery}"`}
+    searchTerm={searchQuery}
+>
+    <main
+        class="min-h-[calc(100vh-64px)] bg-base-200 flex flex-col items-center justify-center"
+    >
+        <h1 class="text-4xl md:text-9xl font-black text-center text-primary">
+            404
+        </h1>
+
+        <h2 class="text-2xl md:text-3xl font-bold text-center">
+            No se encontraron resultados para <span class="text-primary"
+                >"{searchQuery}"</span
+            >
+        </h2>
+    </main>
+</Layout>

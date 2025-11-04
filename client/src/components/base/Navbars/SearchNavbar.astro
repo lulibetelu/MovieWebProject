@@ -1,0 +1,104 @@
+---
+const { actual = "peliculas" } = Astro.props;
+
+const searchTerm = Astro.url.searchParams.get("q") || "";
+
+const encodedQ = encodeURIComponent(searchTerm);
+
+const API_URL = import.meta.env.PUBLIC_API_URL;
+
+let error = null;
+try {
+    const res = await fetch(`${API_URL}/`);
+    await res.json();
+    error = false;
+} catch (e) {
+    error = true;
+}
+---
+
+<header
+    class="navbar bg-base-100 flex flex-row justify-between shadow-sm w-full"
+>
+    <!-- Tabs -->
+    <div class="tabs tabs-lift top-10 translate-y-[12px]">
+        <a
+            href={`/buscar/peliculas?q=${encodedQ}`}
+            class:list={{
+                tab: true,
+                "tab-active": actual === "peliculas",
+            }}
+        >
+            Películas
+        </a>
+
+        <a
+            href={`/buscar/actores?q=${encodedQ}`}
+            class:list={{
+                tab: true,
+                "tab-active": actual === "actores",
+            }}
+        >
+            Actores
+        </a>
+
+        <a
+            href={`/buscar/directores?q=${encodedQ}`}
+            class:list={{
+                tab: true,
+                "tab-active": actual === "directores",
+            }}
+        >
+            Directores
+        </a>
+    </div>
+
+    <!-- Buscador -->
+    <form
+        action={`/buscar/${actual !== "notfound" ? actual : "peliculas"}?q=${encodedQ}`}
+        method="GET"
+        class="flex-none px-2"
+    >
+        <label class="input input-bordered flex items-center gap-2">
+            <svg
+                class="h-5 w-5 opacity-50"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+            >
+                <g stroke-width="2.5" fill="none" stroke="currentColor">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.3-4.3"></path>
+                </g>
+            </svg>
+
+            <input
+                type="search"
+                name="q"
+                placeholder="Buscar..."
+                value={searchTerm}
+                class="grow"
+            />
+        </label>
+    </form>
+
+    <!-- TÍTULO -->
+    <div>
+        <div
+            aria-label={error === true
+                ? "error"
+                : error === false
+                  ? "success"
+                  : "status"}
+            class:list={{
+                status: true,
+                "status-lg": true,
+                "status-error": error === true,
+                "status-success": error === false,
+                "mx-2": true,
+            }}
+        >
+        </div>
+
+        <a class="btn btn-ghost text-xl px-1" href="/">Movie web</a>
+    </div>
+</header>

@@ -1,12 +1,22 @@
 ---
 /**
  * Props:
- * - movie: number | null
- * - actor: number | null
  * - searchTerm: string
  * - user: { username: string } | null
  */
-const { movie = 0, actor = 0, searchTerm = "", user = null } = Astro.props;
+const { searchTerm = "", user = null } = Astro.props;
+
+const API_URL = import.meta.env.PUBLIC_API_URL;
+const encodedQ = encodeURIComponent(searchTerm);
+
+let error = null;
+try {
+    const res = await fetch(`${API_URL}/`);
+    await res.json();
+    error = false;
+} catch (e) {
+    error = true;
+}
 ---
 
 <!-- ====================== BARRA SUPERIOR ====================== -->
@@ -26,7 +36,11 @@ const { movie = 0, actor = 0, searchTerm = "", user = null } = Astro.props;
         </div>
 
         <!-- BUSCADOR -->
-        <form action="/buscar" method="GET" class="flex-none px-2">
+        <form
+            action={`/buscar/peliculas?q=${encodedQ}`}
+            method="GET"
+            class="flex-none px-2"
+        >
             <label class="input input-bordered flex items-center gap-2">
                 <svg
                     class="h-5 w-5 opacity-50"
@@ -102,6 +116,22 @@ const { movie = 0, actor = 0, searchTerm = "", user = null } = Astro.props;
 
     <!-- TÍTULO -->
     <div>
-        <a class="btn btn-ghost text-xl" href="/">Movie web</a>
+        <div
+            aria-label={error === true
+                ? "error"
+                : error === false
+                  ? "success"
+                  : "status"}
+            class:list={{
+                status: true,
+                "status-lg": true,
+                "status-error": error === true,
+                "status-success": error === false,
+                "mx-2": true,
+            }}
+        >
+        </div>
+
+        <a class="btn btn-ghost text-xl px-1" href="/">Movie web</a>
     </div>
 </header>
