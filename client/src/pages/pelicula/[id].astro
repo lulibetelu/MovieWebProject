@@ -136,25 +136,25 @@ if (movie?.release_date) {
                                 {movie.country && (
                                         <div class="stat bg-base-200/50">
                                             <div class="stat-title">País</div>
-                                            <div class="stat-value text-lg">{movie.country}</div>
+                                            <div class="stat-value text-lg truncate">{movie.country}</div>
                                         </div>
                                 )}
                                 {movie.company && (
-                                        <div class="stat bg-base-200/50">
+                                        <div class="stat bg-base-200/50 ">
                                             <div class="stat-title">Compañía</div>
-                                            <div class="stat-value text-lg">{movie.company}</div>
+                                            <div class="stat-value text-lg truncate">{movie.company}</div>
                                         </div>
                                 )}
                                 {movie.revenue && (
                                         <div class="stat bg-base-200/50">
                                             <div class="stat-title">Recaudación</div>
-                                            <div class="stat-value text-lg">${movie.revenue.toLocaleString()}</div>
+                                            <div class="stat-value text-lg truncate">${movie.revenue.toLocaleString()}</div>
                                         </div>
                                 )}
                                 {movie.budget && (
                                         <div class="stat bg-base-200/50">
                                             <div class="stat-title">Presupuesto</div>
-                                            <div class="stat-value text-lg">${movie.budget.toLocaleString()}</div>
+                                            <div class="stat-value text-lg truncate">${movie.budget.toLocaleString()}</div>
                                         </div>
                                 )}
                             </div>
@@ -172,7 +172,42 @@ if (movie?.release_date) {
 
                             <!-- Tabs de elenco y equipo -->
                             <div class="tabs tabs-lift w-full">
-                                <input type="radio" name="tabs" class="tab" aria-label="Elenco" checked />
+                                <input type="radio" name="tabs" class="tab" aria-label="Director" checked/>
+                                <div class="tab-content bg-base-100 border-base-300 p-6">
+                                    {
+                                        (movie.directors ?? []).length === 0 ? (
+                                                <p class="opacity-70">No hay directores disponibles.</p>
+                                        ) : (
+                                                <div class="flex flex-col gap-4">
+                                                    {movie.directors && movie.directors.length > 0 ? (
+                                                        movie.directors.map(director => (
+                                                                <div class="flex items-center gap-4 p-4 bg-base-200 rounded-lg shadow-md">
+                                                                    <div class="movie-image-wrapper">
+                                                                        <PersonImages data={{personName :director.crew_member_name,
+                                                                            apiKey: tmdbApiKey
+                                                                        }} client:load />
+                                                                    </div>
+                                                                    <div>
+                                                                        <a
+                                                                                href={`/persona/${director.crew_member_id}`}
+                                                                                class="text-xl font-semibold link link-primary hover:text-primary"
+                                                                        >
+                                                                            {director.crew_member_name}
+                                                                        </a>
+
+                                                                        <p class="opacity-70">Director</p>
+                                                                    </div>
+                                                                </div>
+                                                        ))
+                                                    ) : (
+                                                            <p class="opacity-60">No hay información del director disponible.</p>
+                                                    )}
+                                                </div>
+                                        )
+                                    }
+                                </div>
+
+                                <input type="radio" name="tabs" class="tab" aria-label="Elenco" />
                                 <div class="tab-content bg-base-100 border-base-300 p-6">
                                     {
                                         (movie.cast ?? []).length === 0 ? (
@@ -228,7 +263,6 @@ if (movie?.release_date) {
                                     }
                                 </div>
                             </div>
-
                         </>)
                 }
                 </div>
