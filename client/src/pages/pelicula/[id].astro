@@ -105,7 +105,7 @@ if (movie?.release_date) {
                                             <p class="italic opacity-80 text-xl">{movie.tagline}</p>
                                     )}
 
-                                    <div class="flex flex-wrap gap-2 mt-3">
+                                    <div class="flex flex-wrap gap-2 mt-3 scroll-smooth">
                                         {movie.genre && (
                                                 <div class="badge badge-outline">{movie.genre}</div>
                                         )}
@@ -122,6 +122,9 @@ if (movie?.release_date) {
                                                     ⭐ {Number(movie.vote_average).toFixed(1)}
                                                 </div>
                                         )}
+                                        <a href="#Trailer" class="badge badge-outline cursor-pointer hover:bg-white/10 transition">
+                                            Ver trailer
+                                        </a>
                                     </div>
 
                                     {movie.homepage && (
@@ -159,7 +162,7 @@ if (movie?.release_date) {
                                         </div>
                                 )}
                             </div>
-                            <figure class="my-10 flex flex-col items-center">
+                            <figure id="Trailer"class="my-10 flex flex-col items-center">
                                 <MovieTrailer data={{title :movie.title}}
                                               client:load />
                             </figure>
