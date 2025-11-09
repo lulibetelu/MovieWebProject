@@ -136,25 +136,25 @@ if (movie?.release_date) {
                                 {movie.country && (
                                         <div class="stat bg-base-200/50">
                                             <div class="stat-title">País</div>
-                                            <div class="stat-value text-lg">{movie.country}</div>
+                                            <div class="stat-value text-lg truncate">{movie.country}</div>
                                         </div>
                                 )}
                                 {movie.company && (
-                                        <div class="stat bg-base-200/50">
+                                        <div class="stat bg-base-200/50 ">
                                             <div class="stat-title">Compañía</div>
-                                            <div class="stat-value text-lg">{movie.company}</div>
+                                            <div class="stat-value text-lg truncate">{movie.company}</div>
                                         </div>
                                 )}
                                 {movie.revenue && (
                                         <div class="stat bg-base-200/50">
                                             <div class="stat-title">Recaudación</div>
-                                            <div class="stat-value text-lg">${movie.revenue.toLocaleString()}</div>
+                                            <div class="stat-value text-lg truncate">${movie.revenue.toLocaleString()}</div>
                                         </div>
                                 )}
                                 {movie.budget && (
                                         <div class="stat bg-base-200/50">
                                             <div class="stat-title">Presupuesto</div>
-                                            <div class="stat-value text-lg">${movie.budget.toLocaleString()}</div>
+                                            <div class="stat-value text-lg truncate">${movie.budget.toLocaleString()}</div>
                                         </div>
                                 )}
                             </div>
