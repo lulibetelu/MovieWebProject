@@ -21,6 +21,7 @@ try {
     }
     const data = await res.json();
     movie = data.movie ?? data;
+    console.log(movie.directors)
 } catch (err) {
     movie = null;
 }
@@ -223,6 +224,35 @@ if (movie?.release_date) {
                                                         ))}
                                                         </tbody>
                                                     </table>
+                                                </div>
+                                        )
+                                    }
+                                </div>
+
+                                <input type="radio" name="tabs" class="tab" aria-label="Director" />
+                                <div class="tab-content bg-base-100 border-base-300 p-6">
+                                    {
+                                        (movie.directors ?? []).length === 0 ? (
+                                                <p class="opacity-70">No hay directores disponibles.</p>
+                                        ) : (
+                                                <div class="flex flex-col gap-4">
+                                                    {movie.directors && movie.directors.length > 0 ? (
+                                                        movie.directors.map(director => (
+                                                                <div class="flex items-center gap-4 p-4 bg-base-200 rounded-lg shadow-md">
+                                                                    <div class="movie-image-wrapper">
+                                                                        <PersonImages data={{personName :director.crew_member_name,
+                                                                            apiKey: tmdbApiKey
+                                                                        }} client:load />
+                                                                    </div>
+                                                                    <div>
+                                                                        <h3 class="text-xl font-semibold">{director.crew_member_name}</h3>
+                                                                        <p class="opacity-70">Director</p>
+                                                                    </div>
+                                                                </div>
+                                                        ))
+                                                    ) : (
+                                                            <p class="opacity-60">No hay información del director disponible.</p>
+                                                    )}
                                                 </div>
                                         )
                                     }
