@@ -99,7 +99,8 @@ app.get(API_URL + "/buscar", async (req, res) => {
     const offset = (page - 1) * 20;
 
     // Los placeholders en pg son $1, $2, etc.
-    const query = "SELECT * FROM search_all($1, " + limit + ", $2)"; // ILIKE es case-insensitive en Postgres
+    const query = "SELECT * FROM search_all($1, " + limit + ", $2) " +
+        "UNION ALL (SELECT keyw.movie_id, keyw.title, 'movie'::TEXT AS type from search_movies_by_keyword($1) as keyw);"; // ILIKE es case-insensitive en Postgres
     const values = [`%${searchTerm}%`, offset];
 
     try {
