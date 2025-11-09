@@ -1,0 +1,85 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import BuscarResultados from "../../components/base/Search/BuscarResultados.astro";
+
+const actual = "actores";
+
+const { PUBLIC_API_URL: API_URL } = import.meta.env;
+export const prerender = false;
+
+const searchQuery = Astro.url.searchParams.get("q") || "";
+const click = Astro.url.searchParams.get("c") || "0";
+
+if (!searchQuery) return Astro.redirect("/", 302);
+
+let results = null;
+try {
+    const res = await fetch(
+        `${API_URL}/buscar?q=${encodeURIComponent(searchQuery)}&limit=20`,
+    );
+    results = await res.json();
+} catch (e) {
+    console.error(e);
+}
+
+const actors = results?.actors ?? results?.actores ?? [];
+const movies = results?.movies ?? results?.peliculas ?? [];
+const directors = results?.directors ?? results?.directores ?? [];
+
+// Redirección temprana — sin renderizar todavía
+// Priority Order
+const redirects = [
+    {
+        condition:
+            movies.length === 0 &&
+            actors.length === 0 &&
+            directors.length === 0,
+        path: `/buscar/notfound?q=${searchQuery}`,
+    },
+    {
+        condition: movies.length > 0,
+        path: `/buscar/peliculas?q=${searchQuery}`,
+    },
+    {
+        condition: directors.length > 0,
+        path: `/buscar/directores?q=${searchQuery}`,
+    },
+    { condition: true, path: `/buscar/notfound?q=${searchQuery}` },
+];
+
+if (actors.length === 0 && click === "0") {
+    for (const { condition, path } of redirects) {
+        if (condition) {
+            return Astro.redirect(path, 307);
+        }
+    }
+}
+---
+
+<Layout
+    searchTerm={searchQuery}
+    actual={actual}
+    title={`Resultados para "${searchQuery}"`}
+>
+    <main class="min-h-[calc(100vh-64px)] bg-base-200">
+        <section class="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-10 space-y-8">
+            <div
+                class="card bg-base-100 border border-primary/20 shadow-md shadow-primary/10"
+            >
+                <div class="card-body">
+                    <h2 class="card-title text-2xl md:text-3xl">
+                        Resultados para <span class="text-primary"
+                            >"{searchQuery}"</span
+                        >
+                    </h2>
+                </div>
+            </div>
+
+            <BuscarResultados
+                items={actors}
+                itemType={actual}
+                searchQuery={searchQuery}
+            />
+        </section>
+    </main>
+</Layout>

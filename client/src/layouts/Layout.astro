@@ -1,9 +1,9 @@
 ---
 import "../assets/app.css";
 
-import SearchNavbar from "../components/base/SearchNavbar.astro";
+import SearchNavbar from "../components/base/Navbars/SearchNavbar.astro";
 
-const { title, searchTerm, movieLen, actorLen } = Astro.props;
+const { title, searchTerm, actual } = Astro.props;
 ---
 
 <!doctype html>
@@ -18,11 +18,7 @@ const { title, searchTerm, movieLen, actorLen } = Astro.props;
     </head>
 
     <body>
-        <SearchNavbar
-            searchTerm={searchTerm}
-            movie={movieLen}
-            actor={actorLen}
-        />
+        <SearchNavbar searchTerm={searchTerm} actual={actual} />
 
         <slot />
     </body>
