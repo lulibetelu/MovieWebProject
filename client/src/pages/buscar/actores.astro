@@ -1,7 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import BuscarResultados from "../../components/base/Search/BuscarResultados.astro";
-import Directores from "./directores.astro";
 
 const actual = "actores";
 
@@ -9,6 +8,8 @@ const { PUBLIC_API_URL: API_URL } = import.meta.env;
 export const prerender = false;
 
 const searchQuery = Astro.url.searchParams.get("q") || "";
+const click = Astro.url.searchParams.get("c") || "0";
+
 if (!searchQuery) return Astro.redirect("/", 302);
 
 let results = null;
@@ -46,9 +47,8 @@ const redirects = [
     { condition: true, path: `/buscar/notfound?q=${searchQuery}` },
 ];
 
-if (actors.length === 0) {
+if (actors.length === 0 && click === "0") {
     for (const { condition, path } of redirects) {
-        console.log(condition, path, directors);
         if (condition) {
             return Astro.redirect(path, 307);
         }

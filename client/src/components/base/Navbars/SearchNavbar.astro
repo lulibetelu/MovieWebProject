@@ -23,7 +23,7 @@ try {
     <!-- Tabs -->
     <div class="tabs tabs-lift top-10 translate-y-[12px]">
         <a
-            href={`/buscar/peliculas?q=${encodedQ}`}
+            href={`/buscar/peliculas?q=${encodedQ}&c=1`}
             class:list={{
                 tab: true,
                 "tab-active": actual === "peliculas",
@@ -34,7 +34,7 @@ try {
         </a>
 
         <a
-            href={`/buscar/actores?q=${encodedQ}`}
+            href={`/buscar/actores?q=${encodedQ}&c=1`}
             class:list={{
                 tab: true,
                 "tab-active": actual === "actores",
@@ -45,7 +45,7 @@ try {
         </a>
 
         <a
-            href={`/buscar/directores?q=${encodedQ}`}
+            href={`/buscar/directores?q=${encodedQ}&c=1`}
             class:list={{
                 tab: true,
                 "tab-active": actual === "directores",
