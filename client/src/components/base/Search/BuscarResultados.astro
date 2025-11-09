@@ -26,7 +26,7 @@ const hasItems = items?.length > 0;
                                 : `/persona/${item.id}`
                         }
                         class="card bg-base-100 border border-base-300 hover:border-primary transition shadow-sm hover:shadow-primary/20"
-                        aria-label={`Ver perfil de ${item.person_name ?? item.name}`}
+                        aria-label={`${itemType == "peliculas" ? "Ver detalle de" : "Ver perfil de"} ${item.person_name ?? item.name}`}
                     >
                         <figure class="relative w-full h-70 rounded-xl overflow-hidden group cursor-pointer hover:scale-105 transition-all">
                             {itemType == "peliculas" ? (
