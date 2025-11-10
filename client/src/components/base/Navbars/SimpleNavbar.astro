@@ -1,94 +1,110 @@
 ---
-/**
- * Props:
- * - searchTerm: string
- * - user: { username: string } | null
- */
-const { searchTerm = "", user = null } = Astro.props;
+const { actual = "peliculas", user = null } = Astro.props;
 
-const API_URL = import.meta.env.PUBLIC_API_URL;
+const searchTerm = Astro.url.searchParams.get("q") || "";
+
 const encodedQ = encodeURIComponent(searchTerm);
 
+const API_URL = import.meta.env.PUBLIC_API_URL;
+
 let error = null;
-try {
-    const res = await fetch(`${API_URL}/`);
-    await res.json();
-    error = false;
-} catch (e) {
-    error = true;
-}
+
+
+    try {
+        const res = await fetch(`${API_URL}/`);
+        await res.json();
+        error = false;
+    } catch (e) {
+        error = true;
+    }
+
 ---
 
 <!-- ====================== BARRA SUPERIOR ====================== -->
 <header
-    class="navbar bg-base-200 flex flex-row justify-between shadow-sm w-full"
+        class="navbar bg-base-200 flex flex-row justify-between shadow-sm w-full"
 >
-    <!-- FILTRO + BUSCADOR + USUARIO -->
-    <div class="flex">
-        <!-- FILTRO DE GÉNERO -->
-        <div class="flex-none px-2">
-            <select class="select select-bordered w-full max-w-xs">
-                <option disabled selected>Selecciona un género</option>
-                <option>Horror</option>
-                <option>Epic</option>
-                <option>Nose</option>
-            </select>
+    <!-- TÍTULO -->
+    <div>
+        <div
+                aria-label={error === true
+                    ? "error"
+                    : error === false
+                        ? "success"
+                        : "status"}
+                class:list={{
+                    status: true,
+                    "status-lg": true,
+                    "status-error": error === true,
+                    "status-success": error === false,
+                    "mx-2": true,
+                }}
+        >
         </div>
 
-        <!-- BUSCADOR -->
+        <a class="btn btn-ghost text-xl px-1" href="/">Movie web</a>
+    </div>
+
+    <div class="flex flex-row gap-10">
+        <!-- Tabs -->
+
+
+        <!-- Buscador -->
         <form
-            action={`/buscar/peliculas?q=${encodedQ}`}
-            method="GET"
-            class="flex-none px-2"
+                action={`/buscar/${actual !== "notfound" ? actual : "peliculas"}?q=${encodedQ}`}
+                method="GET"
+                class="flex-none px-2"
         >
             <label class="input input-bordered flex items-center gap-2">
                 <svg
-                    class="h-5 w-5 opacity-50"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
+                        class="h-5 w-5 opacity-50"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
                 >
                     <g stroke-width="2.5" fill="none" stroke="currentColor">
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.3-4.3"></path>
                     </g>
                 </svg>
+
                 <input
-                    type="search"
-                    name="q"
-                    placeholder="Search"
-                    value={searchTerm}
-                    class="grow"
+                        type="search"
+                        name="q"
+                        placeholder="Buscar..."
+                        value={searchTerm}
+                        class="grow"
                 />
             </label>
         </form>
+    </div>
 
-        <!-- MENU DE USUARIO -->
-        {
-            user && user.username ? (
-                <div class="dropdown">
+    <!-- MENU DE USUARIO -->
+    {
+        user && user.username ? (
+                <div class="dropdown dropdown-end">
                     <label
-                        tabindex="0"
-                        class="btn btn-ghost flex items-center gap-2"
+                            tabindex="0"
+                            class="btn btn-ghost flex items-center gap-2"
                     >
                         <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-5 w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
                         >
                             <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M5.121 17.804A9.004 9.004 0 0112 15c2.137 0 4.1.747 5.879 2.004M15 10a3 3 0 11-6 0 3 3 0 016 0z"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M5.121 17.804A9.004 9.004 0 0112 15c2.137 0 4.1.747 5.879 2.004M15 10a3 3 0 11-6 0 3 3 0 016 0z"
                             />
                         </svg>
                         <span>{user.username}</span>
                     </label>
                     <ul
-                        tabindex="0"
-                        class="menu dropdown-content mt-2 p-2 shadow bg-base-100 rounded-box w-48"
+                            tabindex="0"
+                            class="menu dropdown-content mt-2 p-2 shadow bg-base-100 rounded-box w-48"
                     >
                         <li>
                             <a href="/profile">Perfil</a>
@@ -106,32 +122,11 @@ try {
                         </li>
                     </ul>
                 </div>
-            ) : (
+        ) : (
                 <a href="/auth/login" class="btn btn-primary ml-2">
                     Login
                 </a>
-            )
-        }
-    </div>
-
-    <!-- TÍTULO -->
-    <div>
-        <div
-            aria-label={error === true
-                ? "error"
-                : error === false
-                  ? "success"
-                  : "status"}
-            class:list={{
-                status: true,
-                "status-lg": true,
-                "status-error": error === true,
-                "status-success": error === false,
-                "mx-2": true,
-            }}
-        >
-        </div>
-
-        <a class="btn btn-ghost text-xl px-1" href="/">Movie web</a>
-    </div>
+        )
+    }
 </header>
+
