@@ -7,7 +7,7 @@ export default function MovieReviews({ movieId, userId }) {
     useEffect(() => {
         const fetchReviews = async () => {
             try {
-                let url = "http://localhost:3500/api/reviews";
+                let url = `${import.meta.env.PUBLIC_API_URL}/reviews`;
                 if (movieId) url += `?movieId=${movieId}`;
                 else if (userId) url += `?userId=${userId}`;
 

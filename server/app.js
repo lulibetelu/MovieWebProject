@@ -78,13 +78,11 @@ const uri = process.env.MONGODB_URI || "mongodb://localhost:27017"; // MongoDB U
 const client = new MongoClient(uri);
 
 let mdb; //mongo database
-let reviews; //reviews collection
 async function connectMDB() {
     try {
         await client.connect();
         console.log("✅ Conectado a MongoDB");
         mdb = client.db("movies"); // tu base de datos (por ejemplo “test”)
-        reviews = mdb.collection("reviews");
     } catch (err) {
         console.error("❌ Error al conectar a MongoDB:", err);
     }
@@ -650,7 +648,7 @@ app.post("/api/reviews", async (req,res)=>{
             review: texto,
             created_at:new Date()
         }
-        await reviews.insertOne(newReview);
+        await mdb.collection('reviews').insertOne(newReview);
         res.status(201).json({ message: 'Reseña guardada' });
     } catch (err) {
         console.error(err);
@@ -667,7 +665,7 @@ app.get("/api/reviews", async (req, res) => {
         if (movieId) filter.movie_id = +movieId;
         if (userId) filter.user_id = +userId;
 
-        const result = await reviews
+        const result = await mdb.collection('reviews')
             .find(filter)
             .sort({ created_at: -1 })
             .toArray();
