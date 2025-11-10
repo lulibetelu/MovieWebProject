@@ -268,6 +268,7 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
         : 0;
 
     const AscOrDesc = req.query.desc === "f" ? "ASC" : "DESC";
+    const tab = req.query.tab || "acted"; // 'acted' or 'directed'
 
     let order = "";
     switch (req.query.order) {
@@ -304,30 +305,57 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
         LIMIT 8 OFFSET $2;
     `;
 
-    try {
-        const actors = (await db.query(actorQuery, [personID, offset])).rows;
-        const directors = (await db.query(directorQuery, [personID, offset]))
-            .rows;
+    // Query to get total counts without pagination
+    const actorCountQuery = `
+        SELECT p.person_id, p.person_name, g.gender, COUNT(*) AS total_movies
+        FROM person p
+        INNER JOIN movie_cast mc on mc.person_id = p.person_id
+        INNER JOIN movie m on m.movie_id = mc.movie_id
+        INNER JOIN gender g on mc.gender_id = g.gender_id
+        WHERE p.person_id = $1
+        GROUP BY p.person_id, p.person_name, g.gender;
+    `;
+    const directorCountQuery = `
+        SELECT p.person_id, p.person_name, COUNT(*) AS total_movies
+        FROM person p
+        INNER JOIN movie_crew mc on p.person_id = mc.person_id
+        INNER JOIN movie m on m.movie_id = mc.movie_id
+        WHERE p.person_id = $1 and mc.job = 'Director'
+        GROUP BY p.person_id, p.person_name;
+    `;
 
-        if (actors.length === 0 && directors.length === 0) {
+    try {
+        // Get total counts first
+        const actorCountResult = (await db.query(actorCountQuery, [personID])).rows;
+        const directorCountResult = (await db.query(directorCountQuery, [personID])).rows;
+        
+        // Then get paginated data based on active tab
+        const actors = tab === "acted" 
+            ? (await db.query(actorQuery, [personID, offset])).rows
+            : [];
+        const directors = tab === "directed"
+            ? (await db.query(directorQuery, [personID, offset])).rows
+            : [];
+
+        if (actorCountResult.length === 0 && directorCountResult.length === 0) {
             return res.status(404).send("Persona no encontrada.");
         }
 
         const personData = {
             person_id: personID,
             person_name:
-                actors.length === 0
-                    ? directors[0].person_name
-                    : actors[0].person_name,
-            gender: actors.length === 0 ? "Male" : actors[0].gender,
+                actorCountResult.length === 0
+                    ? directorCountResult[0].person_name
+                    : actorCountResult[0].person_name,
+            gender: actorCountResult.length === 0 ? "Male" : actorCountResult[0].gender,
             offset: offset,
             order: req.query.order,
             ascOrDesc: AscOrDesc === "DESC" ? "t" : "f",
             actedMovies: [],
             directedMovies: [],
-            totalActedMovies: actors.length === 0 ? 0 : actors[0].total_movies,
+            totalActedMovies: actorCountResult.length === 0 ? 0 : parseInt(actorCountResult[0].total_movies),
             totalDirectedMovies:
-                directors.length === 0 ? 0 : directors[0].total_movies,
+                directorCountResult.length === 0 ? 0 : parseInt(directorCountResult[0].total_movies),
         };
 
         actors.forEach((actor) => {

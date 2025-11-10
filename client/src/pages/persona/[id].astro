@@ -10,6 +10,7 @@ const url = new URL(Astro.request.url);
 let order = url.searchParams.get("order") || "Popularity";
 let offset = parseInt(url.searchParams.get("offset")) || 0;
 let desc = url.searchParams.get("desc") || "t";
+let tab = url.searchParams.get("tab") || "acted"; // 'acted' or 'directed'
 
 export const prerender = false;
 
@@ -18,7 +19,7 @@ const tmdbApiKey = import.meta.env.PUBLIC_TMDB_API_KEY;
 
 try {
 
-    const res = await fetch(`${API_URL}/persona/${id}?offset=${offset}&order=${order}&desc=${desc}`);
+    const res = await fetch(`${API_URL}/persona/${id}?offset=${offset}&order=${order}&desc=${desc}&tab=${tab}`);
     if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
     }
@@ -66,7 +67,8 @@ try {
                         name="tabs"
                         class="tab"
                         aria-label="Películas Actuadas"
-                        checked={personData.actedMovies.length !== 0}
+                        checked={tab === "acted"}
+                        onclick={`window.location.href='/persona/${id}?tab=acted&offset=0&order=${order}&desc=${desc}'`}
                     />
                     <div class="tab-content bg-base-100 border-base-300 p-6">
                         {
@@ -76,7 +78,7 @@ try {
                                 <>
                                     <div class="flex mb-4">
                                         <a
-                                            href={`?offset=${personData.offset}&order=${personData.order}&desc=${personData.ascOrDesc === "t" ? "f" : "t"}`}
+                                            href={`?tab=acted&offset=${personData.offset}&order=${personData.order}&desc=${personData.ascOrDesc === "t" ? "f" : "t"}`}
                                             class="btn mr-2"
                                         >
                                             {personData.ascOrDesc === "t"
@@ -91,21 +93,21 @@ try {
                                             <ul class="menu dropdown-content bg-base-100 rounded-box z-10 w-60 p-2 shadow">
                                                 <li>
                                                     <a
-                                                        href={`?offset=${personData.offset}&order=Popularity&desc=${personData.ascOrDesc}`}
+                                                        href={`?tab=acted&offset=${personData.offset}&order=Popularity&desc=${personData.ascOrDesc}`}
                                                     >
                                                         Popularity
                                                     </a>
                                                 </li>
                                                 <li>
                                                     <a
-                                                        href={`?offset=${personData.offset}&order=Title&desc=${personData.ascOrDesc}`}
+                                                        href={`?tab=acted&offset=${personData.offset}&order=Title&desc=${personData.ascOrDesc}`}
                                                     >
                                                         Title
                                                     </a>
                                                 </li>
                                                 <li>
                                                     <a
-                                                        href={`?offset=${personData.offset}&order=Release_date&desc=${personData.ascOrDesc}`}
+                                                        href={`?tab=acted&offset=${personData.offset}&order=Release_date&desc=${personData.ascOrDesc}`}
                                                     >
                                                         Release Date
                                                     </a>
@@ -163,7 +165,7 @@ try {
                                                     <button class="join-item btn">«</button>
                                             ) : (
                                                     <a
-                                                            href={`/persona/${personData.person_id}?offset=${personData.offset - 8}&order=${personData.order}&desc=${personData.ascOrDesc}`}
+                                                            href={`/persona/${personData.person_id}?tab=acted&offset=${personData.offset - 8}&order=${personData.order}&desc=${personData.ascOrDesc}`}
                                                             class="join-item btn"
                                                     >
                                                         «
@@ -179,7 +181,7 @@ try {
                                                     <button class="join-item btn">»</button>
                                             ) : (
                                                     <a
-                                                            href={`/persona/${personData.person_id}?offset=${personData.offset + 8}&order=${personData.order}&desc=${personData.ascOrDesc}`}
+                                                            href={`/persona/${personData.person_id}?tab=acted&offset=${personData.offset + 8}&order=${personData.order}&desc=${personData.ascOrDesc}`}
                                                             class="join-item btn"
                                                     >
                                                         »
@@ -198,16 +200,18 @@ try {
                         name="tabs"
                         class="tab"
                         aria-label="Películas Dirigidas"
-                        checked={personData.actedMovies.length === 0}
+                        checked={tab === "directed"}
+                        onclick={`window.location.href='/persona/${id}?tab=directed&offset=0&order=${order}&desc=${desc}'`}
                     />
                     <div class="tab-content bg-base-100 border-base-300 p-6">
                         {
                             personData.directedMovies.length === 0 ? (
                                 <p>No dirigió ninguna película</p>
                             ) : (
+                                <>
                                 <div class="flex mb-4">
                                     <a
-                                            href={`?offset=${personData.offset}&order=${personData.order}&desc=${personData.ascOrDesc === "t" ? "f" : "t"}`}
+                                            href={`?tab=directed&offset=${personData.offset}&order=${personData.order}&desc=${personData.ascOrDesc === "t" ? "f" : "t"}`}
                                             class="btn mr-2"
                                     >
                                         {personData.ascOrDesc === "t"
@@ -222,21 +226,21 @@ try {
                                         <ul class="menu dropdown-content bg-base-100 rounded-box z-10 w-60 p-2 shadow">
                                             <li>
                                                 <a
-                                                        href={`?offset=${personData.offset}&order=Popularity&desc=${personData.ascOrDesc}`}
+                                                        href={`?tab=directed&offset=${personData.offset}&order=Popularity&desc=${personData.ascOrDesc}`}
                                                 >
                                                     Popularity
                                                 </a>
                                             </li>
                                             <li>
                                                 <a
-                                                        href={`?offset=${personData.offset}&order=Title&desc=${personData.ascOrDesc}`}
+                                                        href={`?tab=directed&offset=${personData.offset}&order=Title&desc=${personData.ascOrDesc}`}
                                                 >
                                                     Title
                                                 </a>
                                             </li>
                                             <li>
                                                 <a
-                                                        href={`?offset=${personData.offset}&order=Release_date&desc=${personData.ascOrDesc}`}
+                                                        href={`?tab=directed&offset=${personData.offset}&order=Release_date&desc=${personData.ascOrDesc}`}
                                                 >
                                                     Release Date
                                                 </a>
@@ -288,6 +292,39 @@ try {
                                         </a>
                                     ))}
                                 </div>
+
+                                <!-- Paginado -->
+                                <div class="join mt-6 flex justify-center">
+                                    {
+                                        personData.offset === 0 ? (
+                                                <button class="join-item btn">«</button>
+                                        ) : (
+                                                <a
+                                                        href={`/persona/${personData.person_id}?tab=directed&offset=${personData.offset - 8}&order=${personData.order}&desc=${personData.ascOrDesc}`}
+                                                        class="join-item btn"
+                                                >
+                                                    «
+                                                </a>
+                                        )
+                                    }
+                                    <button class="join-item btn"
+                                    >Page {personData.offset / 8 + 1}</button
+                                    >
+                                    {
+                                        personData.offset + 10 >=
+                                        personData.totalDirectedMovies ? (
+                                                <button class="join-item btn">»</button>
+                                        ) : (
+                                                <a
+                                                        href={`/persona/${personData.person_id}?tab=directed&offset=${personData.offset + 8}&order=${personData.order}&desc=${personData.ascOrDesc}`}
+                                                        class="join-item btn"
+                                                >
+                                                    »
+                                                </a>
+                                        )
+                                    }
+                                </div>
+                                </>
                             )
                         }
                     </div>
