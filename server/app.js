@@ -611,7 +611,6 @@ app.post(API_URL + "/register", async (req, res) => {
 
 app.get(API_URL + "/me", (req, res) => {
     if (req.session && req.session.user) {
-        console.log(req.session.user)
         return res.json({ authenticated: true, user: req.session.user });
     }
 
@@ -651,14 +650,40 @@ app.post("/api/reviews", async (req,res)=>{
             review: texto,
             created_at:new Date()
         }
-        console.log(newReview);
         await reviews.insertOne(newReview);
         res.status(201).json({ message: 'Reseña guardada' });
     } catch (err) {
         console.error(err);
+        if(userId === undefined){
+            res.status(500).json({ error: 'Tenes que loguearte wacho' });
+            return;
+        }
         res.status(500).json({ error: 'Error al guardar reseña' });
     }
 })
+
+// 📤 GET: traer reseñas (por movieId, userId o todas)
+app.get("/api/reviews", async (req, res) => {
+    try {
+        const { movieId, userId } = req.query;
+
+        let filter = {};
+        if (movieId) filter.movie_id = +movieId;
+        if (userId) filter.user_id = +userId;
+
+        const result = await reviews
+            .find(filter)
+            .sort({ created_at: -1 })
+            .toArray();
+
+        res.json(result);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error al obtener reseñas" });
+    }
+});
+
+
 app.listen(PORT, () => {
     if (API_MODE)
         return console.log(
