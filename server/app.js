@@ -611,8 +611,10 @@ app.post(API_URL + "/register", async (req, res) => {
 
 app.get(API_URL + "/me", (req, res) => {
     if (req.session && req.session.user) {
+        console.log(req.session.user)
         return res.json({ authenticated: true, user: req.session.user });
     }
+
     res.json({ authenticated: false, user: null });
 });
 
@@ -642,13 +644,14 @@ app.post("/api/reviews", async (req,res)=>{
         const {userId,userName,movieId,movieName,texto} = req.body;
         //const userId = req.user?.id || 'anon'; // ejemplo si usás auth
         const newReview = {
-            user_id: userId,
+            user_id: +userId,
             username: userName,
             movie_id: +movieId,
             movie_title: movieName,
             review: texto,
             created_at:new Date()
         }
+        console.log(newReview);
         await reviews.insertOne(newReview);
         res.status(201).json({ message: 'Reseña guardada' });
     } catch (err) {

@@ -10,7 +10,6 @@ export const prerender = false;
 const { id } = Astro.params;
 
 let movie;
-let movieId = id;
 const tmdbApiKey = import.meta.env.PUBLIC_TMDB_API_KEY;
 
 try {
@@ -35,6 +34,21 @@ if (movie?.release_date) {
         const year = date.getFullYear();
         formattedDate = `${day}-${month}-${year}`;
     }
+}
+
+
+let user = null;
+try {
+    const cookieHeader = Astro.request.headers.get("cookie") ?? "";
+    const res = await fetch(`${API_URL}/me`, {
+        headers: { cookie: cookieHeader },
+    });
+    if (res.ok) {
+        const data = await res.json();
+        if (data?.authenticated) user = data.user;
+    }
+} catch (e) {
+    // Ignorar errores de red/SSR, el cliente seguirá mostrando estado no logueado
 }
 ---
 
@@ -265,7 +279,7 @@ if (movie?.release_date) {
                             <div class="card card-dash bg-base-100 w-full">
                                 <div class="card-body">
                                     <h2 class="card-title">Leave your review</h2>
-                                    <form id="review-form" data-movie-id={id}>
+                                    <form id="review-form" data-movie-id={id} data-movie-name={movie.title} data-user-id={user?.id} data-user-name={user?.username}>
                                         <textarea name="texto" class="textarea w-full" placeholder="Write your review here"></textarea>
                                         <button style="margin-top: 10px; padding-top:10px" type="submit" class="btn btn-primary card-actions justify-end">SEND</button>
                                     </form>
@@ -383,12 +397,15 @@ if (movie?.release_date) {
                         e.preventDefault();
                         const form = document.getElementById('review-form');
                         const movieId = form.dataset.movieId;
+                        const userId = form.dataset.userId;
+                        const userName = form.dataset.userName;
+                        const movieName = form.dataset.movieName;
 
                         const data = {
-                            userId: 1,
-                            userName: "Pepito",
+                            userId: userId,
+                            userName: userName,
                             movieId: movieId,
-                            movieName: "Alta peli",
+                            movieName: movieName,
                             texto: e.target.texto.value,
                         };
 
