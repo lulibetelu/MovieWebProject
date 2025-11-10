@@ -90,6 +90,11 @@ async function connectMDB() {
 }
 connectMDB();
 
+function requireLogin(req, res, next) {
+    if (!req.session.user)
+        return res.status(401).json({ error: "No autorizado" });
+    next();
+}
 // ASI SE USA:
 // app.get("/profile", requireLogin, async (req, res) => { ... });
 
@@ -610,7 +615,6 @@ app.get(API_URL + "/me", (req, res) => {
     if (req.session && req.session.user) {
         return res.json({ authenticated: true, user: req.session.user });
     }
-
     res.json({ authenticated: false, user: null });
 });
 
