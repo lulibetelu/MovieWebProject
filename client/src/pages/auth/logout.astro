@@ -1,5 +1,4 @@
 ---
-import { API_URL } from "../../data/config.js";
 ---
 
 <html lang="es">
@@ -15,7 +14,9 @@ import { API_URL } from "../../data/config.js";
     </body>
 </html>
 
-<script define:vars={{ API_URL }}>
+<script>
+    import { API_URL } from "../../data/config.js";
+
     async function logout() {
         try {
             const response = await fetch(`${API_URL}/logout`, {

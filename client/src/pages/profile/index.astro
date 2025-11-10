@@ -1,6 +1,5 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { API_URL } from "../../data/config.js";
 ---
 
 <Layout title="Perfil de Usuario">
@@ -67,11 +66,17 @@ import { API_URL } from "../../data/config.js";
     </main>
 </Layout>
 
-<script define:vars={{ API_URL }}>
-    const loading = document.getElementById("loading");
-    const profileContent = document.getElementById("profileContent");
-    const errorContent = document.getElementById("errorContent");
-    const errorMessage = document.getElementById("errorMessage");
+<script>
+    import { API_URL } from "../../data/config.js";
+
+    const loading = document.getElementById("loading") as HTMLElement;
+    const profileContent = document.getElementById(
+        "profileContent",
+    ) as HTMLElement;
+    const errorContent = document.getElementById("errorContent") as HTMLElement;
+    const errorMessage = document.getElementById(
+        "errorMessage",
+    ) as HTMLElement;
 
     async function loadProfile() {
         try {
@@ -83,9 +88,11 @@ import { API_URL } from "../../data/config.js";
             if (response.ok) {
                 const data = await response.json();
 
-                document.getElementById("username").textContent =
-                    data.user.username;
-                document.getElementById("email").textContent = data.user.email;
+                (
+                    document.getElementById("username") as HTMLElement
+                ).textContent = data.user.username;
+                (document.getElementById("email") as HTMLElement).textContent =
+                    data.user.email;
 
                 loading.classList.add("hidden");
                 profileContent.classList.remove("hidden");

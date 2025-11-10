@@ -1,6 +1,5 @@
 ---
 import AuthLayout from "../../layouts/AuthLayout.astro";
-import { API_URL } from "../../data/config.js";
 ---
 
 <AuthLayout title="Iniciar sesión">
@@ -78,10 +77,14 @@ import { API_URL } from "../../data/config.js";
     </main>
 </AuthLayout>
 
-<script define:vars={{ API_URL }}>
-    const form = document.getElementById("loginForm");
-    const errorAlert = document.getElementById("errorAlert");
-    const errorMessage = document.getElementById("errorMessage");
+<script>
+    import { API_URL } from "../../data/config.js";
+
+    const form = document.getElementById("loginForm") as HTMLFormElement;
+    const errorAlert = document.getElementById("errorAlert") as HTMLElement;
+    const errorMessage = document.getElementById(
+        "errorMessage",
+    ) as HTMLElement;
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
