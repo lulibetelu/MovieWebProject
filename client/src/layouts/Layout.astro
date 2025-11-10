@@ -1,11 +1,12 @@
 ---
 import "../assets/app.css";
 
-import SearchNavbar from "../components/base/SearchNavbar.astro";
+import SearchNavbar from "../components/base/Navbars/SearchNavbar.astro";
+
 import { API_URL } from "../data/config.js";
 
 // Props recibidos desde cada página
-const { title, searchTerm, movieLen, actorLen } = Astro.props;
+const { title, actual } = Astro.props;
 
 // Intentar obtener la sesión del usuario en el servidor (SSR)
 // Pasamos la cookie entrante para que el backend identifique la sesión
@@ -38,12 +39,7 @@ try {
     </head>
 
     <body>
-        <SearchNavbar
-            searchTerm={searchTerm}
-            movie={movieLen}
-            actor={actorLen}
-            user={user}
-        />
+        <SearchNavbar actual={actual} user={user} />
 
         <slot />
     </body>

@@ -1,0 +1,65 @@
+---
+import MovieImages from "../../TMDB_Images/MovieImages";
+import PersonImages from "../../TMDB_Images/PersonImages";
+
+const { items, itemType, searchQuery } = Astro.props;
+const hasItems = items?.length > 0;
+---
+
+<section id={itemType} class="tab-panel">
+    <h2 class="text-xl md:text-2xl font-bold mb-4 capitalize">{itemType}</h2>
+
+    {
+        !hasItems ? (
+            <div class="alert alert-warning">
+                <span>
+                    No existen {itemType} para "{searchQuery}".
+                </span>
+            </div>
+        ) : (
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+                {items.map((item) => (
+                    <a
+                        href={
+                            itemType === "peliculas"
+                                ? `/pelicula/${item.id}`
+                                : `/persona/${item.id}`
+                        }
+                        class="card bg-base-100 border border-base-300 hover:border-primary transition shadow-sm hover:shadow-primary/20"
+                        aria-label={`${itemType === "peliculas" ? "Ver detalle de" : "Ver perfil de"} ${item.person_name ?? item.name}`}
+                    >
+                        <figure class="relative w-full h-70 rounded-xl overflow-hidden group cursor-pointer hover:scale-105 transition-all">
+                            {itemType === "peliculas" ? (
+                                <MovieImages
+                                    data={{
+                                        title: item.name,
+                                    }}
+                                    client:load
+                                />
+                            ) : (
+                                <PersonImages
+                                    data={{
+                                        personName: item.name,
+                                    }}
+                                    client:load
+                                />
+                            )}
+
+                            <div class="absolute inset-0 bg-black/50 group-hover:bg-black/10 transition-all" />
+                            <div class="absolute inset-0 flex flex-col justify-end p-4 text-white">
+                                <h3 class="text-xl font-bold drop-shadow-lg translate-y-4 group-hover:translate-y-8 transition-transform duration-300">
+                                    {item.name}
+                                </h3>
+                                <div class="card-actions justify-end opacity-100 group-hover:opacity-0 transition-opacity">
+                                    <span class="btn btn-primary btn-sm mt-2">
+                                        Ver más
+                                    </span>
+                                </div>
+                            </div>
+                        </figure>
+                    </a>
+                ))}
+            </div>
+        )
+    }
+</section>

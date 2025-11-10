@@ -1,0 +1,173 @@
+---
+const { actual = "peliculas", user = null } = Astro.props;
+
+const searchTerm = Astro.url.searchParams.get("q") || "";
+
+const encodedQ = encodeURIComponent(searchTerm);
+
+const API_URL = import.meta.env.PUBLIC_API_URL;
+
+let error = null;
+if (!user) {
+    try {
+        const res = await fetch(`${API_URL}/`);
+        await res.json();
+        error = false;
+    } catch (e) {
+        error = true;
+    }
+}
+---
+
+<header
+    class="navbar bg-base-100 flex flex-row justify-between shadow-sm w-full"
+>
+    <!-- TÍTULO -->
+    <div>
+        <div
+            aria-label={error === true
+                ? "error"
+                : error === false
+                  ? "success"
+                  : "status"}
+            class:list={{
+                status: true,
+                "status-lg": true,
+                "status-error": error === true,
+                "status-success": error === false,
+                "mx-2": true,
+            }}
+        >
+        </div>
+
+        <a class="btn btn-ghost text-xl px-1" href="/">Movie web</a>
+    </div>
+
+    <div class="flex flex-row gap-10">
+        <!-- Tabs -->
+        <div
+            class="tabs tabs-lift top-10 translate-y-3 bg-primary/10 rounded-2xl"
+        >
+            <a
+                href={`/buscar/peliculas?q=${encodedQ}&c=1`}
+                class:list={{
+                    tab: true,
+                    "tab-active": actual === "peliculas",
+                    "bg-primary": actual === "peliculas",
+                    "border-primary": actual !== "peliculas",
+                    "text-black": actual === "peliculas",
+                }}
+                data-astro-prefetch
+            >
+                Películas
+            </a>
+
+            <a
+                href={`/buscar/actores?q=${encodedQ}&c=1`}
+                class:list={{
+                    tab: true,
+                    "tab-active": actual === "actores",
+                    "bg-primary": actual === "actores",
+                    "border-primary": actual !== "actores",
+                    "text-black": actual === "actores",
+                }}
+                data-astro-prefetch
+            >
+                Actores
+            </a>
+
+            <a
+                href={`/buscar/directores?q=${encodedQ}&c=1`}
+                class:list={{
+                    tab: true,
+                    "tab-active": actual === "directores",
+                    "bg-primary": actual === "directores",
+                    "border-primary": actual !== "directores",
+                    "text-black": actual === "directores",
+                }}
+                data-astro-prefetch
+            >
+                Directores
+            </a>
+        </div>
+
+        <!-- Buscador -->
+        <form
+            action={`/buscar/${actual !== "notfound" ? actual : "peliculas"}?q=${encodedQ}`}
+            method="GET"
+            class="flex-none px-2"
+        >
+            <label class="input input-bordered flex items-center gap-2">
+                <svg
+                    class="h-5 w-5 opacity-50"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                >
+                    <g stroke-width="2.5" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </g>
+                </svg>
+
+                <input
+                    type="search"
+                    name="q"
+                    placeholder="Buscar..."
+                    value={searchTerm}
+                    class="grow"
+                />
+            </label>
+        </form>
+    </div>
+
+    <!-- MENU DE USUARIO -->
+    {
+        user && user.username ? (
+            <div class="dropdown dropdown-end">
+                <label
+                    tabindex="0"
+                    class="btn btn-ghost flex items-center gap-2"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5.121 17.804A9.004 9.004 0 0112 15c2.137 0 4.1.747 5.879 2.004M15 10a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                    </svg>
+                    <span>{user.username}</span>
+                </label>
+                <ul
+                    tabindex="0"
+                    class="menu dropdown-content mt-2 p-2 shadow bg-base-100 rounded-box w-48"
+                >
+                    <li>
+                        <a href="/profile">Perfil</a>
+                    </li>
+                    <li>
+                        <a href="/rated">Películas Calificadas</a>
+                    </li>
+                    <li>
+                        <a href="/reviews">Reseñas</a>
+                    </li>
+                    <li>
+                        <a href="/auth/logout" class="text-error">
+                            Cerrar sesión
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        ) : (
+            <a href="/auth/login" class="btn btn-primary ml-2">
+                Login
+            </a>
+        )
+    }
+</header>

@@ -112,7 +112,7 @@ export default function LaserFlowBox() {
 
                 {/* Search Form */}
                 <form
-                    action="/buscar"
+                    action="/buscar/peliculas"
                     method="GET"
                     className="flex justify-center mb-10 mt-5 gap-2"
                 >
