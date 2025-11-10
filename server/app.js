@@ -32,13 +32,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(
     session({
-        secret: process.env.SECRET_KEY,
+        secret: process.env.SECRET_KEY || "secret-key-for-dev",
         resave: false,
         saveUninitialized: false,
         cookie: {
             secure: false,
             httpOnly: true,
-            sameSite: "none",
+            sameSite: "lax",
+            maxAge: 24 * 60 * 60 * 1000, // 24 hours
         },
     }),
 );
@@ -368,9 +369,9 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
     }
 });
 
-app.get("/profile", async (req, res) => {
+app.get(API_URL + "/profile", async (req, res) => {
     if (!req.session.user)
-        return res.status(404).json({ error: "No se pudo el usuario" });
+        return res.status(401).json({ error: "No autorizado" });
 
     const userId = req.session.user.id;
 

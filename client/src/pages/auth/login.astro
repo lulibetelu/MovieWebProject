@@ -1,7 +1,6 @@
 ---
 import AuthLayout from "../../layouts/AuthLayout.astro";
-
-const popUp = false;
+import { API_URL } from "../../data/config.js";
 ---
 
 <AuthLayout title="Iniciar sesión">
@@ -12,7 +11,7 @@ const popUp = false;
             <h1 class="text-2xl font-bold text-center mb-6">Iniciar sesión</h1>
 
             <!-- Formulario -->
-            <form action="/auth/login" method="POST" class="space-y-4">
+            <form id="loginForm" class="space-y-4">
                 <div class="form-control">
                     <label for="email">
                         <span class="label-text">Email</span>
@@ -47,26 +46,24 @@ const popUp = false;
                     >
                 </div>
 
-                {
-                    popUp && (
-                        <div role="alert" class="alert alert-warning mt-4">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-6 w-6 shrink-0 stroke-current"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                                />
-                            </svg>
-                            <span>Contraseña incorrecta</span>
-                        </div>
-                    )
-                }
+                <div id="errorAlert" class="hidden">
+                    <div role="alert" class="alert alert-error mt-4">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-6 w-6 shrink-0 stroke-current"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                        </svg>
+                        <span id="errorMessage">Error al iniciar sesión</span>
+                    </div>
+                </div>
             </form>
 
             <div class="divider">o</div>
@@ -80,3 +77,44 @@ const popUp = false;
         </div>
     </main>
 </AuthLayout>
+
+<script define:vars={{ API_URL }}>
+    const form = document.getElementById("loginForm");
+    const errorAlert = document.getElementById("errorAlert");
+    const errorMessage = document.getElementById("errorMessage");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorAlert.classList.add("hidden");
+
+        const formData = new FormData(form);
+        const data = {
+            email: formData.get("email"),
+            password: formData.get("password"),
+        };
+
+        try {
+            const response = await fetch(`${API_URL}/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                window.location.href = "/";
+            } else {
+                errorMessage.textContent =
+                    result.error || result.message || "Error al iniciar sesión";
+                errorAlert.classList.remove("hidden");
+            }
+        } catch (error) {
+            errorMessage.textContent = "Error de conexión con el servidor";
+            errorAlert.classList.remove("hidden");
+        }
+    });
+</script>

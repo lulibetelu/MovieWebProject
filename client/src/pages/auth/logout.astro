@@ -1,0 +1,39 @@
+---
+import { API_URL } from "../../data/config.js";
+---
+
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Cerrando sesión...</title>
+    </head>
+    <body>
+        <div class="flex items-center justify-center min-h-screen">
+            <p>Cerrando sesión...</p>
+        </div>
+    </body>
+</html>
+
+<script define:vars={{ API_URL }}>
+    async function logout() {
+        try {
+            const response = await fetch(`${API_URL}/logout`, {
+                method: "POST",
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                window.location.href = "/";
+            } else {
+                console.error("Error al cerrar sesión");
+                window.location.href = "/";
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            window.location.href = "/";
+        }
+    }
+
+    logout();
+</script>

@@ -1,0 +1,107 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { API_URL } from "../../data/config.js";
+---
+
+<Layout title="Perfil de Usuario">
+    <main class="container mx-auto p-8">
+        <div id="loading" class="flex justify-center items-center min-h-screen">
+            <span class="loading loading-spinner loading-lg"></span>
+        </div>
+
+        <div id="profileContent" class="hidden">
+            <div class="card bg-base-100 shadow-xl max-w-2xl mx-auto">
+                <div class="card-body">
+                    <h1 class="card-title text-3xl mb-4">Mi Perfil</h1>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="label">
+                                <span class="label-text font-semibold"
+                                    >Usuario:</span
+                                >
+                            </label>
+                            <p id="username" class="text-lg"></p>
+                        </div>
+
+                        <div>
+                            <label class="label">
+                                <span class="label-text font-semibold"
+                                    >Email:</span
+                                >
+                            </label>
+                            <p id="email" class="text-lg"></p>
+                        </div>
+                    </div>
+
+                    <div class="card-actions justify-end mt-6">
+                        <a href="/" class="btn btn-primary">Volver al inicio</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="errorContent" class="hidden">
+            <div class="alert alert-error max-w-2xl mx-auto">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="stroke-current shrink-0 h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    ></path>
+                </svg>
+                <span id="errorMessage">Error al cargar el perfil</span>
+            </div>
+            <div class="text-center mt-4">
+                <a href="/auth/login" class="btn btn-primary"
+                    >Iniciar sesión</a
+                >
+            </div>
+        </div>
+    </main>
+</Layout>
+
+<script define:vars={{ API_URL }}>
+    const loading = document.getElementById("loading");
+    const profileContent = document.getElementById("profileContent");
+    const errorContent = document.getElementById("errorContent");
+    const errorMessage = document.getElementById("errorMessage");
+
+    async function loadProfile() {
+        try {
+            const response = await fetch(`${API_URL}/profile`, {
+                method: "GET",
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                document.getElementById("username").textContent =
+                    data.user.username;
+                document.getElementById("email").textContent = data.user.email;
+
+                loading.classList.add("hidden");
+                profileContent.classList.remove("hidden");
+            } else {
+                const result = await response.json();
+                errorMessage.textContent =
+                    result.error || "No se pudo cargar el perfil";
+                loading.classList.add("hidden");
+                errorContent.classList.remove("hidden");
+            }
+        } catch (error) {
+            errorMessage.textContent = "Error de conexión con el servidor";
+            loading.classList.add("hidden");
+            errorContent.classList.remove("hidden");
+        }
+    }
+
+    loadProfile();
+</script>

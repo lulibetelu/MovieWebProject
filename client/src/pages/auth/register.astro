@@ -1,5 +1,6 @@
 ---
 import AuthLayout from "../../layouts/AuthLayout.astro";
+import { API_URL } from "../../data/config.js";
 ---
 
 <AuthLayout title="Registrarse">
@@ -9,7 +10,7 @@ import AuthLayout from "../../layouts/AuthLayout.astro";
                 Crear una cuenta
             </h1>
 
-            <form action="/auth/register" method="POST" class="space-y-4">
+            <form id="registerForm" class="space-y-4">
                 <div class="form-control">
                     <label for="username">
                         <span class="label-text">Usuario</span>
@@ -57,6 +58,25 @@ import AuthLayout from "../../layouts/AuthLayout.astro";
                         >Registrarse</button
                     >
                 </div>
+
+                <div id="errorAlert" class="hidden">
+                    <div role="alert" class="alert alert-error mt-4">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-6 w-6 shrink-0 stroke-current"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                        </svg>
+                        <span id="errorMessage">Error al registrarse</span>
+                    </div>
+                </div>
             </form>
 
             <div class="divider">o</div>
@@ -70,3 +90,45 @@ import AuthLayout from "../../layouts/AuthLayout.astro";
         </div>
     </main>
 </AuthLayout>
+
+<script define:vars={{ API_URL }}>
+    const form = document.getElementById("registerForm");
+    const errorAlert = document.getElementById("errorAlert");
+    const errorMessage = document.getElementById("errorMessage");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorAlert.classList.add("hidden");
+
+        const formData = new FormData(form);
+        const data = {
+            username: formData.get("username"),
+            email: formData.get("email"),
+            password: formData.get("password"),
+        };
+
+        try {
+            const response = await fetch(`${API_URL}/register`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                window.location.href = "/";
+            } else {
+                errorMessage.textContent =
+                    result.error || "Error al registrarse";
+                errorAlert.classList.remove("hidden");
+            }
+        } catch (error) {
+            errorMessage.textContent = "Error de conexión con el servidor";
+            errorAlert.classList.remove("hidden");
+        }
+    });
+</script>
