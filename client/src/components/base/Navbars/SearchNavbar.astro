@@ -8,7 +8,7 @@ const encodedQ = encodeURIComponent(searchTerm);
 const API_URL = import.meta.env.PUBLIC_API_URL;
 
 let error = null;
-if (!user) {
+
     try {
         const res = await fetch(`${API_URL}/`);
         await res.json();
@@ -16,11 +16,11 @@ if (!user) {
     } catch (e) {
         error = true;
     }
-}
+
 ---
 
 <header
-    class="navbar bg-base-100 flex flex-row justify-between shadow-sm w-full"
+        class="navbar bg-base-100 flex flex-row justify-between shadow-sm w-full"
 >
     <!-- TÍTULO -->
     <div>
