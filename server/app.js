@@ -69,11 +69,13 @@ const uri = process.env.MONGODB_URI || "mongodb://localhost:27017"; // MongoDB U
 const client = new MongoClient(uri);
 
 let mdb; //mongo database
+let reviews; //reviews collection
 async function connectMDB() {
     try {
         await client.connect();
         console.log("✅ Conectado a MongoDB");
         mdb = client.db("movies"); // tu base de datos (por ejemplo “test”)
+        reviews = mdb.collection("reviews");
     } catch (err) {
         console.error("❌ Error al conectar a MongoDB:", err);
     }
@@ -589,6 +591,26 @@ app.get("/persona/:id/photo", (req, res) => {
     res.json(photo);
 });
 
+app.post("/api/reviews", async (req,res)=>{
+    try{
+        const {userId,userName,movieId,movieName,texto} = req.body;
+        //const userId = req.user?.id || 'anon'; // ejemplo si usás auth
+        const newReview = {
+            user_id: userId,
+            username: userName,
+            movie_id: movieId,
+            movie_title: movieName,
+            review: texto,
+            created_at:new Date()
+        }
+        await reviews.insertOne(newReview);
+        console.log("funciono?");
+        res.status(201).json({ message: 'Reseña guardada' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error al guardar reseña' });
+    }
+})
 app.listen(PORT, () => {
     if (API_MODE)
         return console.log(
