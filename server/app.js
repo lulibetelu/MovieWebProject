@@ -115,9 +115,17 @@ app.get(API_URL + "/buscar", async (req, res) => {
     const offset = (page - 1) * 20;
 
     // Los placeholders en pg son $1, $2, etc.
-    const query = "SELECT * FROM search_all($1, " + limit + ", $2) " +
-        "UNION ALL (SELECT keyw.movie_id, keyw.title, 'movie'::TEXT AS type from search_movies_by_keyword($1) as keyw);"; // ILIKE es case-insensitive en Postgres
-    const values = [`%${searchTerm}%`, offset];
+    const query = `
+      SELECT * 
+      FROM (
+        SELECT * FROM search_all($1, 1000000, $2)
+        UNION ALL
+        SELECT keyw.movie_id, keyw.title, 'movie'::TEXT AS type 
+        FROM search_movies_by_keyword($3) AS keyw
+      ) AS combined
+      LIMIT $4 OFFSET $5;
+    ` // ILIKE es case-insensitive en Postgres
+    const values = [`%${searchTerm}%`, offset, searchTerm, limit, offset];
 
     try {
         // Usar db.query que devuelve una promesa y acceder a .rows
@@ -138,6 +146,7 @@ app.get(API_URL + "/buscar", async (req, res) => {
             (row) => row.type === "director",
         );
 
+
         if (API_MODE) {
             res.json({
                 movies: filteredMovies,
@@ -145,17 +154,12 @@ app.get(API_URL + "/buscar", async (req, res) => {
                 directors: filteredDirectors,
                 tmdbApiKey: process.env.TMDB_API_KEY,
                 searchTerm,
+                pagina: page,
             });
             return;
         }
 
-        res.render("resultado", {
-            movies: filteredMovies,
-            actors: filteredActors,
-            directors: filteredDirectors,
-            searchTerm,
-            user: req.session.user,
-        });
+
     } catch (err) {
         if (DEBUG) console.log(err);
         if (API_MODE)
