@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function MovieReviews({ movieId, userId }) {
+export default function MovieReviews({ movieId, userId, apiUrl }) {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchReviews = async () => {
             try {
-                let url = "http://localhost:3500/api/reviews";
+                let url = apiUrl + "/reviews";
                 if (movieId) url += `?movieId=${movieId}`;
                 else if (userId) url += `?userId=${userId}`;
 
@@ -25,7 +25,9 @@ export default function MovieReviews({ movieId, userId }) {
 
     if (loading) return <p className="text-center">Cargando reseñas...</p>;
     if (reviews.length === 0)
-        return <p className="text-center opacity-70">No hay reseñas todavía.</p>;
+        return (
+            <p className="text-center opacity-70">No hay reseñas todavía.</p>
+        );
 
     return (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
