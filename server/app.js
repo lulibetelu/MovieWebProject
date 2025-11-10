@@ -30,6 +30,7 @@ app.use(
 //permite que express entienda los datos que le mandan en el form
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
 if (process.env.NODE_ENV === "production") {
     app.set("trust proxy", 1);
 }
@@ -89,11 +90,6 @@ async function connectMDB() {
 }
 connectMDB();
 
-function requireLogin(req, res, next) {
-    if (!req.session.user)
-        return res.status(401).json({ error: "No autorizado" });
-    next();
-}
 // ASI SE USA:
 // app.get("/profile", requireLogin, async (req, res) => { ... });
 
@@ -115,7 +111,10 @@ app.get(API_URL + "/buscar", async (req, res) => {
     const offset = (page - 1) * 20;
 
     // Los placeholders en pg son $1, $2, etc.
-    const query = "SELECT * FROM search_all($1, " + limit + ", $2) " +
+    const query =
+        "SELECT * FROM search_all($1, " +
+        limit +
+        ", $2) " +
         "UNION ALL (SELECT keyw.movie_id, keyw.title, 'movie'::TEXT AS type from search_movies_by_keyword($1) as keyw);"; // ILIKE es case-insensitive en Postgres
     const values = [`%${searchTerm}%`, offset];
 
@@ -611,6 +610,7 @@ app.get(API_URL + "/me", (req, res) => {
     if (req.session && req.session.user) {
         return res.json({ authenticated: true, user: req.session.user });
     }
+
     res.json({ authenticated: false, user: null });
 });
 
@@ -633,6 +633,48 @@ app.get(API_URL + "/persona/:id/photo", (req, res) => {
     };
 
     res.json(photo);
+});
+
+app.post("/api/reviews", async (req, res) => {
+    try {
+        const { userId, userName, movieId, movieName, texto } = req.body;
+        //const userId = req.user?.id || 'anon'; // ejemplo si usás auth
+        const newReview = {
+            user_id: +userId,
+            username: userName,
+            movie_id: +movieId,
+            movie_title: movieName,
+            review: texto,
+            created_at: new Date(),
+        };
+        await mdb.collection("reviews").insertOne(newReview);
+        res.status(201).json({ message: "Reseña guardada" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error al guardar reseña" });
+    }
+});
+
+// 📤 GET: traer reseñas (por movieId, userId o todas)
+app.get("/api/reviews", async (req, res) => {
+    try {
+        const { movieId, userId } = req.query;
+
+        let filter = {};
+        if (movieId) filter.movie_id = +movieId;
+        if (userId) filter.user_id = +userId;
+
+        const result = await mdb
+            .collection("reviews")
+            .find(filter)
+            .sort({ created_at: -1 })
+            .toArray();
+
+        res.json(result);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Error al obtener reseñas" });
+    }
 });
 
 app.listen(PORT, () => {
