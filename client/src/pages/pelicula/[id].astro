@@ -10,6 +10,7 @@ export const prerender = false;
 const { id } = Astro.params;
 
 let movie;
+let movieId = id;
 const tmdbApiKey = import.meta.env.PUBLIC_TMDB_API_KEY;
 
 try {
@@ -264,7 +265,7 @@ if (movie?.release_date) {
                             <div class="card card-dash bg-base-100 w-full">
                                 <div class="card-body">
                                     <h2 class="card-title">Leave your review</h2>
-                                    <form id="review-form">
+                                    <form id="review-form" data-movie-id={id}>
                                         <textarea name="texto" class="textarea w-full" placeholder="Write your review here"></textarea>
                                         <button style="margin-top: 10px; padding-top:10px" type="submit" class="btn btn-primary card-actions justify-end">SEND</button>
                                     </form>
@@ -377,14 +378,16 @@ if (movie?.release_date) {
                     }
                 </style>
 
-                <script>
+                <script is:inline>
                     document.getElementById('review-form').addEventListener('submit', async (e) => {
                         e.preventDefault();
+                        const form = document.getElementById('review-form');
+                        const movieId = form.dataset.movieId;
 
                         const data = {
                             userId: 1,
                             userName: "Pepito",
-                            movieId: 1,
+                            movieId: movieId,
                             movieName: "Alta peli",
                             texto: e.target.texto.value,
                         };

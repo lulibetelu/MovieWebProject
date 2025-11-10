@@ -644,13 +644,12 @@ app.post("/api/reviews", async (req,res)=>{
         const newReview = {
             user_id: userId,
             username: userName,
-            movie_id: movieId,
+            movie_id: +movieId,
             movie_title: movieName,
             review: texto,
             created_at:new Date()
         }
         await reviews.insertOne(newReview);
-        console.log("funciono?");
         res.status(201).json({ message: 'Reseña guardada' });
     } catch (err) {
         console.error(err);
