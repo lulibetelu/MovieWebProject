@@ -12,8 +12,6 @@ const { id } = Astro.params;
 let movie;
 const tmdbApiKey = import.meta.env.PUBLIC_TMDB_API_KEY;
 
-
-
 try {
     const res = await fetch(`${API_URL}/pelicula/${id}`);
     if (!res.ok) {

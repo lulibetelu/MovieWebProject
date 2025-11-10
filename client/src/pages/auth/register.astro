@@ -9,7 +9,7 @@ import AuthLayout from "../../layouts/AuthLayout.astro";
                 Crear una cuenta
             </h1>
 
-            <form action="/auth/register" method="POST" class="space-y-4">
+            <form id="register-form" class="space-y-4">
                 <div class="form-control">
                     <label for="username">
                         <span class="label-text">Usuario</span>
@@ -21,6 +21,7 @@ import AuthLayout from "../../layouts/AuthLayout.astro";
                         required
                         placeholder="Tu username"
                         class="input input-bordered w-full"
+                        autocomplete="username"
                     />
                 </div>
 
@@ -35,6 +36,7 @@ import AuthLayout from "../../layouts/AuthLayout.astro";
                         required
                         placeholder="Tu email"
                         class="input input-bordered w-full"
+                        autocomplete="email"
                     />
                 </div>
 
@@ -49,6 +51,7 @@ import AuthLayout from "../../layouts/AuthLayout.astro";
                         required
                         placeholder="Tu contraseña"
                         class="input input-bordered w-full"
+                        autocomplete="new-password"
                     />
                 </div>
 
@@ -56,6 +59,27 @@ import AuthLayout from "../../layouts/AuthLayout.astro";
                     <button type="submit" class="btn btn-primary w-full"
                         >Registrarse</button
                     >
+                </div>
+
+                <div
+                    id="register-alert"
+                    role="alert"
+                    class="alert alert-warning mt-4 hidden"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6 shrink-0 stroke-current"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        ></path>
+                    </svg>
+                    <span>Error al registrar usuario</span>
                 </div>
             </form>
 
@@ -69,4 +93,68 @@ import AuthLayout from "../../layouts/AuthLayout.astro";
             </p>
         </div>
     </main>
+    <script>
+        // @ts-nocheck
+        const API_URL = "http://localhost:3500/api";
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("register-form");
+            const alertBox = document.getElementById("register-alert");
+            if (!form) return;
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const username = form.username.value.trim();
+                const email = form.email.value.trim();
+                const password = form.password.value;
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = true;
+
+                if (alertBox) {
+                    alertBox.classList.add("hidden");
+                    alertBox.classList.remove("alert-error");
+                    alertBox.querySelector("span").textContent =
+                        "Error al registrar usuario";
+                }
+
+                try {
+                    const res = await fetch(`${API_URL}/register`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        body: JSON.stringify({ username, email, password }),
+                    });
+
+                    const data = await res.json();
+
+                    if (!res.ok || !data.success) {
+                        if (alertBox) {
+                            alertBox.classList.remove("hidden");
+                            alertBox.classList.toggle(
+                                "alert-error",
+                                res.status >= 500,
+                            );
+                            alertBox.querySelector("span").textContent =
+                                data.error ||
+                                data.message ||
+                                "No se pudo registrar el usuario";
+                        }
+                        if (submitBtn) submitBtn.disabled = false;
+                        return;
+                    }
+
+                    // Registro exitoso -> redirigir
+                    window.location.href = "/";
+                } catch (err) {
+                    console.error(err);
+                    if (alertBox) {
+                        alertBox.classList.remove("hidden");
+                        alertBox.classList.add("alert-error");
+                        alertBox.querySelector("span").textContent =
+                            "Error de red. Intenta nuevamente.";
+                    }
+                    if (submitBtn) submitBtn.disabled = false;
+                }
+            });
+        });
+    </script>
 </AuthLayout>

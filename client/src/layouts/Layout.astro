@@ -3,7 +3,28 @@ import "../assets/app.css";
 
 import SearchNavbar from "../components/base/Navbars/SearchNavbar.astro";
 
-const { title, searchTerm, actual } = Astro.props;
+import { API_URL } from "../data/config.js";
+
+// Props recibidos desde cada página
+const { title, actual } = Astro.props;
+
+// Intentar obtener la sesión del usuario en el servidor (SSR)
+// Pasamos la cookie entrante para que el backend identifique la sesión
+let user = null;
+try {
+    const cookieHeader = Astro.request.headers.get("cookie") ?? "";
+    const res = await fetch(`${API_URL}/me`, {
+        headers: {
+            cookie: cookieHeader,
+        },
+    });
+    if (res.ok) {
+        const data: any = await res.json();
+        if (data && data.authenticated) user = data.user;
+    }
+} catch (e) {
+    // Silencioso: si falla, 'user' queda en null y el navbar mostrará Login
+}
 ---
 
 <!doctype html>
@@ -18,7 +39,7 @@ const { title, searchTerm, actual } = Astro.props;
     </head>
 
     <body>
-        <SearchNavbar searchTerm={searchTerm} actual={actual} />
+        <SearchNavbar actual={actual} user={user} />
 
         <slot />
     </body>

@@ -1,7 +1,23 @@
 ---
 import "../assets/app.css";
+import { API_URL } from "../data/config.js";
 
 const { title } = Astro.props;
+
+// SSR: obtener usuario y exponerlo para uso en el cliente
+let user = null;
+try {
+    const cookieHeader = Astro.request.headers.get("cookie") ?? "";
+    const res = await fetch(`${API_URL}/me`, {
+        headers: { cookie: cookieHeader },
+    });
+    if (res.ok) {
+        const data = await res.json();
+        if (data?.authenticated) user = data.user;
+    }
+} catch (e) {
+    // Ignorar errores de red/SSR, el cliente seguirá mostrando estado no logueado
+}
 ---
 
 <!doctype html>
@@ -19,6 +35,11 @@ const { title } = Astro.props;
 
     <body>
         <slot />
+        <script is:inline>
+            window.__USER__ = JSON.parse(
+                "{JSON.stringify({ authenticated: Boolean(user), user })}",
+            );
+        </script>
     </body>
 </html>
 

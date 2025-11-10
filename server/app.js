@@ -17,28 +17,37 @@ const { Pool } = require("pg");
 const app = express();
 const PORT = process.env.PORT || 3500;
 
-
-
 // Habilitar CORS para el origen del frontend
 app.use(
     cors({
         origin: "http://localhost:4321", // Permite solicitudes solo desde este origen
-        methods: ["GET", "POST", "PUT", "DELETE"], // Métodos HTTP permitidos
+        methods: ["GET", "POST"], // Métodos HTTP permitidos
         allowedHeaders: ["Content-Type", "Authorization"], // Encabezados permitidos
+        credentials: true,
     }),
 );
 
 //permite que express entienda los datos que le mandan en el form
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+if (process.env.NODE_ENV === "production") {
+    app.set("trust proxy", 1);
+}
 
 app.use(
     session({
         secret: process.env.SECRET_KEY,
         resave: false,
         saveUninitialized: false,
+        cookie: {
+            secure: process.env.NODE_ENV === "production",
+            httpOnly: true,
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 1000 * 60 * 60 * 24 * 7,
+        },
     }),
-    express.json(),
 );
+
 //--- path para la foto vacia
 const noMovieBase =
     "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
@@ -63,7 +72,7 @@ const API_MODE = process.env.API_MODE !== "false";
 const API_URL = API_MODE ? "/api" : "";
 
 //setup mongo
-const { MongoClient } = require('mongodb');
+const { MongoClient } = require("mongodb");
 
 const uri = process.env.MONGODB_URI || "mongodb://localhost:27017"; // MongoDB URI from env, fallback to localhost
 const client = new MongoClient(uri);
@@ -82,6 +91,13 @@ async function connectMDB() {
 }
 connectMDB();
 
+function requireLogin(req, res, next) {
+    if (!req.session.user)
+        return res.status(401).json({ error: "No autorizado" });
+    next();
+}
+// ASI SE USA:
+// app.get("/profile", requireLogin, async (req, res) => { ... });
 
 // * Ruta para la página de inicio
 app.get(API_URL + "/", (req, res) => {
@@ -101,7 +117,8 @@ app.get(API_URL + "/buscar", async (req, res) => {
     const offset = (page - 1) * 20;
 
     // Los placeholders en pg son $1, $2, etc.
-    const query = "SELECT * FROM search_all($1, " + limit + ", $2)"; // ILIKE es case-insensitive en Postgres
+    const query = "SELECT * FROM search_all($1, " + limit + ", $2) " +
+        "UNION ALL (SELECT keyw.movie_id, keyw.title, 'movie'::TEXT AS type from search_movies_by_keyword($1) as keyw);"; // ILIKE es case-insensitive en Postgres
     const values = [`%${searchTerm}%`, offset];
 
     try {
@@ -155,14 +172,20 @@ app.get(API_URL + "/pelicula/:id", async (req, res) => {
 
     try {
         // 1️⃣ Obtener la info general de la película
-        const movieResult = await db.query("SELECT * FROM get_movie_by_id($1)", [movieId]);
+        const movieResult = await db.query(
+            "SELECT * FROM get_movie_by_id($1)",
+            [movieId],
+        );
         if (movieResult.rows.length === 0) {
             return res.status(404).send("Película no encontrada.");
         }
         const movieRow = movieResult.rows[0];
 
         // 2️⃣ Obtener cast y crew
-        const crewCastResult = await db.query("SELECT * FROM get_movie_crew_and_cast($1)", [movieId]);
+        const crewCastResult = await db.query(
+            "SELECT * FROM get_movie_crew_and_cast($1)",
+            [movieId],
+        );
         const crewCastRows = crewCastResult.rows;
 
         // 3️⃣ Armar el objeto final
@@ -182,7 +205,7 @@ app.get(API_URL + "/pelicula/:id", async (req, res) => {
             vote_count: movieRow.vote_count,
             country: movieRow.country,
             genre: movieRow.genre,
-            company:movieRow.company,
+            company: movieRow.company,
             language: movieRow.language,
             language_role: movieRow.language_role,
             directors: [],
@@ -193,7 +216,8 @@ app.get(API_URL + "/pelicula/:id", async (req, res) => {
 
         // 4️⃣ Clasificar las personas según su rol
         crewCastRows.forEach((row) => {
-            const isActor = row.character_name !== null && row.character_name !== undefined;
+            const isActor =
+                row.character_name !== null && row.character_name !== undefined;
             if (isActor) {
                 movieData.cast.push({
                     actor_id: row.person_id,
@@ -220,15 +244,19 @@ app.get(API_URL + "/pelicula/:id", async (req, res) => {
         });
 
         // 5️⃣ Responder
-        if (API_MODE) return res.json({ movie: movieData});
+        if (API_MODE) return res.json({ movie: movieData });
         res.render("pelicula", { movie: movieData });
-
     } catch (err) {
         if (DEBUG) console.error(err);
         if (API_MODE)
-            return res.status(500).json({ error: "Error al cargar los datos de la película." });
+            return res
+                .status(500)
+                .json({ error: "Error al cargar los datos de la película." });
         res.render("error", {
-            error: { message: "Error al cargar los datos de la película.", code: 500 },
+            error: {
+                message: "Error al cargar los datos de la película.",
+                code: 500,
+            },
         });
     }
 });
@@ -507,7 +535,7 @@ app.get(API_URL + "/top-actors/:limit", async (req, res) => {
 
 // ========== AUTH ==========
 // ruta que recibe la informacion del form
-app.post("/login", async (req, res) => {
+app.post(API_URL + "/login", async (req, res) => {
     const { email, password } = req.body;
 
     try {
@@ -528,9 +556,10 @@ app.post("/login", async (req, res) => {
         // Comparar contraseñas (bcrypt lo hace)
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
-        if (!isPasswordCorrect) {
-            return res.json({ popUp: true });
-        }
+        if (!isPasswordCorrect)
+            return res
+                .status(401)
+                .json({ message: "Credenciales inválidas", popUp: true });
 
         req.session.user = {
             id: user.id,
@@ -538,7 +567,11 @@ app.post("/login", async (req, res) => {
             email: user.email,
         };
 
-        res.json({ success: true });
+        res.json({
+            success: true,
+            user: req.session.user,
+            message: "Sesión iniciada",
+        });
     } catch (error) {
         if (DEBUG) console.log(error);
         res.status(500).json({
@@ -547,7 +580,7 @@ app.post("/login", async (req, res) => {
     }
 });
 
-app.post("/register", async (req, res) => {
+app.post(API_URL + "/register", async (req, res) => {
     const { username, email, password } = req.body;
 
     try {
@@ -558,7 +591,16 @@ app.post("/register", async (req, res) => {
             [username, email, hashedPassword],
         );
 
-        res.json({ success: true, id });
+        req.session.user = {
+            id: id.rows[0].id,
+            username,
+            email,
+        };
+        res.json({
+            success: true,
+            user: req.session.user,
+            message: "Usuario registrado y logueado",
+        });
     } catch (err) {
         if (DEBUG) console.error(err);
         res.status(500).json({
@@ -567,19 +609,23 @@ app.post("/register", async (req, res) => {
     }
 });
 
-app.get("/logout", async (req, res) => {
-    req.session.destroy((err) => {
-        if (err) {
-            if (DEBUG) console.error("Error al destruir la sesión:", err);
-            return res.status(500).json({ error: "Error al cerrar sesión." });
-        }
+app.get(API_URL + "/me", (req, res) => {
+    if (req.session && req.session.user) {
+        return res.json({ authenticated: true, user: req.session.user });
+    }
+    res.json({ authenticated: false, user: null });
+});
 
+app.post(API_URL + "/logout", (req, res) => {
+    req.session.destroy((err) => {
+        if (err)
+            return res.status(500).json({ error: "Error al cerrar sesión" });
         res.clearCookie("connect.sid");
-        res.redirect("/");
+        res.json({ success: true, message: "Sesión cerrada" });
     });
 });
 
-app.get("/persona/:id/photo", (req, res) => {
+app.get(API_URL + "/persona/:id/photo", (req, res) => {
     const { id } = req.params;
 
     // 🔹 En un caso real buscarías el dato en la base o el filesystem

@@ -1,0 +1,85 @@
+---
+import AuthLayout from "../../layouts/AuthLayout.astro";
+
+// Esta página cierra la sesión automáticamente al cargarse.
+export const prerender = false;
+---
+
+<AuthLayout title="Cerrar sesión">
+    <main
+        class="flex items-center justify-center bg-base-200 w-full min-h-screen"
+    >
+        <div
+            class="card w-full max-w-md shadow-xl bg-base-100 p-8 mx-auto text-center space-y-4"
+        >
+            <h1 class="text-2xl font-bold">Cerrando sesión...</h1>
+            <p id="status" class="text-base">
+                Procesando tu solicitud. Por favor espera.
+            </p>
+
+            <div id="spinner" class="flex justify-center my-4">
+                <span class="loading loading-spinner loading-lg text-primary"
+                ></span>
+            </div>
+
+            <div id="actions" class="hidden space-y-2">
+                <a href="/" class="btn btn-primary w-full">Ir al inicio</a>
+                <button id="retry" class="btn btn-outline w-full">
+                    Reintentar
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        /* @ts-nocheck */
+        const API_URL = "http://localhost:3500/api";
+        async function doLogout() {
+            const statusEl = document.getElementById("status");
+            const spinner = document.getElementById("spinner");
+            const actions = document.getElementById("actions");
+            const retryBtn = document.getElementById("retry");
+
+            try {
+                const res = await fetch(`${API_URL}/logout`, {
+                    method: "POST",
+                    credentials: "include",
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok || !data.success) {
+                    throw new Error(
+                        data.error ||
+                            data.message ||
+                            `Error HTTP ${res.status}`,
+                    );
+                }
+
+                statusEl.textContent =
+                    "Sesión cerrada correctamente. Redirigiendo...";
+                spinner.classList.add("hidden");
+
+                // Pequeño delay para que el usuario vea el mensaje
+                setTimeout(() => (window.location.href = "/"), 800);
+            } catch (err) {
+                console.error(err);
+                statusEl.textContent =
+                    "No se pudo cerrar la sesión. Podés reintentar.";
+                spinner.classList.add("hidden");
+                actions.classList.remove("hidden");
+            }
+
+            if (retryBtn) {
+                retryBtn.onclick = () => {
+                    statusEl.textContent = "Reintentando...";
+                    spinner.classList.remove("hidden");
+                    actions.classList.add("hidden");
+                    doLogout();
+                };
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", doLogout);
+    </script>
+</AuthLayout>

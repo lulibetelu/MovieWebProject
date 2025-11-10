@@ -11,8 +11,8 @@ const popUp = false;
         <div class="card w-full max-w-md shadow-xl bg-base-100 p-8 mx-auto">
             <h1 class="text-2xl font-bold text-center mb-6">Iniciar sesión</h1>
 
-            <!-- Formulario -->
-            <form action="/auth/login" method="POST" class="space-y-4">
+            <!-- Formulario (manejado por JS) -->
+            <form id="login-form" class="space-y-4">
                 <div class="form-control">
                     <label for="email">
                         <span class="label-text">Email</span>
@@ -24,6 +24,7 @@ const popUp = false;
                         required
                         placeholder="Tu email"
                         class="input input-bordered w-full"
+                        autocomplete="email"
                     />
                 </div>
 
@@ -38,6 +39,7 @@ const popUp = false;
                         required
                         placeholder="Tu contraseña"
                         class="input input-bordered w-full"
+                        autocomplete="current-password"
                     />
                 </div>
 
@@ -47,26 +49,27 @@ const popUp = false;
                     >
                 </div>
 
-                {
-                    popUp && (
-                        <div role="alert" class="alert alert-warning mt-4">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-6 w-6 shrink-0 stroke-current"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                                />
-                            </svg>
-                            <span>Contraseña incorrecta</span>
-                        </div>
-                    )
-                }
+                <!-- Alert dinámico -->
+                <div
+                    id="login-alert"
+                    role="alert"
+                    class="alert alert-warning mt-4 hidden"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6 shrink-0 stroke-current"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        ></path>
+                    </svg>
+                    <span>Contraseña incorrecta</span>
+                </div>
             </form>
 
             <div class="divider">o</div>
@@ -79,4 +82,66 @@ const popUp = false;
             </p>
         </div>
     </main>
+    <script>
+        // @ts-nocheck
+        const API_URL = "http://localhost:3500/api";
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("login-form");
+            const alertBox = document.getElementById("login-alert");
+            if (!form) return;
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const email = form.email.value.trim();
+                const password = form.password.value;
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = true;
+
+                // Limpia alerta previa
+                if (alertBox) {
+                    alertBox.classList.add("hidden");
+                    alertBox.querySelector("span").textContent =
+                        "Contraseña incorrecta";
+                }
+
+                try {
+                    const res = await fetch(`${API_URL}/login`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include", // envia y recibe la cookie de sesión
+                        body: JSON.stringify({ email, password }),
+                    });
+
+                    const data = await res.json();
+
+                    if (!res.ok || !data.success) {
+                        if (alertBox) {
+                            alertBox.classList.remove("hidden");
+                            alertBox.classList.toggle(
+                                "alert-error",
+                                res.status >= 500,
+                            );
+                            alertBox.querySelector("span").textContent =
+                                data.error ||
+                                data.message ||
+                                "Error al iniciar sesión";
+                        }
+                        if (submitBtn) submitBtn.disabled = false;
+                        return;
+                    }
+
+                    // Redirigir al home (o profile) tras login exitoso
+                    window.location.href = "/";
+                } catch (err) {
+                    console.error(err);
+                    if (alertBox) {
+                        alertBox.classList.remove("hidden");
+                        alertBox.querySelector("span").textContent =
+                            "Error de red. Intenta nuevamente.";
+                    }
+                    if (submitBtn) submitBtn.disabled = false;
+                }
+            });
+        });
+    </script>
 </AuthLayout>
