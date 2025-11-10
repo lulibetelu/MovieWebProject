@@ -654,10 +654,6 @@ app.post("/api/reviews", async (req,res)=>{
         res.status(201).json({ message: 'Reseña guardada' });
     } catch (err) {
         console.error(err);
-        if(userId === undefined){
-            res.status(500).json({ error: 'Tenes que loguearte wacho' });
-            return;
-        }
         res.status(500).json({ error: 'Error al guardar reseña' });
     }
 })
