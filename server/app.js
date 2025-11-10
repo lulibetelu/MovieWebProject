@@ -30,15 +30,20 @@ app.use(
 //permite que express entienda los datos que le mandan en el form
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+if (process.env.NODE_ENV === "production") {
+    app.set("trust proxy", 1);
+}
+
 app.use(
     session({
         secret: process.env.SECRET_KEY,
         resave: false,
         saveUninitialized: false,
         cookie: {
-            secure: false,
+            secure: process.env.NODE_ENV === "production",
             httpOnly: true,
-            sameSite: "none",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 1000 * 60 * 60 * 24 * 7,
         },
     }),
 );
@@ -559,7 +564,11 @@ app.post(API_URL + "/login", async (req, res) => {
             email: user.email,
         };
 
-        res.json({ success: true });
+        res.json({
+            success: true,
+            user: req.session.user,
+            message: "Sesión iniciada",
+        });
     } catch (error) {
         if (DEBUG) console.log(error);
         res.status(500).json({
@@ -584,13 +593,24 @@ app.post(API_URL + "/register", async (req, res) => {
             username,
             email,
         };
-        res.json({ success: true, message: "Usuario registrado y logueado" });
+        res.json({
+            success: true,
+            user: req.session.user,
+            message: "Usuario registrado y logueado",
+        });
     } catch (err) {
         if (DEBUG) console.error(err);
         res.status(500).json({
             error: "Error al registrar el usuario (puede que el email ya exista)",
         });
     }
+});
+
+app.get(API_URL + "/me", (req, res) => {
+    if (req.session && req.session.user) {
+        return res.json({ authenticated: true, user: req.session.user });
+    }
+    res.json({ authenticated: false, user: null });
 });
 
 app.post(API_URL + "/logout", (req, res) => {
