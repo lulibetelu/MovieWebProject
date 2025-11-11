@@ -23,9 +23,6 @@ try {
         `${API_URL}/buscar?q=${encodeURIComponent(searchQuery)}&limit=20&pagina=${page}`,
     );
     const data = await res.json();
-    console.log("data recibido:", data);
-    console.log("results calculado:", results);
-
     results = data.searchInfo?? data;
 } catch (e) {
     console.error(e);

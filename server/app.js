@@ -188,20 +188,20 @@ app.get(API_URL + "/buscar", async (req, res) => {
             console.log("PELICULA: " + pelicula.title);
             searchInfo.movies.push({
                 name: pelicula.title,
-                movie_id: pelicula.movie_id,
+                id: pelicula.movie_id,
             });
         });
 
         actores.forEach((actor) => {
             searchInfo.actors.push({
-                actor_id: actor.person_id,
+                id: actor.person_id,
                 name: actor.person_name,
             });
         });
 
         dir.forEach((director) => {
             searchInfo.directors.push({
-                director_id: director.person_id,
+                id: director.person_id,
                 name: director.person_name,
             })
         })
