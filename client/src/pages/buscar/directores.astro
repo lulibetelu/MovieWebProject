@@ -25,27 +25,30 @@ try {
 
 
 // Redirección temprana — sin renderizar todavía
+const movies = results?.movies ?? [];
+const directors = results?.directors ?? [];
+const actors = results?.actors ?? [];
 // Priority Order
 const redirects = [
     {
         condition:
-            results.movies.length === 0 &&
-            results.directors.length === 0 &&
-            results.actors.length === 0,
+            movies.length === 0 &&
+            directors.length === 0 &&
+            actors.length === 0,
         redirect: `/buscar/notfound?q=${searchQuery}`,
     },
     {
-        condition: results.movies.length > 0,
+        condition: movies.length > 0,
         redirect: `/buscar/peliculas?q=${searchQuery}`,
     },
     {
-        condition: results.actors.length > 0,
+        condition: actors.length > 0,
         redirect: `/buscar/actores?q=${searchQuery}`,
     },
     { condition: true, redirect: `/buscar/notfound?q=${searchQuery}` },
 ];
 
-if (results.directors.length === 0 && click === "0") {
+if (directors.length === 0 && click === "0") {
     for (const { condition, redirect: p } of redirects) {
         if (condition) {
             return Astro.redirect(p, 307);
@@ -70,7 +73,7 @@ if (results.directors.length === 0 && click === "0") {
             </div>
 
             <BuscarResultados
-                items={results.directors}
+                items={directors}
                 itemType={actual}
                 searchQuery={searchQuery}
             />

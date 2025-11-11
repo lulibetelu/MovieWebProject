@@ -14,10 +14,10 @@ if (!searchQuery) return Astro.redirect("/", 302);
 
 let results;
 
-const page = parseInt(Astro.url.searchParams.get(""))
+const page = parseInt(Astro.url.searchParams.get("pagina")) || 1;
 try {
     const res = await fetch(
-        `${API_URL}/buscar?q=${encodeURIComponent(searchQuery)}&limit=20`,
+        `${API_URL}/buscar?q=${encodeURIComponent(searchQuery)}&limit=20&pagina=${page}`,
     );
     const data = await res.json();
     results = data.searchInfo?? data;
@@ -27,33 +27,38 @@ try {
 
 
 // Redirección temprana — sin renderizar todavía
+const movies = results?.movies ?? [];
+const directors = results?.directors ?? [];
+const actors = results?.actors ?? [];
 // Priority Order
 const redirects = [
     {
         condition:
-            results.movies.length === 0 &&
-            results.actors.length === 0 &&
-            results.directors.length === 0,
+            movies.length === 0 &&
+            actors.length === 0 &&
+            directors.length === 0,
         path: `/buscar/notfound?q=${searchQuery}`,
     },
     {
-        condition: results.movies.length > 0,
+        condition: movies.length > 0,
         path: `/buscar/peliculas?q=${searchQuery}`,
     },
     {
-        condition: results.directors.length > 0,
+        condition: directors.length > 0,
         path: `/buscar/directores?q=${searchQuery}`,
     },
     { condition: true, path: `/buscar/notfound?q=${searchQuery}` },
 ];
 
-if (results.actors.length === 0 && click === "0") {
+if (actors.length === 0 && click === "0") {
     for (const { condition, path } of redirects) {
         if (condition) {
             return Astro.redirect(path, 307);
         }
     }
 }
+const hasMore = results.movies != undefined && results.movies.length >= 18;
+
 ---
 
 <Layout actual={actual} title={`Resultados para "${searchQuery}"`}>
@@ -72,10 +77,40 @@ if (results.actors.length === 0 && click === "0") {
             </div>
 
             <BuscarResultados
-                items={results.actors}
+                items={actors}
                 itemType={actual}
                 searchQuery={searchQuery}
             />
+
+            <div class="join mt-6 flex justify-center">
+                {
+                    page === 1 ? (
+                            <button class="join-item btn">«</button>
+                    ) : (
+                            <a
+                                    href={`/buscar/actores?q=${encodeURIComponent(searchQuery)}&limit=20&pagina=${page-1}`}
+                                    class="join-item btn"
+                            >
+                                «
+                            </a>
+                    )
+                }
+                <button class="join-item btn"
+                >Página {page}</button
+                >
+                {
+                    !hasMore ? (
+                            <button class="join-item btn">»</button>
+                    ) : (
+                            <a
+                                    href={`/buscar/actores?q=${encodeURIComponent(searchQuery)}&pagina=${page+1}`}
+                                    class="join-item btn"
+                            >
+                                »
+                            </a>
+                    )
+                }
+            </div>
         </section>
     </main>
 </Layout>
