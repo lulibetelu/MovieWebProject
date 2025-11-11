@@ -111,21 +111,21 @@ app.get(API_URL + "/buscar", async (req, res) => {
     // 4. Convertir a función async
     const searchTerm = req.query.q;
     const limit = req.query.limit < 20 ? req.query.limit : 18;
-    const page = req.query.page || 1;
+    const page = parseInt(req.query.pagina) || 1;
     const offset = (page - 1) * 20;
 
     // Los placeholders en pg son $1, $2, etc.
     const query = `
       SELECT * 
       FROM (
-        SELECT * FROM search_all($1, 1000000, $2)
+        SELECT * FROM search_all($1, 1000000)
         UNION ALL
         SELECT keyw.movie_id, keyw.title, 'movie'::TEXT AS type 
-        FROM search_movies_by_keyword($3) AS keyw
+        FROM search_movies_by_keyword($2) AS keyw
       ) AS combined
-      LIMIT $4 OFFSET $5;
+      LIMIT $3 OFFSET $4;
     ` // ILIKE es case-insensitive en Postgres
-    const values = [`%${searchTerm}%`, offset, searchTerm, limit, offset];
+    const values = [`%${searchTerm}%`, searchTerm, limit, offset];
 
     try {
         // Usar db.query que devuelve una promesa y acceder a .rows
@@ -154,7 +154,6 @@ app.get(API_URL + "/buscar", async (req, res) => {
                 directors: filteredDirectors,
                 tmdbApiKey: process.env.TMDB_API_KEY,
                 searchTerm,
-                pagina: page,
             });
             return;
         }
