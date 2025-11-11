@@ -386,32 +386,10 @@ app.get("/profile", async (req, res) => {
         );
         const user = userResult.rows[0];
 
-        /*const ratedResult = await db.query(
-                "SELECT COUNT(*) FROM user_movie WHERE user_id = $1 AND rating IS NOT NULL",
-                [userId],
-            );
-
-            const ratedMovies = parseInt(ratedResult.rows[0].count);
-
-            const reviewResult = await db.query(
-                "SELECT COUNT(*) FROM user_movie WHERE user_id = $1 AND review IS NOT NULL",
-                [userId],
-            );
-            const writtenReviews = parseInt(reviewResult.rows[0].count);
-
-            //const lastRatedResult = await db.query( );
-
-
-            //const lastReviewsResult = await db.query( );
-        */
         res.json({
             user: {
                 username: user.username,
                 email: user.email,
-                //ratedMovies,
-                //writtenReviews,
-                //lastRated: lastRatedResult.rows,
-                // lastReviews: lastReviewsResult.rows,
             },
         });
     } catch (error) {
@@ -530,6 +508,15 @@ app.get(API_URL + "/top-actors/:limit", async (req, res) => {
     }
 });
 
+app.get("/reviews", async (req, res) =>{
+    if (!req.session.user) {
+        console.log("no logueado");
+        return res.status(401).send("No estás logueado");
+    }
+    const userId = req.session.user.id;
+    console.log(userId);
+    res.json({userId});
+});
 // ========== AUTH ==========
 // ruta que recibe la informacion del form
 app.post(API_URL + "/login", async (req, res) => {
@@ -655,7 +642,7 @@ app.post("/api/reviews", async (req, res) => {
     }
 });
 
-// 📤 GET: traer reseñas (por movieId, userId o todas)
+// 📤 GET: traer reviews (por movieId, userId o todas)
 app.get("/api/reviews", async (req, res) => {
     try {
         const { movieId, userId } = req.query;
@@ -670,10 +657,12 @@ app.get("/api/reviews", async (req, res) => {
             .sort({ created_at: -1 })
             .toArray();
 
+        console.log(result);
+
         res.json(result);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Error al obtener reseñas" });
+        res.status(500).json({ error: "Error al obtener reviews" });
     }
 });
 

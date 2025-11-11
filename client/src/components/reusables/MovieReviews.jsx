@@ -15,7 +15,7 @@ export default function MovieReviews({ movieId, userId, apiUrl }) {
                 const data = await res.json();
                 setReviews(data);
             } catch (err) {
-                console.error("Error al obtener reseñas:", err);
+                console.error("Error al obtener reviews:", err);
             } finally {
                 setLoading(false);
             }
