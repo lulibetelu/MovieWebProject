@@ -308,32 +308,14 @@ try {
     </section>
 </DetailLayout>
 
-<script is:inline>
-    document.getElementById('review-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const form = document.getElementById('review-form');
-        const movieId = form.dataset.movieId;
-        const userId = form.dataset.userId;
-        const userName = form.dataset.userName;
-        const movieName = form.dataset.movieName;
-
-        const data = {
-            userId: userId,
-            userName: userName,
-            movieId: movieId,
-            movieName: movieName,
-            texto: e.target.texto.value,
-        };
-
-        try {
-            const res = await fetch('http://localhost:3500/api/reviews', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            const result = await res.json();
-            console.log("Respuesta del servidor:", result);
+                <style>
+                    .movie-image-wrapper {
+                        width: 300px;              /* ancho fijo */
+                        height: 450px;             /* alto fijo (proporción típica de póster 2:3) */
+                        overflow: hidden;          /* recorta lo que se salga */
+                        border-radius: 12px;       /* bordes redondeados */
+                        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+                    }
 
                     .movie-image-wrapper img {
                         width: 100%;
@@ -341,5 +323,43 @@ try {
                         object-fit: cover;         /* mantiene proporción y llena el espacio */
                         object-position: center;   /* centra la imagen */
                     }
+                </style>
 
-    </script>
+                <script is:inline>
+                    document.getElementById('review-form').addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const form = document.getElementById('review-form');
+                        const movieId = form.dataset.movieId;
+                        const userId = form.dataset.userId;
+                        const userName = form.dataset.userName;
+                        const movieName = form.dataset.movieName;
+
+                        const data = {
+                            userId: userId,
+                            userName: userName,
+                            movieId: movieId,
+                            movieName: movieName,
+                            texto: e.target.texto.value,
+                        };
+
+                        try {
+                            const res = await fetch('http://localhost:3500/api/reviews', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data)
+                            });
+
+                            const result = await res.json();
+                            console.log("Respuesta del servidor:", result);
+
+                            if (res.ok) {
+                                alert('✅ Reseña enviada!');
+                                e.target.reset();
+                            } else {
+                                alert('❌ Error: ' + result.error);
+                            }
+                        } catch (err) {
+                            console.error("Error en fetch:", err);
+                        }
+                    });
+                    </script>
