@@ -9,18 +9,17 @@ const API_URL = import.meta.env.PUBLIC_API_URL;
 
 let error = null;
 
-    try {
-        const res = await fetch(`${API_URL}/`);
-        await res.json();
-        error = false;
-    } catch (e) {
-        error = true;
-    }
-
+try {
+    const res = await fetch(`${API_URL}/`);
+    await res.json();
+    error = false;
+} catch (e) {
+    error = true;
+}
 ---
 
 <header
-        class="navbar bg-base-100 flex flex-row justify-between shadow-sm w-full"
+    class="navbar bg-base-100 flex flex-row justify-between shadow-sm w-full"
 >
     <!-- TÍTULO -->
     <div>

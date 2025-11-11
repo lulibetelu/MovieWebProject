@@ -4,6 +4,25 @@ import "../assets/app.css";
 import SimpleNavbar from "../components/base/Navbars/SimpleNavbar.astro";
 
 const { title } = Astro.props;
+
+//const { PUBLIC_API_URL: API_URL } = import.meta.env;
+
+import { API_URL } from "../data/config.js";
+
+// SSR: obtener usuario y exponerlo para uso en el cliente
+let user = null;
+try {
+    const cookieHeader = Astro.request.headers.get("cookie") ?? "";
+    const res = await fetch(`${API_URL}/me`, {
+        headers: { cookie: cookieHeader },
+    });
+    if (res.ok) {
+        const data = await res.json();
+        if (data?.authenticated) user = data.user;
+    }
+} catch (e) {
+    // Ignorar errores de red/SSR, el cliente seguirá mostrando estado no logueado
+}
 ---
 
 <!doctype html>
@@ -18,7 +37,7 @@ const { title } = Astro.props;
     </head>
 
     <body>
-        <SimpleNavbar searchTerm={title} />
+        <SimpleNavbar searchTerm={title} user={user} />
 
         <slot />
     </body>
