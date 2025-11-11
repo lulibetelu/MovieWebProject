@@ -1,11 +1,11 @@
 ---
-import Layout from "../../layouts/Layout.astro";
+import DetailLayout from "../../layouts/DetailLayout.astro";
 
 // Esta página debe ejecutarse en el cliente para poder enviar cookies al backend
 export const prerender = false;
 ---
 
-<Layout>
+<DetailLayout>
     <main class="min-h-[calc(100vh-64px)] bg-base-200">
         <section class="max-w-3xl mx-auto px-4 md:px-6 py-8 space-y-6">
             <div
@@ -152,4 +152,4 @@ export const prerender = false;
 
         document.addEventListener("DOMContentLoaded", loadProfile);
     </script>
-</Layout>
+</DetailLayout>
