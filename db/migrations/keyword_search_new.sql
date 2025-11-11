@@ -19,8 +19,7 @@ SELECT DISTINCT
 FROM movies.movie m
          JOIN movies.movie_keywords mk ON m.movie_id = mk.movie_id
          JOIN movies.keyword k ON mk.keyword_id = k.keyword_id
-WHERE k.keyword_name ILIKE '%' || keyword_text || '%'
-ORDER BY m.popularity DESC
-    LIMIT 20;
+WHERE k.keyword_name ILIKE keyword_text
+ORDER BY m.popularity DESC;
 END;
 $$ LANGUAGE plpgsql;
