@@ -107,54 +107,111 @@ app.get(API_URL + "/buscar", async (req, res) => {
     // 4. Convertir a función async
     const searchTerm = req.query.q;
     const limit = req.query.limit < 20 ? req.query.limit : 18;
-    const page = req.query.page || 1;
+    const page = parseInt(req.query.pagina) || 1;
     const offset = (page - 1) * 20;
 
     // Los placeholders en pg son $1, $2, etc.
-    const query =
-        "SELECT * FROM search_all($1, " +
-        limit +
-        ", $2) " +
-        "UNION ALL (SELECT keyw.movie_id, keyw.title, 'movie'::TEXT AS type from search_movies_by_keyword($1) as keyw);"; // ILIKE es case-insensitive en Postgres
-    const values = [`%${searchTerm}%`, offset];
+    const queryDef = `
+      SELECT * 
+      FROM (
+        SELECT * FROM search_all($1, 1000000)
+        UNION ALL
+        SELECT keyw.movie_id, keyw.title, 'movie'::TEXT AS type 
+        FROM search_movies_by_keyword($2) AS keyw
+      ) AS combined
+    OFFSET $3
+      ;
+    ` // ILIKE es case-insensitive en Postgres
+    const values = [`%${searchTerm}%`, searchTerm, offset];
+
+    const queryMovies =`
+        (
+            SELECT
+               m.movie_id,
+               m.title
+            FROM Movies.movie m
+            WHERE m.title ILIKE $1
+            ORDER BY m.popularity DESC NULLS LAST
+        )
+        UNION ALL
+        SELECT keyw.movie_id, keyw.title
+        FROM movies.search_movies_by_keyword($4) AS keyw
+        LIMIT $2 OFFSET $3;
+    `
+    const movieValues = [`%${searchTerm}%`, limit, offset, searchTerm];
+
+    const queryActors =
+        `SELECT
+            p.person_id,
+            p.person_name
+        FROM person p
+        JOIN movie_cast mc ON mc.person_id = p.person_id
+        WHERE p.person_name ILIKE $1
+        GROUP BY p.person_id, p.person_name
+        LIMIT $2 OFFSET $3;`
+
+    const actorValues = [`%${searchTerm}%`, limit, offset];
+
+    const queryDirectors =
+        `SELECT
+            p.person_id,
+            p.person_name
+        FROM person p
+        JOIN movie_crew mc ON mc.person_id = p.person_id
+        JOIN department d ON d.department_id = mc.department_id
+        WHERE p.person_name ILIKE $1
+          AND mc.job = 'Director'
+        GROUP BY p.person_id, p.person_name
+        ORDER BY p.person_name
+        LIMIT $2 OFFSET $3;`
+    const directoresValues = [`%${searchTerm}%`, limit, offset];
 
     try {
         // Usar db.query que devuelve una promesa y acceder a .rows
-        const result = await db.query(query, values);
+        const pelis = (await db.query(queryMovies, movieValues)).rows;
+        console.log('ACA: ' + pelis.length);
+        const actores = (await db.query(queryActors, actorValues)).rows;
 
-        // Filter movies
-        const filteredMovies = result.rows.filter(
-            (row) => row.type === "movie",
-        );
+        const dir = (await db.query(queryDirectors, directoresValues)).rows;
 
-        // Filter actors
-        const filteredActors = result.rows.filter(
-            (row) => row.type === "actor",
-        );
+        const searchInfo = {
+            movies: [],
+            actors: [],
+            directors: [],
+        }
 
-        // Filter directors
-        const filteredDirectors = result.rows.filter(
-            (row) => row.type === "director",
-        );
+        pelis.forEach((pelicula) => {
+            console.log("PELICULA: " + pelicula.title);
+            searchInfo.movies.push({
+                name: pelicula.title,
+                id: pelicula.movie_id,
+            });
+        });
+
+        actores.forEach((actor) => {
+            searchInfo.actors.push({
+                id: actor.person_id,
+                name: actor.person_name,
+            });
+        });
+
+        dir.forEach((director) => {
+            searchInfo.directors.push({
+                id: director.person_id,
+                name: director.person_name,
+            })
+        })
 
         if (API_MODE) {
             res.json({
-                movies: filteredMovies,
-                actors: filteredActors,
-                directors: filteredDirectors,
+                searchInfo,
                 tmdbApiKey: process.env.TMDB_API_KEY,
                 searchTerm,
             });
             return;
         }
 
-        res.render("resultado", {
-            movies: filteredMovies,
-            actors: filteredActors,
-            directors: filteredDirectors,
-            searchTerm,
-            user: req.session.user,
-        });
+
     } catch (err) {
         if (DEBUG) console.log(err);
         if (API_MODE)
