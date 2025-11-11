@@ -12,21 +12,23 @@ const click = Astro.url.searchParams.get("c") || "0";
 
 if (!searchQuery) return Astro.redirect("/", 302);
 
-let results = null;
+const page = parseInt(Astro.url.searchParams.get("pagina")) || 1;
+let results;
 try {
     const res = await fetch(
-        `${API_URL}/buscar?q=${encodeURIComponent(searchQuery)}&limit=20`,
+        `${API_URL}/buscar?q=${encodeURIComponent(searchQuery)}&limit=20&pagina=${page}`,
     );
-    results = await res.json();
+    const data = await res.json();
+    results = data.searchInfo ?? data;
 } catch (e) {
     console.error(e);
 }
 
-const actors = results?.actors ?? results?.actores ?? [];
-const movies = results?.movies ?? results?.peliculas ?? [];
-const directors = results?.directors ?? results?.directores ?? [];
 
 // Redirección temprana — sin renderizar todavía
+const movies = results?.movies ?? [];
+const directors = results?.directors ?? [];
+const actors = results?.actors ?? [];
 // Priority Order
 const redirects = [
     {
@@ -54,6 +56,8 @@ if (directors.length === 0 && click === "0") {
         }
     }
 }
+
+const hasMore = movies.length >= 18;
 ---
 
 <Layout actual={actual} title={`Resultados para "${searchQuery}"`}>
@@ -76,6 +80,36 @@ if (directors.length === 0 && click === "0") {
                 itemType={actual}
                 searchQuery={searchQuery}
             />
+
+            <div class="join mt-6 flex justify-center">
+                {
+                    page === 1 ? (
+                            <button class="join-item btn">«</button>
+                    ) : (
+                            <a
+                                    href={`/buscar/directores?q=${encodeURIComponent(searchQuery)}&limit=20&pagina=${page-1}`}
+                                    class="join-item btn"
+                            >
+                                «
+                            </a>
+                    )
+                }
+                <button class="join-item btn"
+                >Página {page}</button
+                >
+                {
+                    !hasMore ? (
+                            <button class="join-item btn">»</button>
+                    ) : (
+                            <a
+                                    href={`/buscar/directores?q=${encodeURIComponent(searchQuery)}&limit=20&pagina=${page+1}`}
+                                    class="join-item btn"
+                            >
+                                »
+                            </a>
+                    )
+                }
+            </div>
         </section>
     </main>
 </Layout>
