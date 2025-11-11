@@ -677,6 +677,56 @@ app.get("/api/reviews", async (req, res) => {
     }
 });
 
+
+app.get("/api/rating", async (req,res)=>{
+    try {
+        const {movieId, userId} = req.query;
+
+        let filter = {};
+        if (movieId) filter.movie_id = +movieId;
+        if (userId) filter.user_id = +userId;
+
+
+
+        const result = await mdb.collection('rating')
+            .findOne(filter, { sort: { created_at: -1 } });
+        res.json(result);
+
+    }catch(err){
+        console.log("wachooo algo fallo aca");
+        console.error(err);
+        res.status(500).json({ error: "Error al obtener ratings" });
+    }
+
+})
+
+app.post("/api/rating", async (req, res) => {
+    console.log("hola");
+    try {
+        const { movie_id, user_id, movie_title, score } = req.body;
+        console.log("movie id" + movie_id);
+        console.log("user id" + user_id);
+
+        if (!movie_id || !user_id || typeof score !== "number") {
+            return res.status(400).json({ error: "Datos inválidos" });
+        }
+
+        const doc = {
+            user_id: +user_id,
+            movie_id: +movie_id,
+            movie_title,
+            score,
+            created_at:new Date()
+        };
+
+        const result = await mdb.collection("rating").insertOne(doc);
+        res.json({ success: true, insertedId: result.insertedId });
+    } catch (err) {
+        console.error("❌ Error al insertar rating:", err);
+        res.status(500).json({ error: "Error al guardar rating" });
+    }
+});
+
 app.listen(PORT, () => {
     if (API_MODE)
         return console.log(

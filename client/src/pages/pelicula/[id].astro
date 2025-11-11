@@ -5,6 +5,8 @@ import DetailLayout from "../../layouts/DetailLayout.astro";
 import MovieImages from "../../components/TMDB_Images/MovieImages";
 import PersonImages from "../../components/TMDB_Images/PersonImages";
 import MovieReviews from "../../components/reusables/MovieReviews";
+import RateMovie from "../../components/reusables/RateMovie.jsx";
+
 
 const { PUBLIC_API_URL: API_URL } = import.meta.env;
 
@@ -52,6 +54,8 @@ try {
 } catch (e) {
     // Ignorar errores de red/SSR, el cliente seguirá mostrando estado no logueado
 }
+
+
 ---
 
 <DetailLayout title={movie?.title ?? "Película"}>
@@ -137,6 +141,12 @@ try {
                                                     ⭐ {Number(movie.vote_average).toFixed(1)}
                                                 </div>
                                         )}
+                                        <div class="flex items-center gap-3">
+                                            <RateMovie data={{movieTitle:movie.title,
+                                                movieId:id,
+                                                userId:user?.id
+                                            }} client:load />
+                                        </div>
                                     </div>
 
                                     {movie.homepage && (
