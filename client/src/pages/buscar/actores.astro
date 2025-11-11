@@ -57,7 +57,7 @@ if (actors.length === 0 && click === "0") {
         }
     }
 }
-const hasMore = results.movies != undefined && results.movies.length >= 18;
+const hasMore = movies.length >= 18;
 
 ---
 
@@ -103,7 +103,7 @@ const hasMore = results.movies != undefined && results.movies.length >= 18;
                             <button class="join-item btn">»</button>
                     ) : (
                             <a
-                                    href={`/buscar/actores?q=${encodeURIComponent(searchQuery)}&pagina=${page+1}`}
+                                    href={`/buscar/actores?q=${encodeURIComponent(searchQuery)}&limit=20&pagina=${page+1}`}
                                     class="join-item btn"
                             >
                                 »
