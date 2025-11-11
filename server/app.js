@@ -699,7 +699,6 @@ app.post("/api/reviews", async (req, res) => {
     }
 });
 
-// 📤 GET: traer reviews (por movieId, userId o todas)
 app.get("/api/reviews", async (req, res) => {
     try {
         const { movieId, userId } = req.query;
@@ -714,14 +713,113 @@ app.get("/api/reviews", async (req, res) => {
             .sort({ created_at: -1 })
             .toArray();
 
-        console.log(result);
-
         res.json(result);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Error al obtener reviews" });
+        res.status(500).json({ error: "Error al obtener reseñas" });
     }
 });
+
+app.get("/api/rating", async (req,res)=>{
+    try {
+        const {movieId, userId} = req.query;
+
+        let filter = {};
+        if (movieId) filter.movie_id = +movieId;
+        if (userId) filter.user_id = +userId;
+
+
+
+        const result = await mdb.collection('rating')
+            .findOne(filter, { sort: { created_at: -1 } });
+        res.json(result);
+
+    }catch(err){
+        console.log("wachooo algo fallo aca");
+        console.error(err);
+        res.status(500).json({ error: "Error al obtener ratings" });
+    }
+
+})
+
+app.post("/api/rating", async (req, res) => {
+    console.log("hola");
+    try {
+        const { movie_id, user_id, movie_title, score } = req.body;
+        console.log("movie id" + movie_id);
+        console.log("user id" + user_id);
+
+        if (!movie_id || !user_id || typeof score !== "number") {
+            return res.status(400).json({ error: "Datos inválidos" });
+        }
+
+        const doc = {
+            user_id: +user_id,
+            movie_id: +movie_id,
+            movie_title,
+            score,
+            created_at:new Date()
+        };
+
+        const result = await mdb.collection("rating").insertOne(doc);
+        res.json({ success: true, insertedId: result.insertedId });
+    } catch (err) {
+        console.error("❌ Error al insertar rating:", err);
+        res.status(500).json({ error: "Error al guardar rating" });
+    }
+});
+
+app.post("/api/checkFavorites", async (req, res) => {
+
+    try {
+        const { user_id, movie_id } = req.body;
+
+        if (!user_id || !movie_id) {
+            return res.status(400).json({ error: "Faltan datos" });
+        }
+
+        const fav = await mdb.collection("favorites").findOne({
+            user_id: +user_id,
+            movie_id: +movie_id
+        });
+
+        res.json({ isFavorite: !!fav });
+    } catch (err) {
+        console.error("❌ Error al obtener favorito:", err);
+        res.status(500).json({ error: "Error al obtener favorito" });
+    }
+});
+
+app.post("/api/favorites", async (req, res) => {
+    try {
+        const { user_id, movie_id, movie_title, favorite } = req.body;
+
+        const col = mdb.collection("favorites");
+        if(!user_id){
+            res.status(500).json({ error: "Error al guardar favorito" });
+            return;
+        }
+
+        if (favorite) {
+            // Insertar si no existe
+            const existing = await col.findOne({ user_id: +user_id, movie_id: +movie_id });
+            if (!existing) {
+                await col.insertOne({ user_id: +user_id, movie_id: +movie_id, movie_title });
+            }
+        } else {
+            // Eliminar si se desactiva
+            await col.deleteOne({ user_id: +user_id, movie_id: +movie_id });
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error("❌ Error al guardar favorito:", err);
+        res.status(500).json({ error: "Error al guardar favorito" });
+    }
+});
+
+
+
 
 app.listen(PORT, () => {
     if (API_MODE)

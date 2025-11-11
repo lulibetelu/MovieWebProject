@@ -5,6 +5,8 @@ import DetailLayout from "../../layouts/DetailLayout.astro";
 import MovieImages from "../../components/TMDB_Images/MovieImages";
 import PersonImages from "../../components/TMDB_Images/PersonImages";
 import MovieReviews from "../../components/reusables/MovieReviews";
+import RateMovie from "../../components/reusables/RateMovie.jsx";
+
 
 const { PUBLIC_API_URL: API_URL } = import.meta.env;
 
@@ -52,6 +54,8 @@ try {
 } catch (e) {
     // Ignorar errores de red/SSR, el cliente seguirá mostrando estado no logueado
 }
+
+
 ---
 
 <DetailLayout title={movie?.title ?? "Película"}>
@@ -137,6 +141,36 @@ try {
                                                     ⭐ {Number(movie.vote_average).toFixed(1)}
                                                 </div>
                                         )}
+                                        <div class="flex items-center gap-3">
+                                            <RateMovie data={{movieTitle:movie.title,
+                                                movieId:id,
+                                                userId:user?.id
+                                            }} client:load />
+                                        </div>
+                                        <div>
+                                            <button
+                                                    id="favBtn"
+                                                    class="btn btn-square p-2 transition-all"
+                                                    data-user-id={user?.id}
+                                                    data-movie-id={id}
+                                                    data-movie-title={movie.title}
+                                            >
+                                                <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        viewBox="0 0 24 24"
+                                                        width="24"
+                                                        height="24"
+                                                >
+                                                    <path
+                                                            d="M6 2a1 1 0 0 0-1 1v19l7-4 7 4V3a1 1 0 0 0-1-1H6z"
+                                                            stroke="currentColor"
+                                                            stroke-width="2"
+                                                            fill="none"
+                                                    />
+                                                </svg>
+                                            </button>
+
+                                        </div>
                                     </div>
 
                                     {movie.homepage && (
@@ -298,41 +332,125 @@ try {
     </section>
 </DetailLayout>
 
-<script is:inline>
-    document.getElementById('review-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const form = document.getElementById('review-form');
-        const movieId = form.dataset.movieId;
-        const userId = form.dataset.userId;
-        const userName = form.dataset.userName;
-        const movieName = form.dataset.movieName;
+                <style>
+                    .movie-image-wrapper {
+                        width: 300px;              /* ancho fijo */
+                        height: 450px;             /* alto fijo (proporción típica de póster 2:3) */
+                        overflow: hidden;          /* recorta lo que se salga */
+                        border-radius: 12px;       /* bordes redondeados */
+                        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+                    }
 
-        const data = {
-            userId: userId,
-            userName: userName,
-            movieId: movieId,
-            movieName: movieName,
-            texto: e.target.texto.value,
-        };
+                    .movie-image-wrapper img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;         /* mantiene proporción y llena el espacio */
+                        object-position: center;   /* centra la imagen */
+                    }
+                </style>
 
-        try {
-            const res = await fetch('http://localhost:3500/api/reviews', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+                <script is:inline>
+                    document.addEventListener("DOMContentLoaded", () => {
+                        // --- 🎬 FORMULARIO DE RESEÑA ---
+                        const form = document.getElementById('review-form');
+                        if (form) {
+                            form.addEventListener('submit', async (e) => {
+                                e.preventDefault();
+                                const movieId = form.dataset.movieId;
+                                const userId = form.dataset.userId;
+                                const userName = form.dataset.userName;
+                                const movieName = form.dataset.movieName;
 
-            const result = await res.json();
-            console.log("Respuesta del servidor:", result);
+                                const data = {
+                                    userId,
+                                    userName,
+                                    movieId,
+                                    movieName,
+                                    texto: e.target.texto.value,
+                                };
 
-            if (res.ok) {
-                alert('✅ Reseña enviada!');
-                e.target.reset();
-            } else {
-                alert('❌ Error: ' + result.error);
-            }
-        } catch (err) {
-            console.error("Error en fetch:", err);
-        }
-    });
-</script>
+                                try {
+                                    const res = await fetch('http://localhost:3500/api/reviews', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(data)
+                                    });
+
+                                    const result = await res.json();
+                                    console.log("Respuesta del servidor:", result);
+
+                                    if (res.ok) {
+                                        alert('✅ Reseña enviada!');
+                                        e.target.reset();
+                                    } else {
+                                        alert('❌ Error: ' + result.error);
+                                    }
+                                } catch (err) {
+                                    console.error("Error en fetch:", err);
+                                }
+                            });
+                        }
+
+                        // --- ⭐ BOTÓN DE FAVORITOS ---
+                        const favBtn = document.getElementById("favBtn");
+                        if (!favBtn) return;
+
+                        const user_id = favBtn.dataset.userId;
+                        const movie_id = favBtn.dataset.movieId;
+                        const movie_title = favBtn.dataset.movieTitle;
+
+                        const path = favBtn.querySelector("path");
+
+
+                        function setFavState(isActive) {
+                            if (isActive) {
+                                favBtn.classList.add("active");
+                                path.setAttribute("fill", "#facc15");
+                                path.setAttribute("stroke", "#facc15");
+                            } else {
+                                favBtn.classList.remove("active");
+                                path.setAttribute("fill", "none");
+                                path.setAttribute("stroke", "currentColor");
+                            }
+                        }
+
+                        async function checkFavorite() {
+                            try {
+                                const res = await fetch("http://localhost:3500/api/checkFavorites", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ user_id, movie_id })
+                                });
+
+                                const data = await res.json();
+                                setFavState(data.isFavorite === true);
+                            } catch (err) {
+                                console.error("❌ Error al obtener favoritos:", err);
+                            }
+                        }
+
+                        favBtn.addEventListener("click", async () => {
+                            const isActive = favBtn.classList.contains("active");
+                            const newState = !isActive;
+                            setFavState(newState);
+
+                            try {
+                                await fetch("http://localhost:3500/api/favorites", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        user_id,
+                                        movie_id,
+                                        movie_title,
+                                        favorite: newState
+                                    })
+                                });
+                            } catch (err) {
+                                console.error("❌ Error al guardar favorito:", err);
+                            }
+                        });
+
+                        checkFavorite();
+                    });
+                    </script>
+

@@ -120,6 +120,37 @@ db.createCollection("user_log", {
 })
 ```
 
+### Modificar la de ratings
+```
+db.runCommand({
+  collMod: "rating",
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["user_id", "movie_id", "movie_title", "score", "created_at"],
+      properties: {
+        user_id: { bsonType: "int" },
+        movie_id: { bsonType: "int" },
+        movie_title: { bsonType: "string" },
+        score: {
+          bsonType: "int",
+          minimum: 1,
+          maximum: 10,
+          description: "Debe estar entre 1 y 10"
+        },
+        created_at: {
+          bsonType: "date",
+          description: "Fecha de creación del rating"
+        }
+      }
+    }
+  },
+  validationLevel: "strict",
+  validationAction: "error"
+});
+
+```
+
 Si te gusto este instructivo te pido si me podes ayudar😁  
 Mi alias es: facugarciar
 
