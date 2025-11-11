@@ -12,42 +12,42 @@ const click = Astro.url.searchParams.get("c") || "0";
 
 if (!searchQuery) return Astro.redirect("/", 302);
 
-let results = null;
+let results;
+
+const page = parseInt(Astro.url.searchParams.get(""))
 try {
     const res = await fetch(
         `${API_URL}/buscar?q=${encodeURIComponent(searchQuery)}&limit=20`,
     );
-    results = await res.json();
+    const data = await res.json();
+    results = data.searchInfo?? data;
 } catch (e) {
     console.error(e);
 }
 
-const actors = results?.actors ?? results?.actores ?? [];
-const movies = results?.movies ?? results?.peliculas ?? [];
-const directors = results?.directors ?? results?.directores ?? [];
 
 // Redirección temprana — sin renderizar todavía
 // Priority Order
 const redirects = [
     {
         condition:
-            movies.length === 0 &&
-            actors.length === 0 &&
-            directors.length === 0,
+            results.movies.length === 0 &&
+            results.actors.length === 0 &&
+            results.directors.length === 0,
         path: `/buscar/notfound?q=${searchQuery}`,
     },
     {
-        condition: movies.length > 0,
+        condition: results.movies.length > 0,
         path: `/buscar/peliculas?q=${searchQuery}`,
     },
     {
-        condition: directors.length > 0,
+        condition: results.directors.length > 0,
         path: `/buscar/directores?q=${searchQuery}`,
     },
     { condition: true, path: `/buscar/notfound?q=${searchQuery}` },
 ];
 
-if (actors.length === 0 && click === "0") {
+if (results.actors.length === 0 && click === "0") {
     for (const { condition, path } of redirects) {
         if (condition) {
             return Astro.redirect(path, 307);
@@ -72,7 +72,7 @@ if (actors.length === 0 && click === "0") {
             </div>
 
             <BuscarResultados
-                items={actors}
+                items={results.actors}
                 itemType={actual}
                 searchQuery={searchQuery}
             />

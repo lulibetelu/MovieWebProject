@@ -13,7 +13,7 @@ const click = Astro.url.searchParams.get("c") || "0";
 
 if (!searchQuery) return Astro.redirect("/", 302);
 
-let results = null;
+let results;
 
 //como pagina es un parametro que cambia con cada paginado, tiene que estar en la url
 const page = parseInt(Astro.url.searchParams.get("pagina")) || 1;
@@ -22,21 +22,21 @@ try {
     const res = await fetch(
         `${API_URL}/buscar?q=${encodeURIComponent(searchQuery)}&limit=20&pagina=${page}`,
     );
+    const data = await res.json();
+    console.log("data recibido:", data);
+    console.log("results calculado:", results);
 
-    results = await res.json();
+    results = data.searchInfo?? data;
 } catch (e) {
     console.error(e);
 }
 
-//esta es la informacion de la query, no va en el url
-const actors = results?.actors ?? results?.actores ?? [];
-const movies = results?.movies ?? results?.peliculas ?? [];
-const directors = results?.directors ?? results?.directores ?? [];
-
-const hasMore = movies.length >= 18;
-
 
 // Redirección temprana — sin renderizar todavía
+const movies = results?.movies ?? [];
+const directors = results?.directors ?? [];
+const actors = results?.actors ?? [];
+
 // Priority Order
 const redirects = [
     {
@@ -56,14 +56,15 @@ const redirects = [
     },
     { condition: true, path: `/buscar/notfound?q=${searchQuery}` },
 ];
+if (results.movies === 0 && click === "0") {
 
-if (movies.length === 0 && click === "0") {
     for (const { condition, path } of redirects) {
         if (condition) {
             return Astro.redirect(path, 307);
         }
     }
 }
+const hasMore = results.movies != undefined && results.movies.length >= 18;
 ---
 
 <Layout actual={actual} title={`Resultados para "${searchQuery}"`}>
