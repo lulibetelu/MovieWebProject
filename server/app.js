@@ -319,8 +319,12 @@ app.get(API_URL + "/pelicula/:id", async (req, res) => {
 app.get(API_URL + "/persona/:id", async (req, res) => {
     const personID = req.params.id;
 
-    const offset = req.query.offset
-        ? Math.max(parseInt(req.query.offset), 0)
+    const offsetAct = req.query.offsetAct
+        ? Math.max(parseInt(req.query.offsetAct), 0)
+        : 0;
+
+    const offsetDir = req.query.offsetDir
+        ? Math.max(parseInt(req.query.offsetDir), 0)
         : 0;
 
     const AscOrDesc = req.query.desc === "f" ? "ASC" : "DESC";
@@ -361,8 +365,8 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
     `;
 
     try {
-        const actors = (await db.query(actorQuery, [personID, offset])).rows;
-        const directors = (await db.query(directorQuery, [personID, offset]))
+        const actors = (await db.query(actorQuery, [personID, offsetAct])).rows;
+        const directors = (await db.query(directorQuery, [personID, offsetDir]))
             .rows;
 
         if (actors.length === 0 && directors.length === 0) {
@@ -376,7 +380,8 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
                     ? directors[0].person_name
                     : actors[0].person_name,
             gender: actors.length === 0 ? "Male" : actors[0].gender,
-            offset: offset,
+            offsetAct: offsetAct,
+            offsetDir: offsetDir,
             order: req.query.order,
             ascOrDesc: AscOrDesc === "DESC" ? "t" : "f",
             actedMovies: [],
