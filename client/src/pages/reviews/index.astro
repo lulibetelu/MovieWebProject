@@ -1,11 +1,21 @@
 ---
 import DetailLayout from "../../layouts/DetailLayout.astro";
-export const prerender = false;
 import MovieReviews from "../../components/reusables/MovieReviews";
 import {API_URL} from "../../data/config";
+export const prerender = false;
 
-const res = await (fetch(`${API_URL}/reviews`, {credentials: "include"}));
-const data = await res.json();
+//const res = await (fetch(`${API_URL}/reviews`, {credentials: "include"}));
+//const data = await res.json();
+// primero obtener el usuario
+const meRes = await fetch(`${API_URL}/me`, { credentials: "include" });
+const meData = await meRes.json();
+
+let userId = null;
+console.log(meData);
+if (meData?.authenticated) {
+    userId = meData;
+}
+console.log("Alto user id: " +  userId);
 ---
 <DetailLayout title="Tus reseñas">
     <main class="min-h-[calc(100vh-64px)] bg-gradient-to-br from-black via-[#120200] to-[#1f0a00] text-gray-200">
@@ -39,7 +49,7 @@ const data = await res.json();
                 </div>
 
                 <!-- componente react -->
-                <MovieReviews userId={data.userId} apiUrl={API_URL} client:load />
+                <MovieReviews movieId={undefined} userId={userId} apiUrl={API_URL} client:load />
             </div>
         </section>
     </main>

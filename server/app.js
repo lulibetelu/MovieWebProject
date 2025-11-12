@@ -45,7 +45,14 @@ app.use(
             httpOnly: true,
             sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
             maxAge: 1000 * 60 * 60 * 24 * 7,
+        }/*
+        cookie: {
+            secure: false,       // ⚠️ en local debe ser false
+            httpOnly: true,
+            sameSite: "none",    // 🔥 necesario para cross-site (diferente puerto)
+            maxAge: 1000 * 60 * 60 * 24 * 7,
         },
+        */
     }),
 );
 
@@ -649,6 +656,7 @@ app.post(API_URL + "/register", async (req, res) => {
 
 app.get(API_URL + "/me", (req, res) => {
     if (req.session && req.session.user) {
+        console.log(req.session.user);
         return res.json({ authenticated: true, user: req.session.user });
     }
 
@@ -706,7 +714,15 @@ app.post("/api/reviews", async (req, res) => {
 
 app.get("/api/reviews", async (req, res) => {
     try {
-        const { movieId, userId } = req.query;
+        let { movieId, userId } = req.query;
+
+        console.log("userId:" + userId);
+        if(req.session.user){
+            userId = req.session.user.id;
+        }
+        console.log("nuevo userId:" + userId);
+
+
 
         let filter = {};
         if (movieId) filter.movie_id = +movieId;
