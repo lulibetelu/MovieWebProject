@@ -564,13 +564,13 @@ app.get(API_URL + "/top-actors/:limit", async (req, res) => {
     }
 });
 
-app.get("/reviews", async (req, res) => {
+/*app.get("/reviews", async (req, res) =>{
     if (!req.session.user) {
         return res.status(401).send("No estás logueado");
     }
     const userId = req.session.user.id;
-    res.json({ userId });
-});
+    res.json({userId});
+});*/
 // ========== AUTH ==========
 // ruta que recibe la informacion del form
 app.post(API_URL + "/login", async (req, res) => {
@@ -688,7 +688,15 @@ app.post("/api/reviews", async (req, res) => {
             review: texto,
             created_at: new Date(),
         };
+        const log = {
+            user_id: +userId,
+            event_type: 'Dejaste una reseña acerca de ' + movieName,
+            entity_id: +movieId,
+            timestamp: new Date()
+        }
+
         await mdb.collection("reviews").insertOne(newReview);
+        await mdb.collection("user_log").insertOne(log);
         res.status(201).json({ message: "Reseña guardada" });
     } catch (err) {
         console.error(err);
@@ -698,7 +706,11 @@ app.post("/api/reviews", async (req, res) => {
 
 app.get("/api/reviews", async (req, res) => {
     try {
-        const { movieId, userId } = req.query;
+        let { movieId, userId } = req.query;
+
+        if(req.session.user){
+            userId = req.session.user.id;
+        }
 
         let filter = {};
         if (movieId) filter.movie_id = +movieId;
@@ -739,6 +751,7 @@ app.post("/api/rating", async (req, res) => {
     try {
         const { movie_id, user_id, movie_title, score } = req.body;
 
+
         if (!movie_id || !user_id || typeof score !== "number") {
             return res.status(400).json({ error: "Datos inválidos" });
         }
@@ -751,7 +764,16 @@ app.post("/api/rating", async (req, res) => {
             created_at: new Date(),
         };
 
+        const log = {
+            user_id: +user_id,
+            event_type: 'Calificaste ' + movie_title + ' con ' + score + ' estrellas',
+            entity_id: +movie_id,
+            timestamp: new Date()
+        }
+
         const result = await mdb.collection("rating").insertOne(doc);
+        const log_result = await mdb.collection("user_log").insertOne(log);
+
         res.json({ success: true, insertedId: result.insertedId });
     } catch (err) {
         console.error("❌ Error al insertar rating:", err);
@@ -790,27 +812,62 @@ app.post("/api/favorites", async (req, res) => {
         }
 
         if (favorite) {
+            const log = {
+                user_id: +user_id,
+                event_type: 'Guardaste ' + movie_title + ' en tus favoritos',
+                entity_id: +movie_id,
+                timestamp: new Date()
+            }
             // Insertar si no existe
             const existing = await col.findOne({
                 user_id: +user_id,
                 movie_id: +movie_id,
             });
             if (!existing) {
-                await col.insertOne({
-                    user_id: +user_id,
-                    movie_id: +movie_id,
-                    movie_title,
-                });
+                await col.insertOne({ user_id: +user_id, movie_id: +movie_id, movie_title });
+                await mdb.collection("user_log").insertOne(log);
             }
         } else {
             // Eliminar si se desactiva
+            const log = {
+                user_id: +user_id,
+                event_type: 'Eliminaste ' + movie_title + ' de tus favoritos',
+                entity_id: +movie_id,
+                timestamp: new Date()
+            }
             await col.deleteOne({ user_id: +user_id, movie_id: +movie_id });
+            await mdb.collection("user_log").insertOne(log);
         }
 
         res.json({ success: true });
     } catch (err) {
         console.error("❌ Error al guardar favorito:", err);
         res.status(500).json({ error: "Error al guardar favorito" });
+    }
+});
+
+app.get("/api/activity/:userId", async (req, res) => {
+    try {
+        let { userId } = req.params;
+        if(req.session.user){
+            userId = req.session.user.id;
+        }
+
+        const parsedId = Number(userId);
+        if (isNaN(parsedId)) {
+            return res.status(400).json({ error: "ID de usuario inválido" });
+        }
+
+        const activities = await mdb.collection("user_log")
+            .find({ user_id: parsedId })
+            .sort({ timestamp: -1 })
+            .limit(20)
+            .toArray();
+
+        res.json(activities);
+    } catch (error) {
+        console.error("Error al obtener la actividad:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
     }
 });
 
@@ -834,6 +891,7 @@ app.get(API_URL + "/status", async (req, res) => {
         res.status(500).json({ error: "Error al obtener estado" });
     }
 });
+
 
 app.listen(PORT, () => {
     if (API_MODE)

@@ -1,5 +1,6 @@
 ---
 import DetailLayout from "../../layouts/DetailLayout.astro";
+import RecentActivityCarousel from "../../components/reusables/RecentActivityCarousel"
 
 // Esta página debe ejecutarse en el cliente para poder enviar cookies al backend
 export const prerender = false;
@@ -74,7 +75,7 @@ export const prerender = false;
                                 id="profile-username"
                                 class="text-lg font-semibold"
                             >
-                                —
+                                -
                             </div>
                         </div>
                         <div>
@@ -86,6 +87,11 @@ export const prerender = false;
                     </div>
 
                     <div class="divider"></div>
+                    <section class="max-w-3xl mx-auto px-4 md:px-6 py-8 space-y-6">
+                        <div id="activity" class="mt-6">
+                            <RecentActivityCarousel client:load activities={[]} />
+                        </div>
+                    </section>
 
                     <div class="flex flex-col sm:flex-row gap-3">
                         <a href="/auth/logout" class="btn btn-error"
@@ -148,7 +154,10 @@ export const prerender = false;
                 errorText.textContent =
                     "Ocurrió un error al obtener tu perfil. Intentá nuevamente.";
             }
+
+
         }
+
 
         document.addEventListener("DOMContentLoaded", loadProfile);
     </script>
