@@ -112,19 +112,19 @@ app.get(API_URL + "/buscar", async (req, res) => {
 
     // Los placeholders en pg son $1, $2, etc.
     const queryDef = `
-      SELECT * 
+      SELECT *
       FROM (
         SELECT * FROM search_all($1, 1000000)
         UNION ALL
-        SELECT keyw.movie_id, keyw.title, 'movie'::TEXT AS type 
+        SELECT keyw.movie_id, keyw.title, 'movie'::TEXT AS type
         FROM search_movies_by_keyword($2) AS keyw
       ) AS combined
     OFFSET $3
       ;
-    ` // ILIKE es case-insensitive en Postgres
+    `; // ILIKE es case-insensitive en Postgres
     const values = [`%${searchTerm}%`, searchTerm, offset];
 
-    const queryMovies =`
+    const queryMovies = `
         (
             SELECT
                m.movie_id,
@@ -137,23 +137,21 @@ app.get(API_URL + "/buscar", async (req, res) => {
         SELECT keyw.movie_id, keyw.title
         FROM movies.search_movies_by_keyword($4) AS keyw
         LIMIT $2 OFFSET $3;
-    `
+    `;
     const movieValues = [`%${searchTerm}%`, limit, offset, searchTerm];
 
-    const queryActors =
-        `SELECT
+    const queryActors = `SELECT
             p.person_id,
             p.person_name
         FROM person p
         JOIN movie_cast mc ON mc.person_id = p.person_id
         WHERE p.person_name ILIKE $1
         GROUP BY p.person_id, p.person_name
-        LIMIT $2 OFFSET $3;`
+        LIMIT $2 OFFSET $3;`;
 
     const actorValues = [`%${searchTerm}%`, limit, offset];
 
-    const queryDirectors =
-        `SELECT
+    const queryDirectors = `SELECT
             p.person_id,
             p.person_name
         FROM person p
@@ -163,13 +161,12 @@ app.get(API_URL + "/buscar", async (req, res) => {
           AND mc.job = 'Director'
         GROUP BY p.person_id, p.person_name
         ORDER BY p.person_name
-        LIMIT $2 OFFSET $3;`
+        LIMIT $2 OFFSET $3;`;
     const directoresValues = [`%${searchTerm}%`, limit, offset];
 
     try {
         // Usar db.query que devuelve una promesa y acceder a .rows
         const pelis = (await db.query(queryMovies, movieValues)).rows;
-        console.log('ACA: ' + pelis.length);
         const actores = (await db.query(queryActors, actorValues)).rows;
 
         const dir = (await db.query(queryDirectors, directoresValues)).rows;
@@ -178,10 +175,9 @@ app.get(API_URL + "/buscar", async (req, res) => {
             movies: [],
             actors: [],
             directors: [],
-        }
+        };
 
         pelis.forEach((pelicula) => {
-            console.log("PELICULA: " + pelicula.title);
             searchInfo.movies.push({
                 name: pelicula.title,
                 id: pelicula.movie_id,
@@ -199,8 +195,8 @@ app.get(API_URL + "/buscar", async (req, res) => {
             searchInfo.directors.push({
                 id: director.person_id,
                 name: director.person_name,
-            })
-        })
+            });
+        });
 
         if (API_MODE) {
             res.json({
@@ -210,8 +206,6 @@ app.get(API_URL + "/buscar", async (req, res) => {
             });
             return;
         }
-
-
     } catch (err) {
         if (DEBUG) console.log(err);
         if (API_MODE)
@@ -570,14 +564,12 @@ app.get(API_URL + "/top-actors/:limit", async (req, res) => {
     }
 });
 
-app.get("/reviews", async (req, res) =>{
+app.get("/reviews", async (req, res) => {
     if (!req.session.user) {
-        console.log("no logueado");
         return res.status(401).send("No estás logueado");
     }
     const userId = req.session.user.id;
-    console.log(userId);
-    res.json({userId});
+    res.json({ userId });
 });
 // ========== AUTH ==========
 // ruta que recibe la informacion del form
@@ -725,34 +717,27 @@ app.get("/api/reviews", async (req, res) => {
     }
 });
 
-app.get("/api/rating", async (req,res)=>{
+app.get("/api/rating", async (req, res) => {
     try {
-        const {movieId, userId} = req.query;
+        const { movieId, userId } = req.query;
 
         let filter = {};
         if (movieId) filter.movie_id = +movieId;
         if (userId) filter.user_id = +userId;
 
-
-
-        const result = await mdb.collection('rating')
+        const result = await mdb
+            .collection("rating")
             .findOne(filter, { sort: { created_at: -1 } });
         res.json(result);
-
-    }catch(err){
-        console.log("wachooo algo fallo aca");
+    } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Error al obtener ratings" });
     }
-
-})
+});
 
 app.post("/api/rating", async (req, res) => {
-    console.log("hola");
     try {
         const { movie_id, user_id, movie_title, score } = req.body;
-        console.log("movie id" + movie_id);
-        console.log("user id" + user_id);
 
         if (!movie_id || !user_id || typeof score !== "number") {
             return res.status(400).json({ error: "Datos inválidos" });
@@ -763,7 +748,7 @@ app.post("/api/rating", async (req, res) => {
             movie_id: +movie_id,
             movie_title,
             score,
-            created_at:new Date()
+            created_at: new Date(),
         };
 
         const result = await mdb.collection("rating").insertOne(doc);
@@ -775,7 +760,6 @@ app.post("/api/rating", async (req, res) => {
 });
 
 app.post("/api/checkFavorites", async (req, res) => {
-
     try {
         const { user_id, movie_id } = req.body;
 
@@ -785,7 +769,7 @@ app.post("/api/checkFavorites", async (req, res) => {
 
         const fav = await mdb.collection("favorites").findOne({
             user_id: +user_id,
-            movie_id: +movie_id
+            movie_id: +movie_id,
         });
 
         res.json({ isFavorite: !!fav });
@@ -800,16 +784,23 @@ app.post("/api/favorites", async (req, res) => {
         const { user_id, movie_id, movie_title, favorite } = req.body;
 
         const col = mdb.collection("favorites");
-        if(!user_id){
+        if (!user_id) {
             res.status(500).json({ error: "Error al guardar favorito" });
             return;
         }
 
         if (favorite) {
             // Insertar si no existe
-            const existing = await col.findOne({ user_id: +user_id, movie_id: +movie_id });
+            const existing = await col.findOne({
+                user_id: +user_id,
+                movie_id: +movie_id,
+            });
             if (!existing) {
-                await col.insertOne({ user_id: +user_id, movie_id: +movie_id, movie_title });
+                await col.insertOne({
+                    user_id: +user_id,
+                    movie_id: +movie_id,
+                    movie_title,
+                });
             }
         } else {
             // Eliminar si se desactiva
@@ -823,8 +814,26 @@ app.post("/api/favorites", async (req, res) => {
     }
 });
 
+app.get(API_URL + "/status", async (req, res) => {
+    try {
+        // Mongo Test
+        const status = await mdb.admin().ping();
 
+        // Postgres Test
+        const pgStatus = await db.query("SELECT 1");
 
+        if (status.ok !== 1 || !pgStatus) {
+            res.json({
+                error: true,
+            });
+        }
+
+        res.json({ error: false });
+    } catch (err) {
+        console.error("❌ Error al obtener estado:", err);
+        res.status(500).json({ error: "Error al obtener estado" });
+    }
+});
 
 app.listen(PORT, () => {
     if (API_MODE)

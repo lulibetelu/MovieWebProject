@@ -2,36 +2,51 @@
 import DetailLayout from "../../layouts/DetailLayout.astro";
 export const prerender = false;
 import MovieReviews from "../../components/reusables/MovieReviews";
-import {API_URL} from "../../data/config";
+import { API_URL } from "../../data/config";
 
-const res = await (fetch(`${API_URL}/reviews`, {credentials: "include"}));
+const res = await fetch(`${API_URL}/reviews`, { credentials: "include" });
 const data = await res.json();
 ---
-<DetailLayout title="Tus reseñas">
-    <main class="min-h-[calc(100vh-64px)] bg-gradient-to-br from-black via-[#120200] to-[#1f0a00] text-gray-200">
-        <section class="relative max-w-7xl mx-auto py-16 px-6">
 
+<DetailLayout title="Tus reseñas">
+    <main
+        class="min-h-[calc(100vh-64px)] bg-gradient-to-br from-black via-[#120200] to-[#1f0a00] text-gray-200"
+    >
+        <section class="relative max-w-7xl mx-auto py-16 px-6">
             <!-- efecto decorativo de fondo -->
             <div class="absolute inset-0 overflow-hidden pointer-events-none">
-                <div class="absolute w-[700px] h-[700px] bg-orange-500/10 blur-[150px] rounded-full -top-40 -right-40 animate-pulse"></div>
-                <div class="absolute w-[500px] h-[500px] bg-red-600/10 blur-[120px] rounded-full bottom-0 -left-32 animate-pulse delay-200"></div>
+                <div
+                    class="absolute w-[700px] h-[700px] bg-orange-500/10 blur-[150px] rounded-full -top-40 -right-40 animate-pulse"
+                >
+                </div>
+                <div
+                    class="absolute w-[500px] h-[500px] bg-red-600/10 blur-[120px] rounded-full bottom-0 -left-32 animate-pulse delay-200"
+                >
+                </div>
             </div>
 
             <!-- encabezado -->
             <div class="relative text-center mb-14">
-                <h1 class="text-5xl font-extrabold tracking-tight text-white drop-shadow-[0_0_15px_#ff7b00]">
+                <h1
+                    class="text-5xl font-extrabold tracking-tight text-white drop-shadow-[0_0_15px_#ff7b00]"
+                >
                     Tus Reseñas
                 </h1>
                 <p class="mt-4 text-gray-400 text-lg max-w-2xl mx-auto">
                     Opiniones que dejaste sobre tus películas favoritas 🍿
                 </p>
                 <div class="mt-6 flex justify-center">
-                    <div class="h-1 w-24 bg-gradient-to-r from-orange-500 to-yellow-400 rounded-full shadow-[0_0_10px_#ff7b00]"></div>
+                    <div
+                        class="h-1 w-24 bg-gradient-to-r from-orange-500 to-yellow-400 rounded-full shadow-[0_0_10px_#ff7b00]"
+                    >
+                    </div>
                 </div>
             </div>
 
             <!-- caja principal -->
-            <div class="relative bg-[#0e0703]/60 border border-orange-500/30 rounded-3xl shadow-[0_0_40px_rgba(255,120,0,0.25)] p-8 backdrop-blur-md">
+            <div
+                class="relative bg-[#0e0703]/60 border border-orange-500/30 rounded-3xl shadow-[0_0_40px_rgba(255,120,0,0.25)] p-8 backdrop-blur-md"
+            >
                 <div class="flex justify-between items-center mb-8">
                     <h2 class="text-2xl font-semibold text-orange-400">
                         Reseñas del usuario
@@ -39,9 +54,12 @@ const data = await res.json();
                 </div>
 
                 <!-- componente react -->
-                <MovieReviews userId={data.userId} apiUrl={API_URL} client:load />
+                <MovieReviews
+                    userId={data.userId}
+                    apiUrl={API_URL}
+                    client:load
+                />
             </div>
         </section>
     </main>
 </DetailLayout>
-

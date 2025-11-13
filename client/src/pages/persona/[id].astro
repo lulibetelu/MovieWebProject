@@ -2,34 +2,46 @@
 import { API_URL } from "../../data/config";
 import DetailLayout from "../../layouts/DetailLayout.astro";
 import PersonImages from "../../components/TMDB_Images/PersonImages.jsx";
-import MovieImages from "../../components/TMDB_Images/MovieImages.jsx";
-
+import PersonTabs from "../../components/persona/PersonTabs.jsx";
 
 const { id } = Astro.params;
-const url = new URL(Astro.request.url);
-let order = url.searchParams.get("order") || "Popularity";
-let offsetAct = parseInt(url.searchParams.get("offsetAct")) || 0;
-let offsetDir = parseInt(url.searchParams.get("offsetDir")) || 0;
-let desc = url.searchParams.get("desc") || "t";
+let order = "Popularity";
+let offsetAct = 0;
+let offsetDir = 0;
+let desc = "t";
 
 export const prerender = false;
 
 let personData;
-const tmdbApiKey = import.meta.env.PUBLIC_TMDB_API_KEY;
 
 try {
-
-    const res = await fetch(`${API_URL}/persona/${id}?offsetAct=${offsetAct}&offsetDir=${offsetDir}&order=${order}&desc=${desc}`);
+    const res = await fetch(
+        `${API_URL}/persona/${id}?offsetAct=${offsetAct}&offsetDir=${offsetDir}&order=${order}&desc=${desc}`,
+    );
     if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
     }
-    const data = await res.json();
+    const data: any = await res.json();
     personData = data.personData ?? data;
 } catch (err) {
     personData = null;
 }
 
-
+if (!personData) {
+    personData = {
+        person_id: id,
+        person_name: "Persona no encontrada",
+        gender: "",
+        offsetAct: 0,
+        offsetDir: 0,
+        order,
+        ascOrDesc: "t",
+        actedMovies: [],
+        directedMovies: [],
+        totalActedMovies: 0,
+        totalDirectedMovies: 0,
+    };
+}
 ---
 
 <DetailLayout title={personData.person_name}>
@@ -42,8 +54,10 @@ try {
                     <figure
                         class="relative w-full h-96 bg-base-200 flex items-center justify-center rounded-xl overflow-hidden"
                     >
-                        <PersonImages data={{personName:personData.person_name
-                        }} client:load />
+                        <PersonImages
+                            data={{ personName: personData.person_name }}
+                            client:load
+                        />
                     </figure>
                     <div class="card-body">
                         <h2 class="card-title">{personData.person_name}</h2>
@@ -62,272 +76,11 @@ try {
 
             <!-- Películas -->
             <div class="w-2/3">
-                <div class="tabs tabs-lift w-full">
-                    <!-- TAB Actuadas -->
-                    <input
-                        type="radio"
-                        name="tabs"
-                        class="tab"
-                        aria-label="Películas Actuadas"
-                        checked={personData.actedMovies.length !== 0}
-                    />
-                    <div class="tab-content bg-base-100 border-base-300 p-6">
-                        {
-                            personData.actedMovies.length === 0 ? (
-                                <p>No actuó en ninguna película</p>
-                            ) : (
-                                <>
-                                    <div class="flex mb-4">
-                                        <a
-                                            href={`?offsetAct=${personData.offsetAct}&offsetDir=${personData.offsetDir}&order=${personData.order}&desc=${personData.ascOrDesc === "t" ? "f" : "t"}`}
-                                            class="btn mr-2"
-                                        >
-                                            {personData.ascOrDesc === "t"
-                                                ? "↓"
-                                                : "↑"}
-                                        </a>
-
-                                        <details class="dropdown">
-                                            <summary style="height:40px" class="btn btn-sm">
-                                                {personData.order}
-                                            </summary>
-                                            <ul class="menu dropdown-content bg-base-100 rounded-box z-10 w-60 p-2 shadow">
-                                                <li>
-                                                    <a
-                                                        href={`?offsetAct=${personData.offsetAct}&offsetDir=${personData.offsetDir}&order=Popularity&desc=${personData.ascOrDesc}`}
-                                                    >
-                                                        Popularity
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a
-                                                        href={`?offsetAct=${personData.offsetAct}&offsetDir=${personData.offsetDir}&order=Title&desc=${personData.ascOrDesc}`}
-                                                    >
-                                                        Title
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a
-                                                        href={`?offsetAct=${personData.offsetAct}&offsetDir=${personData.offsetDir}&order=Release_date&desc=${personData.ascOrDesc}`}
-                                                    >
-                                                        Release Date
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </details>
-                                    </div>
-
-                                    <div class="grid grid-cols-4 gap-6">
-                                        {personData.actedMovies.map((movie) => (
-                                                <a
-                                                        href={`/pelicula/${movie.movie_id}`}
-                                                >
-                                            <div class="card bg-base-100 hover:scale-105 transition-all shadow-sm hover:shadow-md duration-200">
-                                                <figure class="relative w-full h-70 rounded-xl overflow-hidden group cursor-pointer " >
-                                                    <!-- Imagen de fondo -->
-                                                    <!-- en el de dirigidas tmb esta el api key -->
-                                                    <MovieImages
-                                                            data={{ title: movie.title }}
-                                                            client:load
-                                                    />
-
-                                                    <!-- overlay oscuro -->
-                                                    <div
-                                                            class="absolute inset-0  transition-all duration-500 ease-in-out "
-                                                    ></div>
-
-                                                    <!-- Contenido -->
-                                                    <div
-                                                            class="absolute inset-0 flex flex-col justify-end p-4 text-white transition-all duration-500 ease-in-out"
-                                                    >
-                                                    </div>
-                                                </figure>
-
-                                                <div class="card-body p-4">
-                                                    <h2 class="card-title text-base">
-                                                            {movie.title} (
-                                                            {new Date(
-                                                                movie.release_date,
-                                                            ).getFullYear()}
-                                                            )
-                                                    </h2>
-                                                    <p>
-                                                        {movie.character_name}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                                    </a>
-                                        ))}
-                                    </div>
-                                    <!-- Paginado -->
-                                    <div class="join mt-6 flex justify-center">
-                                        {
-                                            personData.offsetAct === 0 || personData.offsetAct === undefined? (
-                                                    <button class="join-item btn">«</button>
-                                            ) : (
-                                                    <a
-                                                            href={`/persona/${personData.person_id}?offsetAct=${personData.offsetAct - 8}&offsetDir=${personData.offsetDir}&order=${personData.order}&desc=${personData.ascOrDesc}`}
-                                                            class="join-item btn"
-                                                    >
-                                                        «
-                                                    </a>
-                                            )
-                                        }
-                                        <button class="join-item btn"
-                                        >Page {personData.offsetAct / 8 + 1}</button
-                                        >
-                                        {
-                                            personData.offsetAct + 10 >=
-                                            personData.totalActedMovies ? (
-                                                    <button class="join-item btn">»</button>
-                                            ) : (
-                                                    <a
-                                                            href={`/persona/${personData.person_id}?offsetAct=${personData.offsetAct + 8}&offsetDir=${personData.offsetDir}&order=${personData.order}&desc=${personData.ascOrDesc}`}
-                                                            class="join-item btn"
-                                                    >
-                                                        »
-                                                    </a>
-                                            )
-                                        }
-                                    </div>
-                                </>
-                            )
-                        }
-                    </div>
-
-                    <!-- TAB Dirigidas -->
-                    <input
-                        type="radio"
-                        name="tabs"
-                        class="tab"
-                        aria-label="Películas Dirigidas"
-                        checked={personData.actedMovies.length === 0}
-                    />
-                    <div class="tab-content bg-base-100 border-base-300 p-6">
-                        {
-                            personData.directedMovies.length === 0 ? (
-                                <p>No dirigió ninguna película</p>
-                            ) : (
-                                <div class="flex mb-4">
-                                    <a
-                                            href={`?offsetAct=${personData.offsetAct}&offsetDir=${personData.offsetDir}&order=${personData.order}&desc=${personData.ascOrDesc === "t" ? "f" : "t"}`}
-                                            class="btn mr-2"
-                                    >
-                                        {personData.ascOrDesc === "t"
-                                            ? "↓"
-                                            : "↑"}
-                                    </a>
-
-                                    <details class="dropdown">
-                                        <summary style="height:40px" class="btn btn-sm">
-                                            {personData.order}
-                                        </summary>
-                                        <ul class="menu dropdown-content bg-base-100 rounded-box z-10 w-60 p-2 shadow">
-                                            <li>
-                                                <a
-                                                        href={`?offsetAct=${personData.offsetAct}&offsetDir=${personData.offsetDir}&order=Popularity&desc=${personData.ascOrDesc}`}
-                                                >
-                                                    Popularity
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a
-                                                        href={`?offsetAct=${personData.offsetAct}&offsetDir=${personData.offsetDir}&order=Title&desc=${personData.ascOrDesc}`}
-                                                >
-                                                    Title
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a
-                                                        href={`?offsetAct=${personData.offsetAct}&offsetDir=${personData.offsetDir}&order=Release_date&desc=${personData.ascOrDesc}`}
-                                                >
-                                                    Release Date
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </details>
-                                </div>
-
-                                <div class="grid grid-cols-4 gap-6">
-                                    {personData.directedMovies.map((movie) => (
-                                        <a
-                                                class="link link-hover"
-                                                href={`/pelicula/${movie.movie_id}`}
-                                        >
-                                            <div class="card bg-base-100 hover:scale-105 transition-all shadow-sm hover:shadow-md duration-200">
-
-                                                <figure class="relative w-full h-70 rounded-xl overflow-hidden group cursor-pointer ">
-
-                                                    <MovieImages data={{
-                                                        title: movie.title,
-                                                        apiKey: tmdbApiKey
-                                                    }} client:load />
-
-                                                    <!-- overlay oscuro -->
-                                                    <div
-                                                            class="absolute inset-0  transition-all duration-500 ease-in-out "
-                                                    ></div>
-
-                                                    <!-- Contenido -->
-                                                    <div
-                                                            class="absolute inset-0 flex flex-col justify-end p-4 text-white transition-all duration-500 ease-in-out"
-                                                    >
-                                                    </div>
-
-                                                </figure>
-
-                                                <div class="card-body p-4">
-                                                    <h2 class="card-title text-base">
-
-                                                            {movie.title} (
-                                                            {new Date(
-                                                                movie.release_date,
-                                                            ).getFullYear()}
-                                                            )
-
-                                                    </h2>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    ))}
-                                </div>
-
-                                <!-- Paginado -->
-                                    <div class="join mt-6 flex justify-center">
-                                        {
-                                            personData.offsetDir === 0 || personData.offsetDir === undefined? (
-                                                    <button class="join-item btn">«</button>
-                                            ) : (
-                                                    <a
-                                                            href={`/persona/${personData.person_id}?offsetAct=${personData.offsetAct}&offsetDir=${personData.offsetDir - 8}&order=${personData.order}&desc=${personData.ascOrDesc}`}
-                                                            class="join-item btn"
-                                                    >
-                                                        «
-                                                    </a>
-                                            )
-                                        }
-                                        <button class="join-item btn"
-                                        >Page {personData.offsetDir / 8 + 1}</button
-                                        >
-                                        {
-                                            personData.offsetDir + 10 >=
-                                            personData.totalActedMovies ? (
-                                                    <button class="join-item btn">»</button>
-                                            ) : (
-                                                    <a
-                                                            href={`/persona/${personData.person_id}?offsetAct=${personData.offsetAct}&offsetDir=${personData.offsetDir + 8}&order=${personData.order}&desc=${personData.ascOrDesc}`}
-                                                            class="join-item btn"
-                                                    >
-                                                        »
-                                                    </a>
-                                            )
-                                        }
-                                    </div>
-
-                            )
-                        }
-                    </div>
-                </div>
+                <PersonTabs
+                    client:only="react"
+                    personId={personData.person_id}
+                    initial={personData}
+                />
             </div>
         </div>
     </body>
