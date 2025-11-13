@@ -10,7 +10,9 @@ export default function RateMovie({ data }) {
         const fetchUserRating = async () => {
             try {
                 const res = await fetch(`${import.meta.env.PUBLIC_API_URL}/rating?movieId=${movieId}&userId=${userId}`);
-                if (!res.ok) throw new Error("Error en la respuesta del servidor");
+                if (!res.ok) {
+                    throw new Error("Error en la respuesta del servidor");
+                }
                 const data = await res.json();
                 if (data && data.score) setRating(data.score);
             } catch (err) {
@@ -93,6 +95,8 @@ export default function RateMovie({ data }) {
                                             }),
                                         });
                                         const data = await res.json();
+                                        if(!res.ok) window.location.assign(`${window.location.origin}/auth/login`);
+
                                         console.log("✅ Respuesta del servidor:", data);
                                     } catch (err) {
                                         console.error("❌ Error en el POST:", err);

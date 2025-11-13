@@ -388,7 +388,7 @@ try {
                                         e.target.reset();
                                         window.location.reload()
                                     } else {
-                                        alert('❌ Error: ' + result.error);
+                                        window.location.assign(`${window.location.origin}/auth/login`);
                                     }
                                 } catch (err) {
                                     console.error("Error en fetch:", err);
@@ -428,6 +428,7 @@ try {
                                 });
 
                                 const data = await res.json();
+
                                 setFavState(data.isFavorite === true);
                             } catch (err) {
                                 console.error("❌ Error al obtener favoritos:", err);
@@ -440,7 +441,7 @@ try {
                             setFavState(newState);
 
                             try {
-                                await fetch("http://localhost:3500/api/favorites", {
+                                const res = await fetch("http://localhost:3500/api/favorites", {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({
@@ -450,8 +451,11 @@ try {
                                         favorite: newState
                                     })
                                 });
+                                if(!res.ok){
+                                    window.location.assign(`${window.location.origin}/auth/login`);
+                                }
                             } catch (err) {
-                                console.error("❌ Error al guardar favorito:", err);
+                                window.location.assign(`${window.location.origin}/auth/login`);
                             }
                         });
 
