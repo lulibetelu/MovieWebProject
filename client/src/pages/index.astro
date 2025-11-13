@@ -57,7 +57,7 @@ export const prerender = true;
                 .slice(0, 5)
                 .map(([genre, movieGroup], idx) => (
                     <MoviesCarousel
-                        client:idle
+                        client:load
                         movieGroup={movieGroup}
                         title={genre}
                         idx={idx}
