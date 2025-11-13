@@ -892,6 +892,29 @@ app.get(API_URL + "/status", async (req, res) => {
     }
 });
 
+app.get("/api/favorites", async (req, res) => {
+    try {
+        const { userId } = req.query;
+
+        if (!userId) {
+            return res.status(400).json({ error: "Falta el parámetro userId" });
+        }
+
+        const col = mdb.collection("favorites");
+
+        // Buscamos todas las películas del usuario
+        const favorites = await col
+            .find({ user_id: +userId }) // casteo a número igual que en el POST
+            .toArray();
+
+        res.json(favorites);
+    } catch (err) {
+        console.error("❌ Error al obtener favoritos:", err);
+        res.status(500).json({ error: "Error al obtener los favoritos del usuario" });
+    }
+});
+
+
 
 app.listen(PORT, () => {
     if (API_MODE)
