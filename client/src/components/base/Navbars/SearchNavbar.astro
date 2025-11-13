@@ -10,9 +10,9 @@ const API_URL = import.meta.env.PUBLIC_API_URL;
 let error = null;
 
 try {
-    const res = await fetch(`${API_URL}/`);
-    await res.json();
-    error = false;
+    const res = await fetch(`${API_URL}/status`);
+    const data = await res.json();
+    error = data?.error;
 } catch (e) {
     error = true;
 }

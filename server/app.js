@@ -45,14 +45,7 @@ app.use(
             httpOnly: true,
             sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
             maxAge: 1000 * 60 * 60 * 24 * 7,
-        }/*
-        cookie: {
-            secure: false,       // ⚠️ en local debe ser false
-            httpOnly: true,
-            sameSite: "none",    // 🔥 necesario para cross-site (diferente puerto)
-            maxAge: 1000 * 60 * 60 * 24 * 7,
         },
-        */
     }),
 );
 
@@ -119,19 +112,19 @@ app.get(API_URL + "/buscar", async (req, res) => {
 
     // Los placeholders en pg son $1, $2, etc.
     const queryDef = `
-      SELECT * 
+      SELECT *
       FROM (
         SELECT * FROM search_all($1, 1000000)
         UNION ALL
-        SELECT keyw.movie_id, keyw.title, 'movie'::TEXT AS type 
+        SELECT keyw.movie_id, keyw.title, 'movie'::TEXT AS type
         FROM search_movies_by_keyword($2) AS keyw
       ) AS combined
     OFFSET $3
       ;
-    ` // ILIKE es case-insensitive en Postgres
+    `; // ILIKE es case-insensitive en Postgres
     const values = [`%${searchTerm}%`, searchTerm, offset];
 
-    const queryMovies =`
+    const queryMovies = `
         (
             SELECT
                m.movie_id,
@@ -144,23 +137,21 @@ app.get(API_URL + "/buscar", async (req, res) => {
         SELECT keyw.movie_id, keyw.title
         FROM movies.search_movies_by_keyword($4) AS keyw
         LIMIT $2 OFFSET $3;
-    `
+    `;
     const movieValues = [`%${searchTerm}%`, limit, offset, searchTerm];
 
-    const queryActors =
-        `SELECT
+    const queryActors = `SELECT
             p.person_id,
             p.person_name
         FROM person p
         JOIN movie_cast mc ON mc.person_id = p.person_id
         WHERE p.person_name ILIKE $1
         GROUP BY p.person_id, p.person_name
-        LIMIT $2 OFFSET $3;`
+        LIMIT $2 OFFSET $3;`;
 
     const actorValues = [`%${searchTerm}%`, limit, offset];
 
-    const queryDirectors =
-        `SELECT
+    const queryDirectors = `SELECT
             p.person_id,
             p.person_name
         FROM person p
@@ -170,7 +161,7 @@ app.get(API_URL + "/buscar", async (req, res) => {
           AND mc.job = 'Director'
         GROUP BY p.person_id, p.person_name
         ORDER BY p.person_name
-        LIMIT $2 OFFSET $3;`
+        LIMIT $2 OFFSET $3;`;
     const directoresValues = [`%${searchTerm}%`, limit, offset];
 
     try {
@@ -184,7 +175,7 @@ app.get(API_URL + "/buscar", async (req, res) => {
             movies: [],
             actors: [],
             directors: [],
-        }
+        };
 
         pelis.forEach((pelicula) => {
             searchInfo.movies.push({
@@ -204,8 +195,8 @@ app.get(API_URL + "/buscar", async (req, res) => {
             searchInfo.directors.push({
                 id: director.person_id,
                 name: director.person_name,
-            })
-        })
+            });
+        });
 
         if (API_MODE) {
             res.json({
@@ -215,8 +206,6 @@ app.get(API_URL + "/buscar", async (req, res) => {
             });
             return;
         }
-
-
     } catch (err) {
         if (DEBUG) console.log(err);
         if (API_MODE)
@@ -324,8 +313,12 @@ app.get(API_URL + "/pelicula/:id", async (req, res) => {
 app.get(API_URL + "/persona/:id", async (req, res) => {
     const personID = req.params.id;
 
-    const offset = req.query.offset
-        ? Math.max(parseInt(req.query.offset), 0)
+    const offsetAct = req.query.offsetAct
+        ? Math.max(parseInt(req.query.offsetAct), 0)
+        : 0;
+
+    const offsetDir = req.query.offsetDir
+        ? Math.max(parseInt(req.query.offsetDir), 0)
         : 0;
 
     const AscOrDesc = req.query.desc === "f" ? "ASC" : "DESC";
@@ -366,8 +359,8 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
     `;
 
     try {
-        const actors = (await db.query(actorQuery, [personID, offset])).rows;
-        const directors = (await db.query(directorQuery, [personID, offset]))
+        const actors = (await db.query(actorQuery, [personID, offsetAct])).rows;
+        const directors = (await db.query(directorQuery, [personID, offsetDir]))
             .rows;
 
         if (actors.length === 0 && directors.length === 0) {
@@ -381,7 +374,8 @@ app.get(API_URL + "/persona/:id", async (req, res) => {
                     ? directors[0].person_name
                     : actors[0].person_name,
             gender: actors.length === 0 ? "Male" : actors[0].gender,
-            offset: offset,
+            offsetAct: offsetAct,
+            offsetDir: offsetDir,
             order: req.query.order,
             ascOrDesc: AscOrDesc === "DESC" ? "t" : "f",
             actedMovies: [],
@@ -572,7 +566,6 @@ app.get(API_URL + "/top-actors/:limit", async (req, res) => {
 
 /*app.get("/reviews", async (req, res) =>{
     if (!req.session.user) {
-        console.log("no logueado");
         return res.status(401).send("No estás logueado");
     }
     const userId = req.session.user.id;
@@ -656,11 +649,9 @@ app.post(API_URL + "/register", async (req, res) => {
 
 app.get(API_URL + "/me", (req, res) => {
     if (req.session && req.session.user) {
-        console.log("holaaaa" + req.session.user);
-        res.json({ authenticated: true, user: req.session.user });
-        return;
+        return res.json({ authenticated: true, user: req.session.user });
     }
-    console.log("entre al else");
+
     res.json({ authenticated: false, user: null });
 });
 
@@ -738,27 +729,23 @@ app.get("/api/reviews", async (req, res) => {
     }
 });
 
-app.get("/api/rating", async (req,res)=>{
+app.get("/api/rating", async (req, res) => {
     try {
-        const {movieId, userId} = req.query;
+        const { movieId, userId } = req.query;
 
         let filter = {};
         if (movieId) filter.movie_id = +movieId;
         if (userId) filter.user_id = +userId;
 
-
-
-        const result = await mdb.collection('rating')
+        const result = await mdb
+            .collection("rating")
             .findOne(filter, { sort: { created_at: -1 } });
         res.json(result);
-
-    }catch(err){
-        console.log("wachooo algo fallo aca");
+    } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Error al obtener ratings" });
     }
-
-})
+});
 
 app.post("/api/rating", async (req, res) => {
     try {
@@ -774,7 +761,7 @@ app.post("/api/rating", async (req, res) => {
             movie_id: +movie_id,
             movie_title,
             score,
-            created_at:new Date()
+            created_at: new Date(),
         };
 
         const log = {
@@ -795,7 +782,6 @@ app.post("/api/rating", async (req, res) => {
 });
 
 app.post("/api/checkFavorites", async (req, res) => {
-
     try {
         const { user_id, movie_id } = req.body;
 
@@ -805,7 +791,7 @@ app.post("/api/checkFavorites", async (req, res) => {
 
         const fav = await mdb.collection("favorites").findOne({
             user_id: +user_id,
-            movie_id: +movie_id
+            movie_id: +movie_id,
         });
 
         res.json({ isFavorite: !!fav });
@@ -820,7 +806,7 @@ app.post("/api/favorites", async (req, res) => {
         const { user_id, movie_id, movie_title, favorite } = req.body;
 
         const col = mdb.collection("favorites");
-        if(!user_id){
+        if (!user_id) {
             res.status(500).json({ error: "Error al guardar favorito" });
             return;
         }
@@ -833,7 +819,10 @@ app.post("/api/favorites", async (req, res) => {
                 timestamp: new Date()
             }
             // Insertar si no existe
-            const existing = await col.findOne({ user_id: +user_id, movie_id: +movie_id });
+            const existing = await col.findOne({
+                user_id: +user_id,
+                movie_id: +movie_id,
+            });
             if (!existing) {
                 await col.insertOne({ user_id: +user_id, movie_id: +movie_id, movie_title });
                 await mdb.collection("user_log").insertOne(log);
@@ -879,6 +868,27 @@ app.get("/api/activity/:userId", async (req, res) => {
     } catch (error) {
         console.error("Error al obtener la actividad:", error);
         res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+
+app.get(API_URL + "/status", async (req, res) => {
+    try {
+        // Mongo Test
+        const status = await mdb.admin().ping();
+
+        // Postgres Test
+        const pgStatus = await db.query("SELECT 1");
+
+        if (status.ok !== 1 || !pgStatus) {
+            res.json({
+                error: true,
+            });
+        }
+
+        res.json({ error: false });
+    } catch (err) {
+        console.error("❌ Error al obtener estado:", err);
+        res.status(500).json({ error: "Error al obtener estado" });
     }
 });
 
