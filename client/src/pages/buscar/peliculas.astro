@@ -10,7 +10,6 @@ export const prerender = false;
 const searchQuery = Astro.url.searchParams.get("q") || "";
 const click = Astro.url.searchParams.get("c") || "0";
 
-
 if (!searchQuery) return Astro.redirect("/", 302);
 
 let results;
@@ -23,11 +22,10 @@ try {
         `${API_URL}/buscar?q=${encodeURIComponent(searchQuery)}&limit=20&pagina=${page}`,
     );
     const data = await res.json();
-    results = data.searchInfo?? data;
+    results = data.searchInfo ?? data;
 } catch (e) {
     console.error(e);
 }
-
 
 // Redirección temprana — sin renderizar todavía
 const movies = results?.movies ?? [];
@@ -53,8 +51,8 @@ const redirects = [
     },
     { condition: true, path: `/buscar/notfound?q=${searchQuery}` },
 ];
-if (results.movies === 0 && click === "0") {
 
+if (movies.length === 0 && click == "0") {
     for (const { condition, path } of redirects) {
         if (condition) {
             return Astro.redirect(path, 307);
@@ -88,29 +86,27 @@ const hasMore = movies.length >= 18;
             <div class="join mt-6 flex justify-center">
                 {
                     page === 1 ? (
-                            <button class="join-item btn">«</button>
+                        <button class="join-item btn">«</button>
                     ) : (
-                            <a
-                                    href={`/buscar/peliculas?q=${encodeURIComponent(searchQuery)}&limit=20&pagina=${page-1}`}
-                                    class="join-item btn"
-                            >
-                                «
-                            </a>
+                        <a
+                            href={`/buscar/peliculas?q=${encodeURIComponent(searchQuery)}&limit=20&pagina=${page - 1}`}
+                            class="join-item btn"
+                        >
+                            «
+                        </a>
                     )
                 }
-                <button class="join-item btn"
-                >Página {page}</button
-                >
+                <button class="join-item btn">Página {page}</button>
                 {
                     !hasMore ? (
-                            <button class="join-item btn">»</button>
+                        <button class="join-item btn">»</button>
                     ) : (
-                            <a
-                                    href={`/buscar/peliculas?q=${encodeURIComponent(searchQuery)}&limit=20&pagina=${page+1}`}
-                                    class="join-item btn"
-                            >
-                                »
-                            </a>
+                        <a
+                            href={`/buscar/peliculas?q=${encodeURIComponent(searchQuery)}&limit=20&pagina=${page + 1}`}
+                            class="join-item btn"
+                        >
+                            »
+                        </a>
                     )
                 }
             </div>
