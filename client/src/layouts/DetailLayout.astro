@@ -18,7 +18,9 @@ try {
     });
     if (res.ok) {
         const data = await res.json();
-        if (data?.authenticated) user = data.user;
+        if (data?.authenticated) {
+            user = data.user;
+        }
     }
 } catch (e) {
     // Ignorar errores de red/SSR, el cliente seguirá mostrando estado no logueado

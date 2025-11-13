@@ -570,14 +570,14 @@ app.get(API_URL + "/top-actors/:limit", async (req, res) => {
     }
 });
 
-app.get("/reviews", async (req, res) =>{
+/*app.get("/reviews", async (req, res) =>{
     if (!req.session.user) {
         console.log("no logueado");
         return res.status(401).send("No estás logueado");
     }
     const userId = req.session.user.id;
     res.json({userId});
-});
+});*/
 // ========== AUTH ==========
 // ruta que recibe la informacion del form
 app.post(API_URL + "/login", async (req, res) => {
@@ -656,10 +656,11 @@ app.post(API_URL + "/register", async (req, res) => {
 
 app.get(API_URL + "/me", (req, res) => {
     if (req.session && req.session.user) {
-        console.log(req.session.user);
-        return res.json({ authenticated: true, user: req.session.user });
+        console.log("holaaaa" + req.session.user);
+        res.json({ authenticated: true, user: req.session.user });
+        return;
     }
-
+    console.log("entre al else");
     res.json({ authenticated: false, user: null });
 });
 
@@ -716,13 +717,9 @@ app.get("/api/reviews", async (req, res) => {
     try {
         let { movieId, userId } = req.query;
 
-        console.log("userId:" + userId);
         if(req.session.user){
             userId = req.session.user.id;
         }
-        console.log("nuevo userId:" + userId);
-
-
 
         let filter = {};
         if (movieId) filter.movie_id = +movieId;

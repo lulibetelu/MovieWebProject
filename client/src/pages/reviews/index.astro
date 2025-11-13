@@ -10,12 +10,34 @@ export const prerender = false;
 const meRes = await fetch(`${API_URL}/me`, { credentials: "include" });
 const meData = await meRes.json();
 
-let userId = null;
-console.log(meData);
-if (meData?.authenticated) {
-    userId = meData;
+/*let userId = null;
+try{
+    console.log(meData);
+    if (meData?.authenticated) {
+        userId = meData;
+    }
+    console.log("Alto user id: " +  userId);
+}catch(err){
+    //solito
+}*/
+
+let user = null;
+try {
+    const cookieHeader = Astro.request.headers.get("cookie") ?? "";
+    const res = await fetch(`${API_URL}/me`, {
+        headers: { cookie: cookieHeader },
+    });
+    if (res.ok) {
+        const data = await res.json();
+        if (data?.authenticated) {
+            user = data.user;
+        }
+    }
+} catch (e) {
+    // Ignorar errores de red/SSR, el cliente seguirá mostrando estado no logueado
 }
-console.log("Alto user id: " +  userId);
+
+
 ---
 <DetailLayout title="Tus reseñas">
     <main class="min-h-[calc(100vh-64px)] bg-gradient-to-br from-black via-[#120200] to-[#1f0a00] text-gray-200">
@@ -49,7 +71,7 @@ console.log("Alto user id: " +  userId);
                 </div>
 
                 <!-- componente react -->
-                <MovieReviews movieId={undefined} userId={userId} apiUrl={API_URL} client:load />
+                <MovieReviews movieId={undefined} userId={user.id} apiUrl={API_URL} client:load />
             </div>
         </section>
     </main>
