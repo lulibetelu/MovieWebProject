@@ -1,11 +1,71 @@
 ---
-
 import DetailLayout from "../../layouts/DetailLayout.astro";
+import FavoriteMovies from "../../components/reusables/FavoriteMovies";
+import { API_URL } from "../../data/config";
 export const prerender = false;
+
+let user = null;
+try {
+    const cookieHeader = Astro.request.headers.get("cookie") ?? "";
+    const res = await fetch(`${API_URL}/me`, {
+        headers: { cookie: cookieHeader },
+    });
+    if (res.ok) {
+        const data = await res.json();
+        if (data?.authenticated) {
+            user = data.user;
+        }
+    }
+} catch (e) {
+    // ignorar errores SSR
+}
 ---
+
 <DetailLayout title="Tus favoritos">
-    <main>
-        <h1> Tus favoritos</h1>
+    <main
+            class="min-h-[calc(100vh-64px)] bg-gradient-to-br from-black via-[#120200] to-[#1f0a00] text-gray-200"
+    >
+        <section class="relative max-w-7xl mx-auto py-16 px-6">
+            <!-- efectos de fondo -->
+            <div class="absolute inset-0 overflow-hidden pointer-events-none">
+                <div
+                        class="absolute w-[700px] h-[700px] bg-orange-500/10 blur-[150px] rounded-full -top-40 -right-40 animate-pulse"
+                ></div>
+                <div
+                        class="absolute w-[500px] h-[500px] bg-red-600/10 blur-[120px] rounded-full bottom-0 -left-32 animate-pulse delay-200"
+                ></div>
+            </div>
+
+            <!-- encabezado -->
+            <div class="relative text-center mb-14">
+                <h1
+                        class="text-5xl font-extrabold tracking-tight text-white drop-shadow-[0_0_15px_#ff7b00]"
+                >
+                    Tus Favoritos
+                </h1>
+                <p class="mt-4 text-gray-400 text-lg max-w-2xl mx-auto">
+                    Películas que guardaste como tus favoritas 🎬
+                </p>
+                <div class="mt-6 flex justify-center">
+                    <div
+                            class="h-1 w-24 bg-gradient-to-r from-orange-500 to-yellow-400 rounded-full shadow-[0_0_10px_#ff7b00]"
+                    ></div>
+                </div>
+            </div>
+
+            <!-- contenedor principal -->
+            <div
+                    class="relative bg-[#0e0703]/60 border border-orange-500/30 rounded-3xl shadow-[0_0_40px_rgba(255,120,0,0.25)] p-8 backdrop-blur-md"
+            >
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-2xl font-semibold text-orange-400">
+                        Tus películas favoritas
+                    </h2>
+                </div>
+
+                <!-- componente react -->
+                <FavoriteMovies userId={user?.id} apiUrl={API_URL} client:load />
+            </div>
+        </section>
     </main>
 </DetailLayout>
-

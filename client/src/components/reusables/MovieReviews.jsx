@@ -23,40 +23,44 @@ export default function MovieReviews({ movieId, userId, apiUrl }) {
         fetchReviews();
     }, [movieId, userId]);
 
-    if (loading) return <p className="text-center">Cargando reseñas...</p>;
+    if (loading)
+        return (
+            <div className="flex justify-center items-center py-16 gap-3 text-orange-300">
+                <span className="loading loading-spinner loading-lg"></span>
+                <span className="text-lg">Cargando reseñas...</span>
+            </div>
+        );
+
     if (reviews.length === 0)
         return (
-            <p className="text-center opacity-70">No hay reseñas todavía.</p>
+            <p className="text-center opacity-70 py-10 text-gray-400">
+                No hay reseñas todavía.
+            </p>
         );
 
     return (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 px-4 md:px-0">
             {reviews.map((review, index) => (
-                <div key={index} className="card card-dash bg-base-100 w-90">
-                    <div className="card-body">
-                        <h2 className="card-title">
+                <div
+                    key={index}
+                    className="group relative bg-[#1a0a05]/60 border border-orange-500/20 rounded-2xl p-6 shadow-[0_0_25px_rgba(255,120,0,0.15)] hover:shadow-[0_0_40px_rgba(255,120,0,0.3)] hover:border-orange-400/50 transition-all duration-300 backdrop-blur-sm"
+                >
+                    {/* Brillo animado */}
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-tr from-orange-500/10 via-transparent to-transparent rounded-2xl"></div>
+
+                    {/* Contenido */}
+                    <div className="relative z-10 space-y-3">
+                        <h2 className="text-xl font-bold text-orange-400 drop-shadow-[0_0_10px_rgba(255,150,0,0.3)]">
                             {userId ? review.movie_title : review.username}
                         </h2>
-                        <p>{review.review}</p>
-                        <div className="card-actions justify-end">
-                            <button className="btn">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth="2.5"
-                                    stroke="currentColor"
-                                    className="size-[1.2em]"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
-                                    />
-                                </svg>
-                                Like
-                            </button>
-                        </div>
+                        <p className="text-gray-300 leading-relaxed line-clamp-5">
+                            “{review.review}”
+                        </p>
+                        {review.created_at && (
+                            <p className="text-sm text-gray-500 italic">
+                                {new Date(review.created_at).toLocaleDateString()}
+                            </p>
+                        )}
                     </div>
                 </div>
             ))}

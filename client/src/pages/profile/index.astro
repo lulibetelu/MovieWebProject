@@ -1,119 +1,124 @@
 ---
 import DetailLayout from "../../layouts/DetailLayout.astro";
-import RecentActivityCarousel from "../../components/reusables/RecentActivityCarousel"
+import RecentActivityCarousel from "../../components/reusables/RecentActivityCarousel";
 
-// Esta página debe ejecutarse en el cliente para poder enviar cookies al backend
 export const prerender = false;
 ---
 
-<DetailLayout>
-    <main class="min-h-[calc(100vh-64px)] bg-base-200">
-        <section class="max-w-3xl mx-auto px-4 md:px-6 py-8 space-y-6">
-            <div
-                class="card bg-base-100 border border-primary/20 shadow-md shadow-primary/10"
-            >
-                <div class="card-body">
-                    <h1 class="card-title text-2xl md:text-3xl">Perfil</h1>
-                    <p class="text-base-content/70">Información de tu cuenta</p>
+<DetailLayout title="Perfil">
+    <main
+            class="min-h-[calc(100vh-64px)] bg-gradient-to-br from-black via-[#120200] to-[#1f0a00] text-gray-200"
+    >
+        <section class="relative max-w-5xl mx-auto py-16 px-6">
+            <!-- Efecto de fondo decorativo -->
+            <div class="absolute inset-0 overflow-hidden pointer-events-none">
+                <div
+                        class="absolute w-[700px] h-[700px] bg-orange-500/10 blur-[150px] rounded-full -top-40 -right-40 animate-pulse"
+                ></div>
+                <div
+                        class="absolute w-[500px] h-[500px] bg-red-600/10 blur-[120px] rounded-full bottom-0 -left-32 animate-pulse delay-200"
+                ></div>
+            </div>
+
+            <!-- Encabezado -->
+            <div class="relative text-center mb-14">
+                <h1
+                        class="text-5xl font-extrabold tracking-tight text-white drop-shadow-[0_0_15px_#ff7b00]"
+                >
+                    Perfil
+                </h1>
+                <p class="mt-4 text-gray-400 text-lg max-w-2xl mx-auto">
+                    Información de tu cuenta y tu actividad reciente 🍿
+                </p>
+                <div class="mt-6 flex justify-center">
+                    <div
+                            class="h-1 w-24 bg-gradient-to-r from-orange-500 to-yellow-400 rounded-full shadow-[0_0_10px_#ff7b00]"
+                    ></div>
                 </div>
             </div>
 
+            <!-- Contenedor principal -->
             <div
-                id="loading"
-                class="card bg-base-100 border border-base-300 shadow-sm"
+                    class="relative bg-[#0e0703]/60 border border-orange-500/30 rounded-3xl shadow-[0_0_40px_rgba(255,120,0,0.25)] p-8 backdrop-blur-md space-y-8"
             >
-                <div class="card-body">
-                    <div class="flex items-center gap-3">
-                        <span
-                            class="loading loading-spinner loading-md text-primary"
-                        ></span>
-                        <span>Cargando perfil...</span>
-                    </div>
+                <!-- Estado: cargando -->
+                <div
+                        id="loading"
+                        class="flex justify-center items-center py-20 gap-3 text-orange-300"
+                >
+                    <span class="loading loading-spinner loading-lg"></span>
+                    <span class="text-lg">Cargando perfil...</span>
                 </div>
-            </div>
 
-            <div
-                id="error"
-                class="card bg-base-100 border border-error/30 shadow-sm hidden"
-            >
-                <div class="card-body">
-                    <div class="alert alert-error">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-6 w-6 shrink-0 stroke-current"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4m0 4h.01"
-                            ></path>
-                        </svg>
-                        <span id="error-text"
-                            >No se pudo cargar el perfil. Reintentá más tarde.</span
-                        >
-                    </div>
-                    <div class="card-actions justify-end">
-                        <a href="/" class="btn btn-outline">Volver al inicio</a>
-                    </div>
-                </div>
-            </div>
-
-            <div
-                id="profile"
-                class="card bg-base-100 border border-base-300 shadow-sm hidden"
-            >
-                <div class="card-body space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <div class="text-sm text-base-content/60">
-                                Usuario
-                            </div>
-                            <div
-                                id="profile-username"
-                                class="text-lg font-semibold"
-                            >
-                                -
-                            </div>
-                        </div>
-                        <div>
-                            <div class="text-sm text-base-content/60">
-                                Email
-                            </div>
-                            <div id="profile-email" class="text-lg">—</div>
-                        </div>
-                    </div>
-
-                    <div class="divider"></div>
-                    <section class="max-w-3xl mx-auto px-4 md:px-6 py-8 space-y-6">
-                        <div id="activity" class="mt-6">
-                            <RecentActivityCarousel client:load activities={[]} />
-                        </div>
-                    </section>
-
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <a href="/auth/logout" class="btn btn-error"
-                            >Cerrar sesión</a
-                        >
-                        <a href="/" class="btn btn-ghost">Ir al inicio</a>
-                    </div>
-                </div>
-            </div>
-
-            <noscript>
-                <div class="alert alert-warning">
-                    <span
-                        >Necesitás habilitar JavaScript para ver tu perfil.</span
+                <!-- Estado: error -->
+                <div id="error" class="hidden text-center text-red-400 py-6">
+                    <p id="error-text" class="mb-4">
+                        No se pudo cargar el perfil. Reintentá más tarde.
+                    </p>
+                    <a href="/" class="btn btn-outline btn-warning"
+                    >Volver al inicio</a
                     >
                 </div>
-            </noscript>
+
+                <!-- Perfil -->
+                <div id="profile" class="hidden space-y-8">
+                    <!-- Datos del usuario -->
+                    <div
+                            class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-[#1a0a05]/70 border border-orange-500/20 rounded-2xl p-6 shadow-inner"
+                    >
+                        <div>
+                            <div class="text-sm text-gray-400">Usuario</div>
+                            <div
+                                    id="profile-username"
+                                    class="text-xl font-semibold text-orange-300"
+                            >
+                                —
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-400">Email</div>
+                            <div
+                                    id="profile-email"
+                                    class="text-xl font-semibold text-orange-300"
+                            >
+                                —
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actividad reciente -->
+                    <div
+                            class="bg-[#1a0a05]/70 border border-orange-500/20 rounded-2xl p-6 shadow-inner"
+                    >
+                        <h2
+                                class="text-2xl font-semibold text-orange-400 mb-6 text-center"
+                        >
+                            Actividad reciente
+                        </h2>
+                        <RecentActivityCarousel client:load activities={[]} />
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                        <a
+                                href="/auth/logout"
+                                class="btn bg-red-600 hover:bg-red-700 border-none text-white px-6"
+                        >
+                            Cerrar sesión
+                        </a>
+                        <a
+                                href="/"
+                                class="btn btn-outline border-orange-400 text-orange-400 hover:bg-orange-500/10"
+                        >
+                            Ir al inicio
+                        </a>
+                    </div>
+                </div>
+            </div>
         </section>
     </main>
 
     <script>
-        // @ts-nocheck
         const API_URL = "http://localhost:3500/api";
         async function loadProfile() {
             const loading = document.getElementById("loading");
@@ -125,22 +130,16 @@ export const prerender = false;
 
             try {
                 const res = await fetch(`${API_URL}/me`, {
-                    method: "GET",
                     credentials: "include",
                 });
+                const data = await res.json();
 
-                const data = await res.json().catch(() => null);
-
-                if (!res.ok || !data || !data.authenticated) {
-                    // Si no está autenticado, redirigimos a login
-                    const redirectTo = encodeURIComponent(
-                        window.location.pathname,
-                    );
+                if (!res.ok || !data.authenticated) {
+                    const redirectTo = encodeURIComponent(window.location.pathname);
                     window.location.href = `/auth/login?redirect=${redirectTo}`;
                     return;
                 }
 
-                // Mostrar datos
                 usernameEl.textContent = data.user?.username || "—";
                 emailEl.textContent = data.user?.email || "—";
 
@@ -154,10 +153,7 @@ export const prerender = false;
                 errorText.textContent =
                     "Ocurrió un error al obtener tu perfil. Intentá nuevamente.";
             }
-
-
         }
-
 
         document.addEventListener("DOMContentLoaded", loadProfile);
     </script>

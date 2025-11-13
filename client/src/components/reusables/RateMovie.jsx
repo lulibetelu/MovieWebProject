@@ -17,7 +17,6 @@ export default function RateMovie({ data }) {
                 console.warn("⚠️ No se pudo obtener el rating previo:", err.message);
             }
         };
-
         fetchUserRating();
     }, [movieId, userId]);
 
@@ -25,10 +24,10 @@ export default function RateMovie({ data }) {
         <>
             <button
                 onClick={() => setOpen(true)}
-                className="flex items-center gap-2 text-blue-400 hover:text-blue-500 transition"
+                className="flex items-center gap-2 bg-gradient-to-r from-yellow-600/40 to-yellow-400/30 border border-yellow-400/50 px-4 py-2 rounded-lg text-yellow-300 hover:from-yellow-500/60 hover:to-yellow-300/40 hover:text-yellow-100 shadow-[0_0_10px_rgba(255,200,0,0.3)] transition-all duration-300"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.75.75 0 011.04 0l2.12 2.12 2.83-.41a.75.75 0 01.85.85l-.41 2.83 2.12 2.12a.75.75 0 010 1.06l-2.12 2.12.41 2.83a.75.75 0 01-.85.85l-2.83-.41-2.12 2.12a.75.75 0 01-1.06 0l-2.12-2.12-2.83.41a.75.75 0 01-.85-.85l.41-2.83-2.12-2.12a.75.75 0 010-1.06l2.12-2.12-.41-2.83a.75.75 0 01.85-.85l2.83.41 2.12-2.12z" />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5 text-yellow-300 animate-pulse">
+                    <path d="M12 2l2.9 6.3L22 9.2l-5 4.9L18.3 22 12 18.5 5.7 22l1-7.9-5-4.9 7.1-1L12 2z" />
                 </svg>
                 <span className="font-semibold">Rate</span>
             </button>
@@ -36,8 +35,6 @@ export default function RateMovie({ data }) {
             {open && (
                 <dialog open className="modal modal-bottom sm:modal-middle">
                     <div className="modal-box bg-base-200 text-base-content relative">
-
-                        {/* 🔹 Botón de cierre arriba a la derecha */}
                         <button
                             onClick={() => setOpen(false)}
                             className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition"
@@ -84,7 +81,6 @@ export default function RateMovie({ data }) {
 
                             <button
                                 onClick={async () => {
-                                    console.log(`Le diste ${rating}/10 a ${movieTitle}`);
                                     try {
                                         const res = await fetch(`${import.meta.env.PUBLIC_API_URL}/rating`, {
                                             method: "POST",
@@ -103,9 +99,9 @@ export default function RateMovie({ data }) {
                                     }
                                     setOpen(false);
                                 }}
-                                className="btn btn-neutral w-full"
+                                className="btn bg-yellow-500/30 hover:bg-yellow-500/60 border border-yellow-400/40 text-yellow-200 font-semibold w-full"
                             >
-                                Rate
+                                Confirmar
                             </button>
                         </div>
                     </div>
