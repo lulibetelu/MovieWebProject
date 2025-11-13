@@ -25,7 +25,7 @@ const MoviesCarousel = ({ movieGroup = [], title = "", idx = 0 }) => {
                                 {mGroup.map((movies, oIdx) => {
                                     return (
                                         <div
-                                            className="carousel-item w-full flex justify-center gap-4"
+                                            className="carousel-item w-full hover:scale-105 transition-all flex justify-center gap-4"
                                             id={`item-${idx}`}
                                             key={`group-${idx}-${oIdx}`}
                                         >
